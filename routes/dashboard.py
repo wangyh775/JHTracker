@@ -60,7 +60,9 @@ def dashboard():
     from datetime import date, timedelta
     today = date.today()
     week_later = today + timedelta(days=7)
-    urgent_deadlines = Application.query.filter(
+    urgent_deadlines = Application.query.options(
+        joinedload(Application.company)
+    ).filter(
         Application.deadline != None,
         Application.deadline >= today,
         Application.deadline <= week_later,
@@ -68,7 +70,9 @@ def dashboard():
     ).order_by(Application.deadline).all()
 
     # 面试复盘待写：status in (一面,二面,终面,Offer) 且无 feedbacks
-    pending_feedbacks = Application.query.filter(
+    pending_feedbacks = Application.query.options(
+        joinedload(Application.company)
+    ).filter(
         Application.status.in_(['一面', '二面', '终面', 'Offer'])
     ).all()
     pending_feedbacks = [a for a in pending_feedbacks if a.feedbacks.count() == 0]
