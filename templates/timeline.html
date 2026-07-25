@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div class="dashboard-title"><i class="bi bi-calendar3 me-2 text-primary"></i>时间线</div>
+  <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addModal"><i class="bi bi-plus-lg me-1"></i>添加节点</button>
+</div>
+
+<div class="card">
+  <div class="card-body">
+    <div class="position-relative">
+      <div class="position-absolute h-100 border-start border-secondary" style="left: 120px;"></div>
+      
+      {% for item in items %}
+      <div class="row align-items-center mb-4 position-relative">
+        <div class="col-auto text-end" style="width: 120px;">
+          <div class="small fw-bold {% if item.event_date < now().date() %}text-secondary{% else %}text-info{% endif %}">{{ item.event_date.strftime('%Y-%m-%d') }}</div>
+        </div>
+        <div class="col-auto">
+          <div class="position-absolute bg-dark border {% if item.done %}border-success{% elif item.event_type=='deadline'%}border-danger{% else %}border-primary{% endif %} rounded-circle" style="width:16px; height:16px; left:112px; top:50%; transform:translateY(-50%); z-index:1;"></div>
+        </div>
+        <div class="col">
+          <div class="d-flex align-items-center gap-2">
+            <span class="badge {% if item.event_type=='deadline' %}bg-danger{% elif item.event_type=='milestone' %}bg-warning{% else %}bg-primary{% endif %}">
+              {{ item.event_type }}
+            </span>
+            <span class="fw-bold {% if item.done %}text-decoration-line-through text-secondary{% endif %}">{{ item.title }}</span>
+            <form method="post" action="/timeline/{{ item.id }}/toggle" class="m-0">
+              <button class="btn btn-sm btn-link p-0 text-decoration-none {% if item.done %}text-success{% else %}text-secondary{% endif %}">
+                {% if item.done %}<i class="bi bi-check-square-fill"></i>{% else %}<i class="bi bi-square"></i>{% endif %}
+              </button>
+            </form>
+          </div>
+          {% if item.description %}
+          <div class="small text-secondary mt-1">{{ item.description }}</div>
+          {% endif %}
+        </div>
+      </div>
+      {% else %}
+      <div class="text-center text-secondary py-5">
+        <i class="bi bi-calendar-x fs-1"></i><br>暂无时间节点，请<a href="/import">导入时间线</a>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<!-- Add Modal -->
+<div class="modal fade" id="addModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form method="post" action="/timeline/add">
+        <div class="modal-header"><h5 class="modal-title">添加节点</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+        <div class="modal-body">
+          <div class="mb-3"><label class="form-label">日期 *</label><input type="date" class="form-control" name="event_date" required></div>
+          <div class="mb-3"><label class="form-label">类型</label>
+            <select class="form-select" name="event_type">
+              <option value="action">行动项 (Action)</option>
+              <option value="deadline">截止日 (Deadline)</option>
+              <option value="milestone">里程碑 (Milestone)</option>
+              <option value="reminder">提醒 (Reminder)</option>
+            </select>
+          </div>
+          <div class="mb-3"><label class="form-label">标题 *</label><input class="form-control" name="title" required></div>
+          <div class="mb-3"><label class="form-label">描述</label><textarea class="form-control" name="description" rows="2"></textarea></div>
+        </div>
+        <div class="modal-footer"><button class="btn btn-primary">保存</button></div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

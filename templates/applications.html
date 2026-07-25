@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <div class="dashboard-title"><i class="bi bi-send me-2 text-primary"></i>投递记录 <span class="badge bg-primary fs-6">{{ apps.total }}</span></div>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-md-12">
+    <div class="card">
+      <div class="card-body py-2">
+        <form class="row g-2 align-items-center" method="get">
+          <div class="col-auto">
+            <select class="form-select form-select-sm" name="status" onchange="this.form.submit()">
+              <option value="">全部状态</option>
+              {% for s in status_list %}<option value="{{ s }}" {% if request.args.get('status')==s %}selected{% endif %}>{{ s }}</option>{% endfor %}
+            </select>
+          </div>
+          <div class="col-auto">
+            <select class="form-select form-select-sm" name="channel" onchange="this.form.submit()">
+              <option value="">全部渠道</option>
+              {% for ch,c in channels %}<option value="{{ ch }}" {% if request.args.get('channel')==ch %}selected{% endif %}>{{ ch }}({{ c }})</option>{% endfor %}
+            </select>
+          </div>
+          <div class="col-auto ms-auto">
+            <span class="small text-secondary">共 {{ apps.total }} 条</span>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% for a in apps.items %}
+<div class="card mb-2">
+  <div class="card-body py-3">
+    <div class="d-flex justify-content-between align-items-center">
+      <div>
+        <a href="/companies/{{ a.company.id }}" class="text-decoration-none fw-bold">{{ a.company.name }}</a>
+        <span class="text-secondary mx-2">|</span>
+        <span>{{ a.position or '未指定' }}</span>
+        <span class="badge bg-{{ status_badge[a.status] }} ms-2">{{ a.status }}</span>
+      </div>
+      <div class="small text-secondary text-end">
+        <div>{{ a.apply_date.strftime('%m-%d') if a.apply_date else '?' }}{% if a.channel %} · {{ a.channel }}{% endif %}</div>
+        {% if a.salary_min %}<div>{{ a.salary_min }}-{{ a.salary_max }}k</div>{% endif %}
+      </div>
+    </div>
+    <div class="d-flex justify-content-between align-items-center mt-2">
+      <form method="post" action="/applications/{{ a.id }}/status" class="d-flex gap-2">
+        <select class="form-select form-select-sm" name="status" style="width:150px">
+          {% for s in status_list %}<option {% if a.status==s %}selected{% endif %}>{{ s }}</option>{% endfor %}
+        </select>
+        <input type="text" class="form-control form-control-sm" name="feedback" placeholder="反馈..." value="{{ a.feedback or '' }}" style="width:200px">
+        <button class="btn btn-sm btn-primary">更新</button>
+      </form>
+      <form method="post" action="/applications/{{ a.id }}/delete" onsubmit="return confirm('确定删除？')">
+        <button class="btn btn-sm btn-outline-danger py-0"><i class="bi bi-x"></i></button>
+      </form>
+    </div>
+  </div>
+</div>
+{% else %}
+<div class="text-center text-secondary py-5">
+  <i class="bi bi-inbox fs-1"></i><br>暂无投递记录
+</div>
+{% endfor %}
+
+{% if apps.pages > 1 %}
+<nav class="mt-3"><ul class="pagination pagination-sm justify-content-center">
+  {% for p in range(1, apps.pages+1) %}
+  <li class="page-item {% if p==apps.page %}active{% endif %}"><a class="page-link" href="/applications?page={{ p }}&status={{ request.args.get('status','') }}&channel={{ request.args.get('channel','') }}">{{ p }}</a></li>
+  {% endfor %}
+</ul></nav>
+{% endif %}
+{% endblock %}

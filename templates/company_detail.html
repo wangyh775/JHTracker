@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <div>
+    <a href="/companies" class="text-decoration-none text-secondary me-2"><i class="bi bi-arrow-left"></i>返回</a>
+    <span class="fs-4 fw-bold me-2">{{ company.name }}</span>
+    <span class="badge badge-priority-{{ company.priority }}">{{ company.priority }}</span>
+  </div>
+  <div>
+    <button class="btn btn-outline-info btn-sm me-2" data-bs-toggle="modal" data-bs-target="#editModal">编辑资料</button>
+    <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addAppModal"><i class="bi bi-plus-lg me-1"></i>添加投递</button>
+  </div>
+</div>
+
+<div class="row g-4">
+  <div class="col-md-4">
+    <div class="card mb-4">
+      <div class="card-body">
+        <h6 class="text-secondary small mb-3">公司档案</h6>
+        <div class="mb-2"><span class="text-secondary me-2">行业:</span> <span class="badge bg-secondary">{{ company.industry }}</span></div>
+        <div class="mb-2"><span class="text-secondary me-2">地点:</span> {{ company.city }} {{ company.sub_city }}</div>
+        <div class="mb-2"><span class="text-secondary me-2">目标:</span> {{ company.job_type }}</div>
+        {% if company.website %}<div class="mb-2"><span class="text-secondary me-2">官网:</span> <a href="{{ company.website }}" target="_blank">{{ company.website }}</a></div>{% endif %}
+        <hr class="text-secondary">
+        <div class="small text-secondary mb-1">匹配理由</div>
+        <div class="small bg-dark p-2 rounded border border-secondary">{{ company.match_reason or '无' }}</div>
+      </div>
+    </div>
+    
+    <div class="card">
+      <div class="card-header bg-dark d-flex justify-content-between align-items-center">
+        <span class="small fw-bold">公司笔记</span>
+        <button class="btn btn-sm btn-outline-secondary py-0" data-bs-toggle="modal" data-bs-target="#addNoteModal"><i class="bi bi-plus"></i></button>
+      </div>
+      <div class="card-body p-0">
+        <ul class="list-group list-group-flush bg-transparent">
+          {% for n in notes %}
+          <li class="list-group-item bg-transparent border-secondary px-3 py-2">
+            <div class="d-flex justify-content-between">
+              <span class="small fw-bold">{{ n.title }}</span>
+              <span class="small text-secondary">{{ n.created_at.strftime('%m-%d') }}</span>
+            </div>
+            <div class="small text-secondary mt-1">{{ n.content }}</div>
+          </li>
+          {% else %}
+          <li class="list-group-item bg-transparent text-secondary small text-center py-3">暂无笔记</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-8">
+    <h5 class="mb-3">投递记录</h5>
+    {% for a in apps %}
+    <div class="card mb-3 border-{{ status_badge[a.status] }}">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <h6 class="mb-0 fw-bold">{{ a.position or '未指定岗位' }} <span class="badge bg-{{ status_badge[a.status] }} ms-2">{{ a.status }}</span></h6>
+          <span class="small text-secondary">投递: {{ a.apply_date.strftime('%Y-%m-%d') if a.apply_date else '未定' }}</span>
+        </div>
+        <div class="row small text-secondary mb-3">
+          <div class="col-3"><i class="bi bi-box-arrow-in-right me-1"></i>{{ a.channel }}</div>
+          <div class="col-4"><i class="bi bi-currency-yen me-1"></i>{{ a.salary_min or '?' }}-{{ a.salary_max or '?' }}k</div>
+          {% if a.deadline %}<div class="col-5"><i class="bi bi-clock me-1"></i>截止: {{ a.deadline.strftime('%Y-%m-%d') }}</div>{% endif %}
+        </div>
+        {% if a.feedback %}
+        <div class="bg-dark p-2 rounded border border-secondary small mb-3">
+          <strong class="text-info">反馈/进度:</strong><br> {{ a.feedback }}
+        </div>
+        {% endif %}
+        <div class="d-flex gap-2">
+          <form method="post" action="/applications/{{ a.id }}/status" class="d-flex gap-2 w-100">
+            <select class="form-select form-select-sm w-auto" name="status">
+              {% for s in status_list %}<option {% if a.status==s %}selected{% endif %}>{{ s }}</option>{% endfor %}
+            </select>
+            <input type="text" class="form-control form-control-sm" name="feedback" placeholder="更新反馈/进度..." value="{{ a.feedback or '' }}">
+            <button class="btn btn-sm btn-primary">更新</button>
+          </form>
+          <form method="post" action="/applications/{{ a.id }}/delete" onsubmit="return confirm('确定删除？')">
+            <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+          </form>
+        </div>
+      </div>
+    </div>
+    {% else %}
+    <div class="text-center text-secondary py-5 bg-dark rounded border border-secondary">
+      <i class="bi bi-envelope-x fs-1"></i><br>尚未投递该企业
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- Add App Modal -->
+<div class="modal fade" id="addAppModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form method="post" action="/applications/add">
+        <input type="hidden" name="company_id" value="{{ company.id }}">
+        <div class="modal-header"><h5 class="modal-title">添加投递记录</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+        <div class="modal-body">
+          <div class="mb-3"><label class="form-label">岗位名称 *</label><input class="form-control" name="position" value="{{ company.job_type }}" required></div>
+          <div class="row g-3 mb-3">
+            <div class="col-6"><label class="form-label">投递渠道</label><select class="form-select" name="channel"><option>BOSS直聘</option><option>官网直投</option><option>猎聘</option><option>内推</option><option>邮箱</option></select></div>
+            <div class="col-6"><label class="form-label">当前状态</label><select class="form-select" name="status">{% for s in status_list %}<option>{{ s }}</option>{% endfor %}</select></div>
+            <div class="col-6"><label class="form-label">投递日期</label><input type="date" class="form-control" name="apply_date" value="{{ now().strftime('%Y-%m-%d') }}"></div>
+            <div class="col-6"><label class="form-label">截止日期</label><input type="date" class="form-control" name="deadline"></div>
+            <div class="col-6"><label class="form-label">最低薪资(k)</label><input type="number" class="form-control" name="salary_min"></div>
+            <div class="col-6"><label class="form-label">最高薪资(k)</label><input type="number" class="form-control" name="salary_max"></div>
+          </div>
+          <div class="mb-3"><label class="form-label">JD 链接</label><input class="form-control" name="url"></div>
+        </div>
+        <div class="modal-footer"><button class="btn btn-primary">保存</button></div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Add Note Modal -->
+<div class="modal fade" id="addNoteModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form method="post" action="/notes">
+        <input type="hidden" name="company_id" value="{{ company.id }}">
+        <div class="modal-header"><h5 class="modal-title">添加笔记</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+        <div class="modal-body">
+          <div class="mb-3"><label class="form-label">类型</label><select class="form-select" name="category"><option value="company_note">公司背调</option><option value="interview">面试记录</option></select></div>
+          <div class="mb-3"><label class="form-label">标题 *</label><input class="form-control" name="title" required></div>
+          <div class="mb-3"><label class="form-label">内容</label><textarea class="form-control" name="content" rows="4"></textarea></div>
+        </div>
+        <div class="modal-footer"><button class="btn btn-primary">保存</button></div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Modal -->
+<div class="modal fade" id="editModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <form method="post" action="/companies/{{ company.id }}/edit">
+        <div class="modal-header"><h5 class="modal-title">编辑公司资料</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+        <div class="modal-body">
+          <!-- same fields as add modal but filled -->
+          <div class="row g-3">
+            <div class="col-md-6"><label class="form-label">公司名称 *</label><input class="form-control" name="name" value="{{ company.name }}" required></div>
+            <div class="col-md-3"><label class="form-label">行业</label><select class="form-select" name="industry">{% for i in industries %}<option {% if company.industry==i %}selected{% endif %}>{{ i }}</option>{% endfor %}</select></div>
+            <div class="col-md-3"><label class="form-label">优先级</label><select class="form-select" name="priority">{% for p in ['S','A','B','C'] %}<option {% if company.priority==p %}selected{% endif %}>{{ p }}</option>{% endfor %}</select></div>
+            <div class="col-md-4"><label class="form-label">城市</label><select class="form-select" name="city">{% for c in cities %}<option {% if company.city==c %}selected{% endif %}>{{ c }}</option>{% endfor %}</select></div>
+            <div class="col-md-4"><label class="form-label">具体地点</label><input class="form-control" name="sub_city" value="{{ company.sub_city or '' }}"></div>
+            <div class="col-md-4"><label class="form-label">官网</label><input class="form-control" name="website" value="{{ company.website or '' }}"></div>
+            <div class="col-md-12"><label class="form-label">岗位方向</label><input class="form-control" name="job_type" value="{{ company.job_type or '' }}"></div>
+            <div class="col-12"><label class="form-label">匹配理由</label><textarea class="form-control" name="match_reason" rows="2">{{ company.match_reason or '' }}</textarea></div>
+          </div>
+        </div>
+        <div class="modal-footer"><button class="btn btn-primary">保存更新</button></div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,174 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div class="dashboard-title"><i class="bi bi-speedometer2 me-2 text-primary"></i>工作看板</div>
+  <span class="text-secondary">{{ now().strftime('%Y-%m-%d %H:%M') }}</span>
+</div>
+
+<!-- Stats Row -->
+<div class="row g-3 mb-4">
+  <div class="col-md-2">
+    <div class="stat-card text-center">
+      <div class="num text-white">{{ total }}</div>
+      <div class="small text-secondary">目标公司</div>
+    </div>
+  </div>
+  <div class="col-md-2">
+    <div class="stat-card text-center">
+      <div class="num text-info">{{ applied }}</div>
+      <div class="small text-secondary">已投递</div>
+    </div>
+  </div>
+  <div class="col-md-2">
+    <div class="stat-card text-center">
+      <div class="num text-warning">{{ interviews }}</div>
+      <div class="small text-secondary">面试中</div>
+    </div>
+  </div>
+  <div class="col-md-2">
+    <div class="stat-card text-center">
+      <div class="num text-success">{{ offers }}</div>
+      <div class="small text-secondary">Offer</div>
+    </div>
+  </div>
+  <div class="col-md-2">
+    <div class="stat-card text-center">
+      <div class="num text-secondary">{{ rejected }}</div>
+      <div class="small text-secondary">已拒/不合适</div>
+    </div>
+  </div>
+  <div class="col-md-2">
+    <div class="stat-card text-center">
+      <div class="num text-primary">{{ "%.0f"|format(offers/applied*100 if applied else 0) }}%</div>
+      <div class="small text-secondary">转化率</div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
+  <!-- Funnel -->
+  <div class="col-md-5">
+    <div class="card">
+      <div class="card-body">
+        <h6 class="card-title mb-3"><i class="bi bi-funnel me-2"></i>投递漏斗</h6>
+        {% for s in ['待投递','已投递','简历筛选','笔试','一面','二面','终面','Offer','已拒'] %}
+        <div class="funnel-row">
+          <div class="funnel-label text-secondary">{{ s }}</div>
+          <div class="funnel-bar-wrap">
+            <div class="funnel-bar-fill bg-{{ status_badge[s] }}" 
+                 style="width: {{ funnel[s]/max(funnel.values()) * 100 if funnel.values()|max else 0 }}%; 
+                        background: {% if s=='Offer' %}#198754{% elif s=='已拒'%}#dc3545{% elif s=='待投递'%}#6c757d{% elif s in ['一面','二面','终面']%}#ffc107{% elif s=='笔试'%}#0d6efd{% else %}#0dcaf0{% endif %};"></div>
+          </div>
+          <div class="funnel-count text-secondary">{{ funnel[s] }}</div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Charts -->
+  <div class="col-md-3">
+    <div class="card h-100">
+      <div class="card-body">
+        <h6 class="card-title mb-3"><i class="bi bi-geo-alt me-2"></i>城市分布</h6>
+        <canvas id="cityChart" height="200"></canvas>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card h-100">
+      <div class="card-body">
+        <h6 class="card-title mb-3"><i class="bi bi-pie-chart me-2"></i>行业分布</h6>
+        <canvas id="industryChart" height="200"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3">
+  <!-- Priority breakdown -->
+  <div class="col-md-4">
+    <div class="card">
+      <div class="card-body">
+        <h6 class="card-title mb-3"><i class="bi bi-flag me-2"></i>优先级分布</h6>
+        {% for p, c in pri_counts %}
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <span><span class="badge badge-priority-{{ p }}">{{ p }}</span></span>
+          <span class="text-secondary">{{ c }}家</span>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Upcoming timeline -->
+  <div class="col-md-4">
+    <div class="card">
+      <div class="card-body">
+        <h6 class="card-title mb-3"><i class="bi bi-bell me-2"></i>待办节点</h6>
+        {% for t in upcoming %}
+        <div class="d-flex align-items-start mb-2">
+          <span class="me-2">{% if t.event_type=='deadline' %}🔴{% elif t.event_type=='milestone'%}⭐{% else %}📌{% endif %}</span>
+          <div>
+            <div class="small fw-bold">{{ t.title }}</div>
+            <div class="small text-secondary">{{ t.event_date.strftime('%m/%d') }}{% if t.description %} — {{ t.description }}{% endif %}</div>
+          </div>
+        </div>
+        {% else %}
+        <div class="text-secondary small">暂无待办，请先导入时间线</div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent activity -->
+  <div class="col-md-4">
+    <div class="card">
+      <div class="card-body">
+        <h6 class="card-title mb-3"><i class="bi bi-clock-history me-2"></i>最近动态</h6>
+        {% for a in recent %}
+        <div class="d-flex align-items-center mb-2">
+          <span class="status-dot bg-{{ status_badge[a.status] }}"></span>
+          <div class="small">
+            <strong>{{ a.company.name }}</strong>
+            <span class="badge bg-{{ status_badge[a.status] }} ms-1">{{ a.status }}</span>
+            {% if a.position %}
+            <span class="text-secondary"> — {{ a.position }}</span>
+            {% endif %}
+          </div>
+        </div>
+        {% else %}
+        <div class="text-secondary small">暂无动态</div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+new Chart(document.getElementById('cityChart'), {
+  type: 'doughnut',
+  data: {
+    labels: [{% for c,n in city_counts %}'{{ c }}'{% if not loop.last %},{% endif %}{% endfor %}],
+    datasets: [{
+      data: [{% for c,n in city_counts %}{{ n }}{% if not loop.last %},{% endif %}{% endfor %}],
+      backgroundColor: ['#0d6efd','#6f42c1','#fd7e14','#20c997','#dc3545','#ffc107','#198754']
+    }]
+  },
+  options: { responsive: true, plugins: { legend: { position: 'right', labels: { color: '#aaa' } } } }
+});
+new Chart(document.getElementById('industryChart'), {
+  type: 'pie',
+  data: {
+    labels: [{% for c,n in ind_counts %}'{{ c }}'{% if not loop.last %},{% endif %}{% endfor %}],
+    datasets: [{
+      data: [{% for c,n in ind_counts %}{{ n }}{% if not loop.last %},{% endif %}{% endfor %}],
+      backgroundColor: ['#0d6efd','#6f42c1','#fd7e14','#20c997','#dc3545','#ffc107','#198754','#0dcaf0','#d63384','#adb5bd']
+    }]
+  },
+  options: { responsive: true, plugins: { legend: { position: 'right', labels: { color: '#aaa' } } } }
+});
+</script>
+{% endblock %}

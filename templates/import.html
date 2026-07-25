@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div class="dashboard-title"><i class="bi bi-upload me-2 text-primary"></i>数据管理与导入</div>
+</div>
+
+<div class="row g-4">
+  <div class="col-md-6">
+    <div class="card h-100">
+      <div class="card-body">
+        <h5 class="card-title mb-3">1. 导入目标公司清单</h5>
+        <p class="text-secondary small">从 `career/` 目录下的 Markdown 清单读取公司数据并自动导入数据库，跳过已存在的公司。</p>
+        <form method="post" action="/import/companies">
+          <div class="mb-3">
+            <select name="source" class="form-select bg-dark text-white">
+              <option value="A">清单A (工业自动化/能源/半导体/汽车)</option>
+              <option value="B">清单B (机器人/3D打印/高端装备/消费电子)</option>
+            </select>
+          </div>
+          <button class="btn btn-primary w-100"><i class="bi bi-cloud-arrow-down me-2"></i>执行导入</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-6">
+    <div class="card h-100">
+      <div class="card-body">
+        <h5 class="card-title mb-3">2. 导入面试复习资料</h5>
+        <p class="text-secondary small">将 `career/面试复习手册_自动化机电工程师.md` 和 `career/面试编程题.md` 注册到学习看板中。</p>
+        <form method="post" action="/import/study">
+          <button class="btn btn-success w-100"><i class="bi bi-book me-2"></i>导入复习资料</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-6">
+    <div class="card h-100">
+      <div class="card-body">
+        <h5 class="card-title mb-3">3. 初始化秋招时间线</h5>
+        <p class="text-secondary small">自动生成 2026 年秋招/春招的关键节点提醒（如拓竹提前批截止日、秋招高峰期等）。</p>
+        <form method="post" action="/import/timeline">
+          <button class="btn btn-warning w-100"><i class="bi bi-calendar-check me-2"></i>初始化时间线</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

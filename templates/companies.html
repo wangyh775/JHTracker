@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <div class="dashboard-title"><i class="bi bi-building me-2 text-primary"></i>公司清单 <span class="badge bg-primary fs-6">{{ companies.total }}</span></div>
+  <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addModal"><i class="bi bi-plus-lg me-1"></i>添加公司</button>
+</div>
+
+<!-- Filters -->
+<form class="row g-2 mb-3" method="get">
+  <div class="col-md-2">
+    <select class="form-select form-select-sm" name="industry" onchange="this.form.submit()">
+      <option value="">全行业</option>
+      {% for i in industries %}<option value="{{ i }}" {% if request.args.get('industry')==i %}selected{% endif %}>{{ i }}</option>{% endfor %}
+    </select>
+  </div>
+  <div class="col-md-2">
+    <select class="form-select form-select-sm" name="city" onchange="this.form.submit()">
+      <option value="">全城市</option>
+      {% for c in cities %}<option value="{{ c }}" {% if request.args.get('city')==c %}selected{% endif %}>{{ c }}</option>{% endfor %}
+    </select>
+  </div>
+  <div class="col-md-1">
+    <select class="form-select form-select-sm" name="priority" onchange="this.form.submit()">
+      <option value="">全部</option>
+      <option value="S" {% if request.args.get('priority')=='S' %}selected{% endif %}>S</option>
+      <option value="A" {% if request.args.get('priority')=='A' %}selected{% endif %}>A</option>
+      <option value="B" {% if request.args.get('priority')=='B' %}selected{% endif %}>B</option>
+      <option value="C" {% if request.args.get('priority')=='C' %}selected{% endif %}>C</option>
+    </select>
+  </div>
+  <div class="col-md-4">
+    <input type="text" class="form-control form-control-sm" name="q" placeholder="搜索公司名/匹配理由..." value="{{ request.args.get('q','') }}">
+  </div>
+  <div class="col-md-1"><button class="btn btn-outline-primary btn-sm w-100"><i class="bi bi-search"></i></button></div>
+  <div class="col-md-2 text-end"><a href="/import" class="btn btn-success btn-sm"><i class="bi bi-upload me-1"></i>批量导入</a></div>
+</form>
+
+<!-- Table -->
+<div class="card">
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+      <thead class="text-secondary small">
+        <tr><th>优先级</th><th>公司名称</th><th>行业</th><th>城市</th><th>岗位方向</th><th>匹配理由</th><th></th></tr>
+      </thead>
+      <tbody>
+        {% for c in companies.items %}
+        <tr>
+          <td><span class="badge badge-priority-{{ c.priority }}">{{ c.priority }}</span></td>
+          <td><a href="/companies/{{ c.id }}" class="text-decoration-none fw-bold">{{ c.name }}</a></td>
+          <td><span class="badge bg-secondary">{{ c.industry or '-' }}</span></td>
+          <td>{{ c.city or '-' }}</td>
+          <td class="small">{{ c.job_type or '-' }}</td>
+          <td class="small text-secondary" style="max-width:300px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">{{ c.match_reason or '-' }}</td>
+          <td><a href="/companies/{{ c.id }}" class="btn btn-sm btn-outline-info py-0 px-2"><i class="bi bi-chevron-right"></i></a></td>
+        </tr>
+        {% else %}
+        <tr><td colspan="7" class="text-center text-secondary py-4">暂无数据，请先<a href="/import">导入公司清单</a></td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Pagination -->
+{% if companies.pages > 1 %}
+<div class="d-flex justify-content-center mt-3">
+  <nav><ul class="pagination pagination-sm">
+    {% for p in range(1, companies.pages+1) %}
+    <li class="page-item {% if p==companies.page %}active{% endif %}"><a class="page-link" href="?page={{ p }}&industry={{ request.args.get('industry','') }}&city={{ request.args.get('city','') }}&priority={{ request.args.get('priority','') }}&q={{ request.args.get('q','') }}">{{ p }}</a></li>
+    {% endfor %}
+  </ul></nav>
+</div>
+{% endif %}
+
+<!-- Add Modal -->
+<div class="modal fade" id="addModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <form method="post" action="/companies/add">
+        <div class="modal-header"><h5 class="modal-title">添加公司</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+        <div class="modal-body">
+          <div class="row g-3">
+            <div class="col-md-6"><label class="form-label">公司名称 *</label><input class="form-control" name="name" required></div>
+            <div class="col-md-3"><label class="form-label">行业</label><select class="form-select" name="industry">{% for i in industries %}<option>{{ i }}</option>{% endfor %}</select></div>
+            <div class="col-md-3"><label class="form-label">优先级</label><select class="form-select" name="priority"><option>S</option><option>A</option><option selected>B</option><option>C</option></select></div>
+            <div class="col-md-4"><label class="form-label">城市</label><select class="form-select" name="city">{% for c in cities %}<option>{{ c }}</option>{% endfor %}</select></div>
+            <div class="col-md-4"><label class="form-label">具体地点</label><input class="form-control" name="sub_city"></div>
+            <div class="col-md-4"><label class="form-label">官网</label><input class="form-control" name="website"></div>
+            <div class="col-md-6"><label class="form-label">岗位方向</label><input class="form-control" name="job_type" placeholder="自动化/机电/电气"></div>
+            <div class="col-md-6"><label class="form-label">来源清单</label><input class="form-control" name="source_list" placeholder="A/B/手动"></div>
+            <div class="col-12"><label class="form-label">匹配理由</label><textarea class="form-control" name="match_reason" rows="2"></textarea></div>
+          </div>
+        </div>
+        <div class="modal-footer"><button class="btn btn-primary">保存</button></div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
