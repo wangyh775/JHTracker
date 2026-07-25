@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <div>
+    <a href="/resumes" class="text-decoration-none text-secondary me-2">
+      <i class="bi bi-arrow-left"></i>返回
+    </a>
+    <span class="fs-4 fw-bold me-2">{{ resume.name }}</span>
+    {% if resume.version %}<span class="badge bg-secondary">{{ resume.version }}</span>{% endif %}
+    {% if resume.is_default %}<span class="badge bg-success">默认</span>{% endif %}
+  </div>
+  <div>
+    <a href="/resumes/{{ resume.id }}/download" class="btn btn-outline-secondary btn-sm">
+      <i class="bi bi-download me-1"></i>下载
+    </a>
+  </div>
+</div>
+
+{% if resume.note %}
+<div class="alert alert-secondary py-2 small mb-3">
+  <i class="bi bi-sticky me-1"></i>{{ resume.note }}
+</div>
+{% endif %}
+
+<div class="card">
+  <div class="card-body p-2">
+    {% if resume.file_type == 'pdf' %}
+    <iframe src="/resumes/{{ resume.id }}/file"
+            style="width:100%; height:80vh; border:0; border-radius: 8px;"></iframe>
+
+    {% elif resume.file_type == 'docx' %}
+    <div id="wordContent" class="bg-white text-dark p-4 rounded" style="min-height: 80vh;">
+      <div class="text-center text-secondary py-5">
+        <div class="spinner-border spinner-border-sm"></div>
+        <div class="mt-2">正在加载 Word 文档...</div>
+      </div>
+    </div>
+
+    {% elif resume.file_type == 'doc' %}
+    <div class="alert alert-warning m-3">
+      <i class="bi bi-exclamation-triangle me-1"></i>
+      不支持预览 .doc 老格式，请
+      <a href="/resumes/{{ resume.id }}/download">下载</a>
+      后查看，或另存为 .docx 后重新上传。
+    </div>
+
+    {% else %}
+    <div class="alert alert-danger m-3">
+      <i class="bi bi-x-circle me-1"></i>
+      未知文件类型：{{ resume.file_type }}
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+{% if resume.file_type == 'docx' %}
+<script src="https://cdn.jsdelivr.net/npm/mammoth@1.6/mammoth.browser.min.js"></script>
+<script>
+  fetch('/resumes/{{ resume.id }}/file')
+    .then(r => {
+      if (!r.ok) throw new Error('文件加载失败 (HTTP ' + r.status + ')');
+      return r.arrayBuffer();
+    })
+    .then(buf => mammoth.convertToHtml({ arrayBuffer: buf }))
+    .then(result => {
+      const html = result.value || '<p class="text-secondary">（文档内容为空）</p>';
+      document.getElementById('wordContent').innerHTML = html;
+    })
+    .catch(err => {
+      document.getElementById('wordContent').innerHTML =
+        '<div class="alert alert-danger m-3"><i class="bi bi-x-circle me-1"></i>预览失败：' +
+        err.message + '<br>可尝试<a href="/resumes/{{ resume.id }}/download">下载</a>查看。</div>';
+    });
+</script>
+{% endif %}
+{% endblock %}

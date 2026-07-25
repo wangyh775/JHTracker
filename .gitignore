@@ -1,6 +1,15 @@
 __pycache__/
 *.pyc
-data/*.db
+
+# Runtime data: SQLite DB, uploaded resumes, backups
+data/
+
 .env
 venv/
 .venv/
+
+# IDE / OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
