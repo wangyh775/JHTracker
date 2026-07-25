@@ -1,62 +1,49 @@
 {% extends "base.html" %}
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
-  <div class="dashboard-title"><i class="bi bi-calendar3 me-2 text-primary"></i>时间线</div>
+  <div class="dashboard-title"><i class="bi bi-calendar3 me-2 text-primary"></i>时间线（甘特图）</div>
   <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addModal"><i class="bi bi-plus-lg me-1"></i>添加节点</button>
 </div>
 
-<div class="card">
-  <div class="card-body" style="overflow-x: auto;">
-    <div class="d-flex gap-4" style="min-width: 900px; padding: 10px 0;">
-      <div class="position-relative d-flex" style="gap: 0;">
-        {% for item in items %}
-        <div class="text-center position-relative" style="min-width: 150px; max-width: 180px; flex-shrink: 0;">
-          <!-- 圆点连线 -->
-          <div style="position: relative; height: 30px;">
-            {% if not loop.first %}
-            <div style="position: absolute; top: 14px; left: -50%; width: 100%; height: 3px; background: #444; z-index: 0;"></div>
-            {% endif %}
-            <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); 
-                        width: 18px; height: 18px; border-radius: 50%; z-index: 1;
-                        {% if item.done %}background: #198754; border: 3px solid #198754;
-                        {% elif item.event_type == 'deadline' %}background: #dc3545; border: 3px solid #dc3545;
-                        {% elif item.event_type == 'milestone' %}background: #ffc107; border: 3px solid #ffc107;
-                        {% else %}background: #0d6efd; border: 3px solid #0d6efd;{% endif %}"></div>
-          </div>
-          <!-- 日期 -->
-          <div class="small fw-bold mb-1 {% if item.event_date < now().date() %}text-secondary{% else %}text-info{% endif %}">
-            {{ item.event_date.strftime('%m/%d') }}
-          </div>
-          <!-- 标题 -->
-          <div class="small px-1 {% if item.done %}text-decoration-line-through text-secondary{% endif %}"
-               style="min-height: 55px;">
-            <span class="badge {% if item.event_type=='deadline' %}bg-danger{% elif item.event_type=='milestone' %}bg-warning text-dark{% else %}bg-primary{% endif %} mb-1" style="font-size: 0.65rem;">
-              {{ item.event_type }}
-            </span>
-            <br>
-            <span class="fw-bold">{{ item.title }}</span>
-          </div>
-          <!-- 描述 -->
-          <div class="small text-secondary mb-1" style="font-size: 0.7rem; min-height: 25px;">
-            {{ item.description or '' }}
-          </div>
-          <!-- 完成按钮 -->
-          <form method="post" action="/timeline/{{ item.id }}/toggle" class="m-0">
-            <button class="btn btn-sm btn-link p-0 text-decoration-none {% if item.done %}text-success{% else %}text-secondary{% endif %}">
-              {% if item.done %}<i class="bi bi-check-circle-fill"></i> 已完成{% else %}<i class="bi bi-circle"></i> 标记完成{% endif %}
-            </button>
-          </form>
-        </div>
-        {% endfor %}
-      </div>
+<!-- 甘特图 -->
+<div class="card mb-4">
+  <div class="card-body">
+    <h6 class="card-title mb-3"><i class="bi bi-bar-chart-steps me-2"></i>时间甘特图</h6>
+    <div style="height: 400px;">
+      <canvas id="ganttChart"></canvas>
     </div>
   </div>
 </div>
-{% if not items %}
-<div class="text-center text-secondary py-5">
-  <i class="bi bi-calendar-x fs-1"></i><br>暂无时间节点，请先<a href="/import">导入时间线</a>
+
+<!-- 列表详情 -->
+<div class="card">
+  <div class="card-body">
+    <h6 class="card-title mb-3"><i class="bi bi-list-ul me-2"></i>节点详情</h6>
+    {% for item in items %}
+    <div id="item-{{ item.id }}" class="border-bottom py-2 {% if item.done %}opacity-50{% endif %}">
+      <div class="d-flex align-items-center">
+        <span class="badge {% if item.event_type=='deadline' %}bg-danger{% elif item.event_type=='milestone' %}bg-warning text-dark{% elif item.event_type=='reminder' %}bg-secondary{% else %}bg-primary{% endif %} me-2">
+          {{ item.event_type }}
+        </span>
+        <strong class="me-3">{{ item.title }}</strong>
+        <span class="text-secondary small">
+          {{ item.event_date.strftime('%Y-%m-%d') }}{% if item.end_date and item.end_date != item.event_date %} ~ {{ item.end_date.strftime('%Y-%m-%d') }}{% endif %}
+        </span>
+        <form method="post" action="/timeline/{{ item.id }}/toggle" class="ms-auto">
+          <button class="btn btn-sm btn-link p-0 {% if item.done %}text-success{% else %}text-secondary{% endif %}">
+            {% if item.done %}<i class="bi bi-check-circle-fill"></i> 已完成{% else %}<i class="bi bi-circle"></i> 标记完成{% endif %}
+          </button>
+        </form>
+      </div>
+      {% if item.description %}<div class="small text-secondary ps-1 mt-1">{{ item.description }}</div>{% endif %}
+    </div>
+    {% else %}
+    <div class="text-center text-secondary py-4">
+      <i class="bi bi-calendar-x fs-1"></i><br>暂无时间节点，请先<a href="/import">导入时间线</a>
+    </div>
+    {% endfor %}
+  </div>
 </div>
-{% endif %}
 
 <!-- Add Modal -->
 <div class="modal fade" id="addModal" tabindex="-1">
@@ -65,7 +52,8 @@
       <form method="post" action="/timeline/add">
         <div class="modal-header"><h5 class="modal-title">添加节点</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
         <div class="modal-body">
-          <div class="mb-3"><label class="form-label">日期 *</label><input type="date" class="form-control" name="event_date" required></div>
+          <div class="mb-3"><label class="form-label">开始日期 *</label><input type="date" class="form-control" name="event_date" required></div>
+          <div class="mb-3"><label class="form-label">结束日期（可选，默认同开始）</label><input type="date" class="form-control" name="end_date"></div>
           <div class="mb-3"><label class="form-label">类型</label>
             <select class="form-select" name="event_type">
               <option value="action">行动项 (Action)</option>
@@ -82,4 +70,81 @@
     </div>
   </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+<script>
+const items = [
+  {% for item in items %}
+  {
+    id: {{ item.id }},
+    title: {{ item.title|tojson }},
+    start: {{ item.event_date.strftime('%Y-%m-%d')|tojson }},
+    end: {{ (item.end_date or item.event_date).strftime('%Y-%m-%d')|tojson }},
+    type: {{ item.event_type|tojson }},
+    done: {{ item.done|tojson }},
+    description: {{ (item.description or '')|tojson }},
+  }{% if not loop.last %},{% endif %}
+  {% endfor %}
+];
+
+function colorFor(item) {
+  if (item.done) return 'rgba(25,135,84,0.5)';
+  if (item.type === 'deadline') return '#dc3545';
+  if (item.type === 'milestone') return '#ffc107';
+  if (item.type === 'reminder') return '#6c757d';
+  return '#0d6efd';
+}
+
+new Chart(document.getElementById('ganttChart'), {
+  type: 'bar',
+  data: {
+    labels: items.map(i => i.title),
+    datasets: [{
+      data: items.map(i => [i.start, i.end]),
+      backgroundColor: items.map(i => colorFor(i)),
+      borderColor: items.map(i => colorFor(i)),
+      borderWidth: 1,
+      barPercentage: 0.6,
+    }]
+  },
+  options: {
+    indexAxis: 'y',
+    responsive: true,
+    maintainAspectRatio: false,
+    scales: {
+      x: {
+        type: 'time',
+        time: { unit: 'month', displayFormats: { month: 'yyyy-MM' } },
+        ticks: { color: '#aaa' },
+        grid: { color: '#2a2a2a' }
+      },
+      y: {
+        ticks: { color: '#aaa' },
+        grid: { color: '#1a1a1a' }
+      }
+    },
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          label: (ctx) => {
+            const item = items[ctx.dataIndex];
+            return item.description || `${item.start} ~ ${item.end}`;
+          }
+        }
+      }
+    },
+    onClick: (e, els) => {
+      if (els.length > 0) {
+        const idx = els[0].index;
+        const id = items[idx].id;
+        document.getElementById('item-' + id).scrollIntoView({behavior: 'smooth', block: 'center'});
+      }
+    }
+  }
+});
+</script>
 {% endblock %}
