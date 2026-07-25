@@ -5,6 +5,25 @@
   <span class="text-secondary">{{ now().strftime('%Y-%m-%d %H:%M') }}</span>
 </div>
 
+{% if urgent_deadlines %}
+<div class="urgent-banner">
+  <div class="d-flex align-items-center">
+    <i class="bi bi-alarm-fill text-danger me-2 fs-5"></i>
+    <strong class="me-3">本周紧急截止：</strong>
+    <div class="d-flex flex-wrap gap-3">
+      {% for a in urgent_deadlines[:5] %}
+      <span class="small">
+        <a href="/companies/{{ a.company_id }}" class="text-decoration-none">
+          {{ a.company.name }}
+        </a>
+        <span class="badge bg-danger ms-1">{{ a.deadline.strftime('%m/%d') }}</span>
+      </span>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endif %}
+
 <!-- Stats Row -->
 <div class="row g-3 mb-4">
   <div class="col-md-2">
@@ -144,17 +163,36 @@
     </div>
   </div>
 </div>
+{% if pending_feedbacks %}
+<div class="row g-3 mt-1">
+  <div class="col-12">
+    <div class="card border-warning">
+      <div class="card-body">
+        <h6 class="card-title mb-3"><i class="bi bi-clipboard-check me-2 text-warning"></i>面试复盘待写</h6>
+        <div class="d-flex flex-wrap gap-2">
+          {% for a in pending_feedbacks %}
+          <a href="/companies/{{ a.company_id }}" class="badge bg-warning text-dark text-decoration-none">
+            {{ a.company.name }} — {{ a.status }}
+          </a>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
 {% endblock %}
 
 {% block scripts %}
 <script>
+const palette = ['#0d6efd','#6f42c1','#fd7e14','#20c997','#dc3545','#ffc107','#198754','#0dcaf0','#d63384','#adb5bd','#6610f2','#0dcaf0','#fd7e14','#20c997','#6c757d'];
 new Chart(document.getElementById('cityChart'), {
   type: 'doughnut',
   data: {
     labels: [{% for c,n in city_counts %}'{{ c }}'{% if not loop.last %},{% endif %}{% endfor %}],
     datasets: [{
       data: [{% for c,n in city_counts %}{{ n }}{% if not loop.last %},{% endif %}{% endfor %}],
-      backgroundColor: ['#0d6efd','#6f42c1','#fd7e14','#20c997','#dc3545','#ffc107','#198754']
+      backgroundColor: [{% for c,n in city_counts %}palette[{{ loop.index0 }} % palette.length]{% if not loop.last %},{% endif %}{% endfor %}]
     }]
   },
   options: { responsive: true, plugins: { legend: { position: 'right', labels: { color: '#aaa' } } } }
@@ -165,7 +203,7 @@ new Chart(document.getElementById('industryChart'), {
     labels: [{% for c,n in ind_counts %}'{{ c }}'{% if not loop.last %},{% endif %}{% endfor %}],
     datasets: [{
       data: [{% for c,n in ind_counts %}{{ n }}{% if not loop.last %},{% endif %}{% endfor %}],
-      backgroundColor: ['#0d6efd','#6f42c1','#fd7e14','#20c997','#dc3545','#ffc107','#198754','#0dcaf0','#d63384','#adb5bd']
+      backgroundColor: [{% for c,n in ind_counts %}palette[{{ loop.index0 }} % palette.length]{% if not loop.last %},{% endif %}{% endfor %}]
     }]
   },
   options: { responsive: true, plugins: { legend: { position: 'right', labels: { color: '#aaa' } } } }
