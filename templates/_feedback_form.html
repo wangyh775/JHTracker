@@ -1,0 +1,42 @@
+<!-- 面试评价表单（局部模板，传 application 对象 a） -->
+<div class="card mt-3">
+  <div class="card-body">
+    <h6 class="card-title"><i class="bi bi-chat-quote me-2"></i>添加面试评价</h6>
+    <form method="post" action="/applications/{{ a.id }}/feedback/add">
+      <div class="row g-2">
+        <div class="col-md-4"><label class="form-label small">面试官</label><input class="form-control form-control-sm" name="interviewer"></div>
+        <div class="col-md-3"><label class="form-label small">面试日期</label><input type="date" class="form-control form-control-sm" name="interview_date"></div>
+        <div class="col-md-2"><label class="form-label small">轮次</label>
+          <select class="form-select form-select-sm" name="round">
+            <option value="一面">一面</option>
+            <option value="二面">二面</option>
+            <option value="终面">终面</option>
+            <option value="HR面">HR面</option>
+          </select>
+        </div>
+        <div class="col-md-1"><label class="form-label small">难度</label><input type="number" class="form-control form-control-sm" name="difficulty" min="1" max="5"></div>
+        <div class="col-md-2"><label class="form-label small">自评</label><input type="number" class="form-control form-control-sm" name="self_rating" min="1" max="5"></div>
+        <div class="col-12"><label class="form-label small">问题记录</label><textarea class="form-control form-control-sm" name="questions" rows="2"></textarea></div>
+        <div class="col-12"><label class="form-label small">改进点</label><textarea class="form-control form-control-sm" name="improvement" rows="2"></textarea></div>
+        <div class="col-12"><button class="btn btn-sm btn-primary">保存评价</button></div>
+      </div>
+    </form>
+
+    {% for f in a.feedbacks.all() %}
+    <div class="border-top mt-2 pt-2">
+      <div class="d-flex justify-content-between">
+        <strong>{{ f.round }} · {{ f.interviewer or '未知面试官' }}</strong>
+        <span class="text-secondary small">{{ f.interview_date.strftime('%Y-%m-%d') if f.interview_date else '' }}</span>
+      </div>
+      <div class="small text-secondary">
+        难度 {{ f.difficulty or '-' }}/5 · 自评 {{ f.self_rating or '-' }}/5
+      </div>
+      {% if f.questions %}<div class="small mt-1"><strong>问题：</strong>{{ f.questions }}</div>{% endif %}
+      {% if f.improvement %}<div class="small"><strong>改进：</strong>{{ f.improvement }}</div>{% endif %}
+      <form method="post" action="/applications/{{ a.id }}/feedback/{{ f.id }}/delete" class="d-inline">
+        <button class="btn btn-sm btn-link text-danger p-0">删除</button>
+      </form>
+    </div>
+    {% endfor %}
+  </div>
+</div>

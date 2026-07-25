@@ -20,6 +20,12 @@
         <div class="mb-2"><span class="text-secondary me-2">行业:</span> <span class="badge bg-secondary">{{ company.industry }}</span></div>
         <div class="mb-2"><span class="text-secondary me-2">地点:</span> {{ company.city }} {{ company.sub_city }}</div>
         <div class="mb-2"><span class="text-secondary me-2">目标:</span> {{ company.job_type }}</div>
+        <div class="mb-2">
+          <span class="text-secondary small">参考薪资：</span>
+          {% if company.salary_min or company.salary_max %}
+          <strong>{{ company.salary_min or '?' }}-{{ company.salary_max or '?' }}k/月</strong>
+          {% else %}<span class="text-secondary">未填写</span>{% endif %}
+        </div>
         {% if company.website %}<div class="mb-2"><span class="text-secondary me-2">官网:</span> <a href="{{ company.website }}" target="_blank">{{ company.website }}</a></div>{% endif %}
         <hr class="text-secondary">
         <div class="small text-secondary mb-1">匹配理由</div>
@@ -81,6 +87,7 @@
             <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
           </form>
         </div>
+        {% include '_feedback_form.html' with context %}
       </div>
     </div>
     {% else %}
