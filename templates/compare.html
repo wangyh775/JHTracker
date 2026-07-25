@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div class="dashboard-title"><i class="bi bi-trophy me-2 text-primary"></i>Offer 对比表</div>
+  <span class="badge bg-primary">{{ offers|length }}</span>
+</div>
+
+{% if offers %}
+<div class="card">
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+      <thead class="text-secondary small">
+        <tr>
+          <th>公司</th><th>岗位</th><th>薪资范围</th><th>城市</th><th>行业</th><th>优先级</th><th>状态</th><th>操作</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for a in offers %}
+        <tr class="{% if a.offer_status=='accepted' %}table-success{% elif a.offer_status=='rejected' %}table-secondary{% elif a.offer_status=='pending' %}table-warning{% endif %}">
+          <td><a href="/companies/{{ a.company.id }}" class="text-decoration-none fw-bold">{{ a.company.name }}</a></td>
+          <td class="small">{{ a.position or '-' }}</td>
+          <td class="small">
+            {% if a.salary_min or a.salary_max %}
+            {{ a.salary_min or '?' }}-{{ a.salary_max or '?' }}k
+            {% else %}-{% endif %}
+          </td>
+          <td>{{ a.company.city or '-' }}</td>
+          <td><span class="badge bg-secondary">{{ a.company.industry or '-' }}</span></td>
+          <td><span class="badge badge-priority-{{ a.company.priority }}">{{ a.company.priority }}</span></td>
+          <td>
+            <span class="badge bg-{{ offer_badges.get(a.offer_status or 'pending', 'secondary') }}">
+              {{ offer_labels.get(a.offer_status or 'pending', '待定') }}
+            </span>
+          </td>
+          <td>
+            <form method="post" action="/applications/{{ a.id }}/offer_status" class="d-flex gap-1">
+              <select name="offer_status" class="form-select form-select-sm" style="width:auto" onchange="this.form.submit()">
+                <option value="pending" {% if a.offer_status=='pending' %}selected{% endif %}>待定</option>
+                <option value="accepted" {% if a.offer_status=='accepted' %}selected{% endif %}>已接受</option>
+                <option value="rejected" {% if a.offer_status=='rejected' %}selected{% endif %}>已拒绝</option>
+              </select>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% else %}
+<div class="text-center text-secondary py-5">
+  <i class="bi bi-trophy fs-1"></i><br>暂无 Offer，加油！
+</div>
+{% endif %}
+{% endblock %}
