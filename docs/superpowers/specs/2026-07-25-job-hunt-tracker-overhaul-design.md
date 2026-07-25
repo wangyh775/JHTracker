@@ -14,8 +14,8 @@
 本次改造目标：
 
 1. 修复 7 类既有问题（安全、路径、导入、性能、数据完整性、前端、代码组织）
-2. 新增 4 项功能（数据备份/恢复、面试评价记录、Offer 对比表、截止日期提醒）
-3. 满足 4 项新需求（时间线改甘特图、LaTeX 公式渲染、公司薪资字段、看板图表 bug 修复）
+2. 新增 5 项功能（数据备份/恢复、面试评价记录、Offer 对比表、截止日期提醒、简历版本管理）
+3. 满足 5 项新需求（时间线改甘特图、LaTeX 公式渲染、公司薪资字段、看板图表 bug 修复、前端视觉微调）
 4. 全程保留现有数据库内容
 
 ## 2. 约束与假设
@@ -47,11 +47,13 @@ career-tracker/
 │   ├── study.py
 │   ├── timeline.py
 │   ├── import_data.py      # 避免与 Python 关键字冲突
-│   └── backup.py
+│   ├── backup.py
+│   └── resume.py           # 简历版本管理
 ├── templates/              # 保持现有结构，新增对应模板
 ├── migrations/             # Flask-Migrate 生成的迁移脚本
 ├── data/
-│   └── tracker.db
+│   ├── tracker.db
+│   └── resumes/            # 上传的简历文件存放目录
 ├── requirements.txt
 └── README.md
 ```
@@ -116,14 +118,30 @@ class InterviewFeedback(db.Model):
     application = db.relationship('Application', backref='feedbacks')
 ```
 
+**Resume（简历版本）**：
+```python
+class Resume(db.Model):
+    __tablename__ = 'resumes'
+    id          = db.Column(db.Integer, primary_key=True)
+    name        = db.Column(db.String(200), nullable=False)   # 版本名，如"通用版v1"、"自动化岗位版"
+    version     = db.Column(db.String(50))                    # 版本号，如 v1.0
+    file_path   = db.Column(db.String(500), nullable=False)   # 相对路径 data/resumes/xxx.pdf
+    file_type   = db.Column(db.String(10))                    # pdf / docx
+    file_size   = db.Column(db.Integer)                       # 字节
+    note        = db.Column(db.Text)                          # 备注：适用场景/修改要点
+    is_default  = db.Column(db.Boolean, default=False)        # 是否当前默认版本
+    created_at  = db.Column(db.DateTime, default=datetime.now)
+```
+
 ### 4.3 迁移策略
 
 - 引入 `Flask-Migrate`（基于 Alembic）
 - 初始化：`flask db init` → `flask db stamp head`（标记当前数据库为基线，不生成空迁移）
 - 之后每次模型变更：`flask db migrate -m "..."` 生成迁移脚本 → 人工审阅 → `flask db upgrade`
-- 集中迁移（一次涵盖本次所有字段变更）：`flask db migrate -m "add company salary, application offer_status, interview_feedback, timeline end_date"`
-- 新字段对老数据：salary 字段为 NULL（前端显示 `-`），offer_status 为 NULL，end_date 为 NULL（前端用 event_date 兜底）
+- 集中迁移（一次涵盖本次所有字段变更）：`flask db migrate -m "add company salary, application offer_status, interview_feedback, timeline end_date, resume"`
+- 新字段对老数据：salary 字段为 NULL（前端显示 `-`），offer_status 为 NULL，end_date 为 NULL（前端用 event_date 兜底），resumes 表为空
 - 迁移前先备份 `data/tracker.db` 到 `data/tracker.db.bak.<timestamp>`
+- 同时新建 `data/resumes/` 目录用于存放上传的简历文件
 
 ## 5. 修复方案详解
 
@@ -351,6 +369,61 @@ def company_list():
 - 查询 `Application.deadline` 在未来 7 天内且未到 Offer/已拒状态的
 - 横条形式显示，超过 5 条折叠
 
+### 6.5 简历版本管理
+
+**数据模型**：见 4.2 的 Resume 模型。纯版本库设计，不与 Application/Company 绑定。
+
+**路由**（`routes/resume.py`）：
+- `GET /resumes` — 渲染版本列表页
+- `POST /resumes/upload` — 上传新版本（multipart/form-data）
+- `GET /resumes/<id>/preview` — 在线预览
+- `GET /resumes/<id>/download` — 下载原文件
+- `POST /resumes/<id>/edit` — 修改名称/版本号/备注/默认标记
+- `POST /resumes/<id>/delete` — 删除（同时删文件）
+- `POST /resumes/<id>/default` — 设为默认版本（其他自动取消默认）
+
+**上传逻辑**：
+- 接受 `.pdf` / `.docx` / `.doc` 三种格式
+- 文件名安全化：用 `werkzeug.utils.secure_filename` + 时间戳防止重名
+- 存储路径：`data/resumes/{timestamp}_{secure_filename}`
+- 文件大小限制：20MB（在 config.py 配置 `MAX_CONTENT_LENGTH`）
+- 同名版本名（`name` 字段）允许重复，但 `is_default=True` 同时只能有一个
+
+**预览实现**：
+
+PDF 预览：
+- 直接用 `<iframe src="/resumes/<id>/preview" type="application/pdf">` 内嵌
+- 浏览器原生支持，无需额外库
+
+Word 预览（.docx）：
+- 前端引入 `mammoth.js`（CDN：`https://cdn.jsdelivr.net/npm/mammoth@1.6/mammoth.browser.min.js`）
+- 后端 `GET /resumes/<id>/preview` 对于 docx 返回原文件（Content-Type: application/vnd.openxmlformats-officedocument.wordprocessingml.document）
+- 前端 fetch 文件 → `mammoth.convertToHtml({arrayBuffer})` → 注入到 `<div>` 显示
+- `.doc` 老格式不支持（mammoth 只支持 docx），提示用户转换为 docx
+
+**模板**（`templates/resumes.html`）：
+- 顶部统计：总版本数、默认版本名、最近上传时间
+- 卡片网格布局展示每个版本：
+  - 文件类型图标（PDF 红 / Word 蓝）
+  - 版本名 + 版本号
+  - 上传时间 + 文件大小
+  - 备注摘要
+  - 默认版本徽章
+  - 操作按钮：预览 / 下载 / 设默认 / 编辑 / 删除
+- 上传按钮：modal 弹窗，含文件选择 + 版本名 + 版本号 + 备注
+
+**预览页**（`templates/resume_preview.html`）：
+- 独立全屏页面（继承 base.html 但内容区占满）
+- 顶部信息条：版本名 + 下载按钮 + 关闭
+- 中间预览区：PDF iframe 或 Word HTML
+
+**config.py 新增**：
+```python
+UPLOAD_FOLDER = os.path.join(DATA_DIR, 'resumes')
+MAX_CONTENT_LENGTH = 20 * 1024 * 1024  # 20MB
+ALLOWED_RESUME_EXT = {'pdf', 'docx', 'doc'}
+```
+
 ## 7. 新增需求详解
 
 ### 7.1 时间线 → 甘特图
@@ -468,6 +541,39 @@ const palette = ['#0d6efd','#6f42c1','#fd7e14','#20c997','#dc3545','#ffc107','#1
 backgroundColor: data.map((_, i) => palette[i % palette.length])
 ```
 
+### 7.5 前端视觉微调
+
+**范围**：在现有暗色主题基础上做细节优化，不换设计语言，不改页面结构。
+
+**优化清单**（修改 `templates/base.html` 全局样式 + 各页面局部样式）：
+
+| 项 | 当前 | 优化后 |
+|---|---|---|
+| 卡片阴影 | 无 | `box-shadow: 0 2px 8px rgba(0,0,0,0.15)` |
+| 卡片圆角 | 12px | 统一 12px，hover 时 `box-shadow` 加深 |
+| 间距 | 不统一 | section 之间 `margin-bottom: 1.5rem`，卡片内 padding `1.25rem` |
+| 字体 | 默认 | 引入 Inter 字体（`@font-face` 或 Google Fonts），正文 14px / 标题 16-24px |
+| 颜色变量 | 散落 | 抽到 `:root` CSS 变量：`--bg-primary:#111` `--bg-card:#1a1a1a` `--border:#2a2a2a` `--text-primary:#e0e0e0` `--text-secondary:#aaa` `--accent:#0d6efd` |
+| 表格行 hover | `#222` | `#1f1f1f` + 左侧 3px 蓝色边框过渡 |
+| 按钮过渡 | 无 | 所有 `.btn` 加 `transition: all 0.15s ease` |
+| 徽章 | 默认 | 略微圆角加大 `border-radius: 6px`，内边距 `0.4em 0.7em` |
+| 侧边栏 active | 实色背景 | 加左侧 3px 白色竖条 indicator |
+| 图标一致性 | 混用 | 统一用 Bootstrap Icons，按钮图标固定 14px |
+| 空状态 | 纯文字 | 加大图标 `fs-1` + 灰色文字 + 引导按钮 |
+| 表单 focus | 蓝色边框 | 加 `box-shadow: 0 0 0 0.2rem rgba(13,110,253,0.25)` |
+| 滚动条 | 默认 | 细化：`::-webkit-scrollbar { width: 8px }` `::-webkit-scrollbar-thumb { background: #333; border-radius: 4px }` |
+
+**实施方式**：
+- 全部在 `base.html` 的 `<style>` 块里改，不引入新 CSS 文件
+- 抽 CSS 变量到 `:root`，各页面用变量名引用
+- 不改任何 HTML 结构，只动样式
+- 不引入 Tailwind 或其他 CSS 框架
+
+**验证**：
+- 看板/公司/投递/笔记/复习/时间线/简历 各页面打开看一遍
+- hover、focus、active 状态过渡平滑
+- 暗色主题下文字对比度足够（≥4.5:1）
+
 ## 8. 路由清单（最终）
 
 | 路径 | 方法 | 模块 | 说明 |
@@ -501,6 +607,13 @@ backgroundColor: data.map((_, i) => palette[i % palette.length])
 | `/backup` | GET | backup | 备份页 |
 | `/backup/export` | POST | backup | 导出 |
 | `/backup/restore` | POST | backup | 恢复 |
+| `/resumes` | GET | resume | 简历版本列表 |
+| `/resumes/upload` | POST | resume | 上传新版本 |
+| `/resumes/<id>/preview` | GET | resume | 在线预览 |
+| `/resumes/<id>/download` | GET | resume | 下载原文件 |
+| `/resumes/<id>/edit` | POST | resume | 修改元信息 |
+| `/resumes/<id>/delete` | POST | resume | 删除版本 |
+| `/resumes/<id>/default` | POST | resume | 设为默认 |
 | `/api/stats` | GET | dashboard | API |
 | `/api/companies/search` | GET | company | API |
 
@@ -515,6 +628,8 @@ python-dateutil>=2.8  # 已有
 前端 CDN 新增：
 - KaTeX 0.16.9（CSS + JS + auto-render）
 - chartjs-adapter-date-fns 3.0
+- mammoth.js 1.6（Word 转 HTML 预览）
+- Inter 字体（Google Fonts）
 
 ## 10. 测试策略
 
@@ -529,6 +644,9 @@ python-dateutil>=2.8  # 已有
 7. **备份/恢复**：导出 JSON 文件大小 > 0，恢复后数据一致
 8. **Offer 对比**：多个 Offer 横向对比，offer_status 可切换
 9. **截止提醒**：未来 7 天 deadline 在看板顶部显示
+10. **简历上传**：上传 PDF 和 Word 各一份 → 列表显示 → 预览正常 → 下载原文件 → 设默认 → 删除
+11. **简历预览**：PDF 在 iframe 显示，docx 经 mammoth 转 HTML 显示，.doc 提示不支持
+12. **前端微调**：各页面 hover/focus 过渡平滑，对比度足够，无样式错乱
 
 ## 11. 实施顺序
 
@@ -544,8 +662,10 @@ python-dateutil>=2.8  # 已有
 10. **Offer 对比表**：offer_status 字段 + 迁移 + /compare 路由 + 模板
 11. **截止日期提醒**：applications.html 列 + 看板横条
 12. **数据备份/恢复**：backup 路由 + 模板
-13. **前端清理**：移动端汉堡菜单 + 列表总条数 + NULL 排序
-14. **安全收尾**：host 改 127.0.0.1 + SECRET_KEY 环境变量
+13. **简历版本管理**：Resume 模型 + 迁移 + resume 路由 + resumes.html + resume_preview.html + mammoth.js
+14. **前端清理**：移动端汉堡菜单 + 列表总条数 + NULL 排序
+15. **前端视觉微调**：CSS 变量 + 卡片阴影 + hover 过渡 + 字体 + 滚动条
+16. **安全收尾**：host 改 127.0.0.1 + SECRET_KEY 环境变量
 
 ## 12. 风险与回滚
 
@@ -553,6 +673,9 @@ python-dateutil>=2.8  # 已有
 - **拆分后导入异常**：拆分阶段先不动业务逻辑，纯结构搬运，跑通后再改逻辑
 - **KaTeX 与 marked 冲突**：marked 解析 `$a_b$` 时 `_` 被吃成斜体。预案：用 marked 扩展注册 math block，或预处理把 `$...$` 替换为占位符再还原
 - **Chart.js time 轴**：必须引入 `chartjs-adapter-date-fns`，否则图表不渲染。预案：CDN 失败时降级为纯 CSS 表格甘特图
+- **mammoth.js 预览 Word**：mammoth 只支持 .docx，.doc 老格式不支持。预案：.doc 文件预览页提示用户另存为 .docx
+- **简历文件名中文乱码**：`secure_filename` 会丢中文。预案：不直接用 secure_filename 的结果作文件名，改用 `{timestamp}_{uuid}.{ext}` 存储文件，原名存到 Resume.name
+- **上传超大文件**：超过 20MB Flask 会自动 413。预案：前端在上传前用 JS 校验文件大小
 
 ## 13. 非目标（YAGNI）
 
@@ -564,5 +687,7 @@ python-dateutil>=2.8  # 已有
 - 不加多语言支持
 - 不重写为前端框架（保持 Jinja2 模板）
 - 不引入前端构建工具（保持 CDN 引入）
-- 不做简历版本管理
-- 不做 AI 辅助功能
+- 不做 AI 辅助功能（用户明确取消）
+- 简历版本不与 Application/Company 绑定（纯版本库）
+- 不做简历在线编辑（只上传文件）
+- 不做简历模板生成
