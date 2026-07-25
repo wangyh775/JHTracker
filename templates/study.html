@@ -24,9 +24,9 @@
           {% for m in items %}
           <li class="list-group-item bg-transparent border-secondary d-flex justify-content-between align-items-center py-2">
             <div class="small">
-              <span class="{% if m.is_learned %}text-decoration-line-through text-secondary{% else %}text-white{% endif %}">
+              <a href="/study/{{ m.id }}/content" class="text-decoration-none {% if m.is_learned %}text-decoration-line-through text-secondary{% else %}text-white{% endif %}">
                 {{ m.title }}
-              </span>
+              </a>
               <div class="text-secondary" style="font-size:0.8rem;">{{ m.summary or '' }}</div>
             </div>
             <form method="post" action="/study/{{ m.id }}/toggle" class="m-0">

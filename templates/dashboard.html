@@ -56,7 +56,7 @@
           <div class="funnel-label text-secondary">{{ s }}</div>
           <div class="funnel-bar-wrap">
             <div class="funnel-bar-fill bg-{{ status_badge[s] }}" 
-                 style="width: {{ funnel[s]/max(funnel.values()) * 100 if funnel.values()|max else 0 }}%; 
+                 style="width: {{ funnel[s]/max_funnel * 100 }}%; 
                         background: {% if s=='Offer' %}#198754{% elif s=='已拒'%}#dc3545{% elif s=='待投递'%}#6c757d{% elif s in ['一面','二面','终面']%}#ffc107{% elif s=='笔试'%}#0d6efd{% else %}#0dcaf0{% endif %};"></div>
           </div>
           <div class="funnel-count text-secondary">{{ funnel[s] }}</div>

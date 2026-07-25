@@ -6,43 +6,57 @@
 </div>
 
 <div class="card">
-  <div class="card-body">
-    <div class="position-relative">
-      <div class="position-absolute h-100 border-start border-secondary" style="left: 120px;"></div>
-      
-      {% for item in items %}
-      <div class="row align-items-center mb-4 position-relative">
-        <div class="col-auto text-end" style="width: 120px;">
-          <div class="small fw-bold {% if item.event_date < now().date() %}text-secondary{% else %}text-info{% endif %}">{{ item.event_date.strftime('%Y-%m-%d') }}</div>
-        </div>
-        <div class="col-auto">
-          <div class="position-absolute bg-dark border {% if item.done %}border-success{% elif item.event_type=='deadline'%}border-danger{% else %}border-primary{% endif %} rounded-circle" style="width:16px; height:16px; left:112px; top:50%; transform:translateY(-50%); z-index:1;"></div>
-        </div>
-        <div class="col">
-          <div class="d-flex align-items-center gap-2">
-            <span class="badge {% if item.event_type=='deadline' %}bg-danger{% elif item.event_type=='milestone' %}bg-warning{% else %}bg-primary{% endif %}">
+  <div class="card-body" style="overflow-x: auto;">
+    <div class="d-flex gap-4" style="min-width: 900px; padding: 10px 0;">
+      <div class="position-relative d-flex" style="gap: 0;">
+        {% for item in items %}
+        <div class="text-center position-relative" style="min-width: 150px; max-width: 180px; flex-shrink: 0;">
+          <!-- 圆点连线 -->
+          <div style="position: relative; height: 30px;">
+            {% if not loop.first %}
+            <div style="position: absolute; top: 14px; left: -50%; width: 100%; height: 3px; background: #444; z-index: 0;"></div>
+            {% endif %}
+            <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); 
+                        width: 18px; height: 18px; border-radius: 50%; z-index: 1;
+                        {% if item.done %}background: #198754; border: 3px solid #198754;
+                        {% elif item.event_type == 'deadline' %}background: #dc3545; border: 3px solid #dc3545;
+                        {% elif item.event_type == 'milestone' %}background: #ffc107; border: 3px solid #ffc107;
+                        {% else %}background: #0d6efd; border: 3px solid #0d6efd;{% endif %}"></div>
+          </div>
+          <!-- 日期 -->
+          <div class="small fw-bold mb-1 {% if item.event_date < now().date() %}text-secondary{% else %}text-info{% endif %}">
+            {{ item.event_date.strftime('%m/%d') }}
+          </div>
+          <!-- 标题 -->
+          <div class="small px-1 {% if item.done %}text-decoration-line-through text-secondary{% endif %}"
+               style="min-height: 55px;">
+            <span class="badge {% if item.event_type=='deadline' %}bg-danger{% elif item.event_type=='milestone' %}bg-warning text-dark{% else %}bg-primary{% endif %} mb-1" style="font-size: 0.65rem;">
               {{ item.event_type }}
             </span>
-            <span class="fw-bold {% if item.done %}text-decoration-line-through text-secondary{% endif %}">{{ item.title }}</span>
-            <form method="post" action="/timeline/{{ item.id }}/toggle" class="m-0">
-              <button class="btn btn-sm btn-link p-0 text-decoration-none {% if item.done %}text-success{% else %}text-secondary{% endif %}">
-                {% if item.done %}<i class="bi bi-check-square-fill"></i>{% else %}<i class="bi bi-square"></i>{% endif %}
-              </button>
-            </form>
+            <br>
+            <span class="fw-bold">{{ item.title }}</span>
           </div>
-          {% if item.description %}
-          <div class="small text-secondary mt-1">{{ item.description }}</div>
-          {% endif %}
+          <!-- 描述 -->
+          <div class="small text-secondary mb-1" style="font-size: 0.7rem; min-height: 25px;">
+            {{ item.description or '' }}
+          </div>
+          <!-- 完成按钮 -->
+          <form method="post" action="/timeline/{{ item.id }}/toggle" class="m-0">
+            <button class="btn btn-sm btn-link p-0 text-decoration-none {% if item.done %}text-success{% else %}text-secondary{% endif %}">
+              {% if item.done %}<i class="bi bi-check-circle-fill"></i> 已完成{% else %}<i class="bi bi-circle"></i> 标记完成{% endif %}
+            </button>
+          </form>
         </div>
+        {% endfor %}
       </div>
-      {% else %}
-      <div class="text-center text-secondary py-5">
-        <i class="bi bi-calendar-x fs-1"></i><br>暂无时间节点，请<a href="/import">导入时间线</a>
-      </div>
-      {% endfor %}
     </div>
   </div>
 </div>
+{% if not items %}
+<div class="text-center text-secondary py-5">
+  <i class="bi bi-calendar-x fs-1"></i><br>暂无时间节点，请先<a href="/import">导入时间线</a>
+</div>
+{% endif %}
 
 <!-- Add Modal -->
 <div class="modal fade" id="addModal" tabindex="-1">

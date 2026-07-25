@@ -130,9 +130,11 @@ def dashboard():
 
     recent = Application.query.order_by(Application.updated_at.desc()).limit(5).all()
 
+    max_funnel = max(funnel.values()) if funnel.values() else 1
+
     return render_template('dashboard.html',
         total=total, applied=applied, interviews=interviews, offers=offers, rejected=rejected,
-        funnel=funnel, city_counts=city_counts, ind_counts=ind_counts, pri_counts=pri_counts,
+        funnel=funnel, max_funnel=max_funnel, city_counts=city_counts, ind_counts=ind_counts, pri_counts=pri_counts,
         upcoming=upcoming, recent=recent)
 
 # ── Companies ──────────────────────────────────────────────────────────────
@@ -282,6 +284,19 @@ def study_list():
     mats = query.order_by(StudyMaterial.category, StudyMaterial.title).all()
     return render_template('study.html', materials=mats)
 
+@app.route('/study/<int:m_id>/content')
+def study_content(m_id):
+    m = StudyMaterial.query.get_or_404(m_id)
+    try:
+        with open(m.source_file, 'r', encoding='utf-8') as f:
+            content = f.read()
+    except Exception as e:
+        content = f"无法读取文件 {m.source_file}: {str(e)}"
+    
+    # 简单提取对应章节（如果不想要全量也可以，这里先传全量或者尝试按标题切割）
+    # 为简单起见，这里直接把整个 md 传给前端，前端可以用 marked.js 渲染
+    return render_template('study_content.html', material=m, content=content)
+
 @app.route('/study/<int:m_id>/toggle', methods=['POST'])
 def study_toggle(m_id):
     m = StudyMaterial.query.get_or_404(m_id)
@@ -337,23 +352,36 @@ def import_companies():
             lines = f.readlines()
         current = {}
         for line in lines:
-            # match markdown table rows: | name | industry | city | job_type | reason |
-            m = re.match(r'^\|\s*(.+?)\s*\|\s*(.+?)\s*\|\s*(.+?)\s*\|\s*(.+?)\s*\|\s*(.+?)\s*\|', line)
-            if m:
-                parts = [m.group(i).strip() for i in range(1,6)]
-                if parts[0].startswith('排名') or parts[0].startswith('公司') or parts[0].startswith('-') or '公司名称' in parts[0]:
+            if '|' not in line:
+                continue
+            parts = [p.strip() for p in line.split('|')]
+            if len(parts) >= 6:
+                # [ '', '1', '拓竹科技', '深圳', '机械结构工程师', '匹配理由', '' ]
+                name_idx = 2 if parts[1].isdigit() or parts[1] == '排名' else 1
+                if '公司' in parts[name_idx] or '---' in parts[name_idx]:
                     continue
-                if parts[0] and len(parts[0])>1 and not parts[0][0].isdigit():
-                    # check if already exists
-                    existing = Company.query.filter_by(name=parts[0]).first()
+                    
+                name = parts[name_idx]
+                if name:
+                    # Clean markdown bold **
+                    name = name.replace('**','').strip()
+                    existing = Company.query.filter_by(name=name).first()
                     if not existing:
                         priority = 'B'
-                        if '拓竹' in parts[0] or 'INTAMSYS' in parts[0] or '恒泰' in parts[0]:
+                        if '拓竹' in name or 'INTAMSYS' in name or '恒泰' in name:
                             priority = 'S'
-                        elif '创想' in parts[0] or '纵维' in parts[0] or '智能派' in parts[0] or '汇川' in parts[0] or '大疆' in parts[0]:
+                        elif '创想' in name or '纵维' in name or '智能派' in name or '汇川' in name or '大疆' in name:
                             priority = 'A'
-                        c = Company(name=parts[0], industry=parts[1], city=parts[2],
-                                   job_type=parts[3], match_reason=parts[4], priority=priority,
+                            
+                        # find columns based on headers if possible, or fallback
+                        industry = '未知'
+                        if '医疗' in fp: industry = '医疗器械'
+                        elif '机器人' in fp: industry = '机器人'
+                        elif '自动化' in fp: industry = '工业自动化'
+                        elif '3D' in fp: industry = '3D打印'
+                        
+                        c = Company(name=name, industry=industry, city=parts[name_idx+1],
+                                   job_type=parts[name_idx+2], match_reason=parts[name_idx+3], priority=priority,
                                    source_list=f"清单{source}")
                         db.session.add(c)
                         count += 1
