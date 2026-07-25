@@ -8,6 +8,10 @@
   </div>
 </div>
 
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" defer></script>
+
 <div class="card">
   <div class="card-body p-4" style="line-height: 1.8;">
     <div id="content" class="text-white"></div>
@@ -16,29 +20,70 @@
 
 <script src="https://cdn.jsdelivr.net/npm/marked@12/marked.min.js"></script>
 <script>
-const content = {{ content | tojson }};
+const rawContent = {{ content | tojson }};
+const elem = document.getElementById('content');
 
-// 如果打开的是面试复习手册，跳到对应章节
+// 预处理：把 $...$ 和 $$...$$ 内的内容用占位符保护，避免 marked.js 破坏 LaTeX
+const placeholders = [];
+function protectMath(text) {
+  return text.replace(/\$\$([\s\S]+?)\$\$/g, (m, p1) => {
+    placeholders.push({display: true, content: p1});
+    return `MATHPLACEHOLDER${placeholders.length - 1}END`;
+  }).replace(/\$([^\n$]+?)\$/g, (m, p1) => {
+    placeholders.push({display: false, content: p1});
+    return `MATHPLACEHOLDER${placeholders.length - 1}END`;
+  });
+}
+function restoreMath(html) {
+  return html.replace(/MATHPLACEHOLDER(\d+)END/g, (m, idx) => {
+    const item = placeholders[parseInt(idx)];
+    return item.display ? `$$${item.content}$$` : `$${item.content}$`;
+  });
+}
+
+const protected = protectMath(rawContent);
+let html;
 {% if '面试复习手册' in material.source_file %}
 const sections = {
-  'control': '自动控制原理',
-  'mechanical': '机械设计基础',
-  'sensor': '传感器与检测技术',
-  'motor': '电机与运动控制',
-  'embedded': '嵌入式与编程',
-  'plc': 'PLC与工业网络',
-  'thermal': '热工基础',
-  'behavior': '面试行为问题'
+  'control': '自动控制原理', 'mechanical': '机械设计基础', 'sensor': '传感器与检测技术',
+  'motor': '电机与运动控制', 'embedded': '嵌入式与编程', 'plc': 'PLC与工业网络',
+  'thermal': '热工基础', 'behavior': '面试行为问题'
 };
 const sectionTitle = sections['{{ material.category }}'];
-const idx = content.indexOf('## ' + sectionTitle);
+const idx = rawContent.indexOf('## ' + sectionTitle);
 if (idx > 0) {
-  document.getElementById('content').innerHTML = marked.parse(content.substring(idx));
+  html = marked.parse(protectMath(rawContent.substring(idx)));
 } else {
-  document.getElementById('content').innerHTML = marked.parse(content);
+  html = marked.parse(protected);
 }
 {% else %}
-document.getElementById('content').innerHTML = marked.parse(content);
+html = marked.parse(protected);
 {% endif %}
+elem.innerHTML = restoreMath(html);
+
+// KaTeX 渲染
+if (window.renderMathInElement) {
+  renderMathInElement(elem, {
+    delimiters: [
+      {left: '$$', right: '$$', display: true},
+      {left: '$', right: '$', display: false},
+      {left: '\\(', right: '\\)', display: false},
+      {left: '\\[', right: '\\]', display: true}
+    ],
+    throwOnError: false
+  });
+} else {
+  document.addEventListener('DOMContentLoaded', () => {
+    renderMathInElement(elem, {
+      delimiters: [
+        {left: '$$', right: '$$', display: true},
+        {left: '$', right: '$', display: false},
+        {left: '\\(', right: '\\)', display: false},
+        {left: '\\[', right: '\\]', display: true}
+      ],
+      throwOnError: false
+    });
+  });
+}
 </script>
 {% endblock %}
