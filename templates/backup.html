@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="dashboard-title mb-4"><i class="bi bi-shield-lock me-2 text-primary"></i>备份与恢复</div>
+
+<div class="row g-4">
+  <!-- 数据统计 -->
+  <div class="col-md-6">
+    <div class="card h-100">
+      <div class="card-body">
+        <h6 class="card-title mb-3"><i class="bi bi-database me-2"></i>当前数据</h6>
+        <table class="table table-sm">
+          {% for k, v in counts.items() %}
+          <tr><td class="text-secondary">{{ k }}</td><td class="text-end fw-bold">{{ v }}</td></tr>
+          {% endfor %}
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- 导出 -->
+  <div class="col-md-6">
+    <div class="card h-100">
+      <div class="card-body">
+        <h6 class="card-title mb-3"><i class="bi bi-download me-2"></i>导出备份</h6>
+        <p class="text-secondary small">将所有数据导出为 JSON 文件，存到安全位置。</p>
+        <form method="post" action="/backup/export">
+          <button class="btn btn-primary"><i class="bi bi-download me-1"></i>立即导出</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- 恢复 -->
+  <div class="col-12">
+    <div class="card border-warning">
+      <div class="card-body">
+        <h6 class="card-title mb-3 text-warning"><i class="bi bi-exclamation-triangle me-2"></i>恢复数据（危险操作）</h6>
+        <p class="text-secondary small">上传备份 JSON 文件恢复数据。恢复前会自动备份当前数据库。同名公司可选跳过或覆盖。</p>
+        <form method="post" action="/backup/restore" enctype="multipart/form-data">
+          <div class="row g-3 align-items-end">
+            <div class="col-md-6">
+              <label class="form-label">备份文件（JSON）</label>
+              <input type="file" class="form-control" name="backup_file" accept=".json" required>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">同名公司处理</label>
+              <select class="form-select" name="mode">
+                <option value="skip" selected>跳过（默认）</option>
+                <option value="overwrite">覆盖</option>
+              </select>
+            </div>
+            <div class="col-md-3">
+              <button class="btn btn-warning w-100"><i class="bi bi-upload me-1"></i>开始恢复</button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
