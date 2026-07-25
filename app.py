@@ -2,7 +2,7 @@
 import os
 from flask import Flask
 from config import Config
-from extensions import db
+from extensions import db, migrate
 from constants import STATUS_LIST, INDUSTRIES, CITIES, STATUS_BADGE
 from datetime import datetime
 
@@ -14,6 +14,7 @@ def create_app():
     app.config['BASE_DIR'] = os.path.dirname(os.path.abspath(__file__))
 
     db.init_app(app)
+    migrate.init_app(app, db)
 
     # 注册所有 blueprint
     from routes import ALL_BLUEPRINTS
