@@ -1,0 +1,22 @@
+<div class="d-flex align-items-center mb-4 mt-2">
+  <i class="bi bi-rocket-takeoff fs-3 me-2 text-primary"></i>
+  <span class="fw-bold fs-5">JHTracker</span>
+</div>
+<hr class="text-secondary">
+<nav class="nav flex-column">
+  <a class="nav-link {% if request.path=='/' %}active{% endif %}" href="/"><i class="bi bi-speedometer2 me-2"></i>看板</a>
+  <a class="nav-link {% if 'companies' in request.path %}active{% endif %}" href="/companies"><i class="bi bi-building me-2"></i>公司清单</a>
+  <a class="nav-link {% if 'applications' in request.path %}active{% endif %}" href="/applications"><i class="bi bi-send me-2"></i>投递记录</a>
+  <a class="nav-link {% if 'notes' in request.path %}active{% endif %}" href="/notes"><i class="bi bi-journal-text me-2"></i>笔记</a>
+  <a class="nav-link {% if 'study' in request.path %}active{% endif %}" href="/study"><i class="bi bi-book me-2"></i>复习资料</a>
+  <a class="nav-link {% if 'timeline' in request.path %}active{% endif %}" href="/timeline"><i class="bi bi-calendar3 me-2"></i>时间线</a>
+  <a class="nav-link {% if 'resumes' in request.path %}active{% endif %}" href="/resumes"><i class="bi bi-file-earmark-person me-2"></i>简历版本</a>
+  <a class="nav-link {% if 'compare' in request.path %}active{% endif %}" href="/compare"><i class="bi bi-trophy me-2"></i>Offer 对比</a>
+  <a class="nav-link {% if 'backup' in request.path %}active{% endif %}" href="/backup"><i class="bi bi-shield-lock me-2"></i>备份/恢复</a>
+  <a class="nav-link {% if 'import' in request.path %}active{% endif %}" href="/import"><i class="bi bi-upload me-2"></i>数据导入</a>
+</nav>
+<hr class="text-secondary">
+<div class="text-secondary small px-2">
+  <i class="bi bi-person-circle me-1"></i> 老大<br>
+  <span class="small">自动化/机电工程师</span>
+</div>
