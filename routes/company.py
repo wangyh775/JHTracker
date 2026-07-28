@@ -140,10 +140,10 @@ def company_score_all():
     from flask import flash, jsonify
     import subprocess
     import os
-    
+
     from dotenv import load_dotenv
     load_dotenv()
-    
+
     script_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'scripts', 'ai_scorer.py')
     try:
         # 后台异步执行
@@ -154,8 +154,56 @@ def company_score_all():
         flash('✅ 评分已启动，请观察进度条等待完成', 'success')
     except Exception as e:
         flash(f'❌ 启动评分失败：{e}', 'danger')
-        
+
     return redirect(url_for('company.company_list'))
+
+
+@bp.route('/companies/<int:c_id>/score', methods=['POST'])
+def company_score_one(c_id):
+    """触发单公司 AI 重评分（异步）。
+
+    复用 ai_scorer.py 的 --company-id 模式，1 家公司 1 次 LLM 调用。
+    写入同一个 .score_progress.json，前端复用现有进度条。
+    """
+    from flask import jsonify
+    import subprocess
+    import os
+    import json
+
+    from dotenv import load_dotenv
+    load_dotenv()
+
+    # 校验公司存在
+    c = Company.query.get_or_404(c_id)
+
+    # 防重入：已有评分任务在跑
+    progress_file = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'data', '.score_progress.json')
+    try:
+        with open(progress_file) as f:
+            prog = json.load(f)
+        if prog.get('status') == 'running':
+            return jsonify({'ok': False, 'msg': '已有评分任务进行中，请等待完成'}), 409
+    except (FileNotFoundError, json.JSONDecodeError):
+        pass
+
+    # 重置进度为 starting
+    try:
+        with open(progress_file, 'w') as f:
+            json.dump({'current': 0, 'total': 1, 'name': c.name, 'score': 0, 'status': 'starting'}, f)
+    except OSError:
+        pass
+
+    script_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'scripts', 'ai_scorer.py')
+    try:
+        subprocess.Popen(
+            ['python', script_path, '--company-id', str(c_id)],
+            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
+        )
+    except Exception as e:
+        return jsonify({'ok': False, 'msg': f'启动失败：{e}'}), 500
+
+    return jsonify({'ok': True, 'msg': f'已触发「{c.name}」重评分', 'company_id': c_id})
+
 
 
 @bp.route('/api/score-progress')

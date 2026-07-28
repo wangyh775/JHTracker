@@ -143,6 +143,41 @@ document.addEventListener('DOMContentLoaded', function() {
       setTimeout(checkProgress, 1000);
     });
   }
+
+  // 单公司重评分
+  document.querySelectorAll('.btn-rescore').forEach(function(b) {
+    b.addEventListener('click', async function() {
+      var id = this.dataset.id;
+      var name = this.dataset.name;
+      if (!confirm('对「' + name + '」单独重评分？\n会调用 1 次 LLM。')) return;
+
+      // 临时禁用所有重评分按钮，避免并发触发
+      document.querySelectorAll('.btn-rescore').forEach(function(x) { x.disabled = true; });
+      this.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+
+      try {
+        var resp = await fetch('/companies/' + id + '/score', { method: 'POST' });
+        var data = await resp.json();
+        if (!data.ok) {
+          alert(data.msg || '启动失败');
+          document.querySelectorAll('.btn-rescore').forEach(function(x) {
+            x.disabled = false;
+            x.innerHTML = '<i class="bi bi-arrow-repeat"></i>';
+          });
+          return;
+        }
+        // 启动进度条轮询（复用现有进度卡片）
+        btn.disabled = true;
+        setTimeout(checkProgress, 800);
+      } catch (e) {
+        alert('请求失败: ' + e.message);
+        document.querySelectorAll('.btn-rescore').forEach(function(x) {
+          x.disabled = false;
+          x.innerHTML = '<i class="bi bi-arrow-repeat"></i>';
+        });
+      }
+    });
+  });
 });</script>
 
 <!-- Stat bar (BossHunter 风格) -->
@@ -218,7 +253,11 @@ document.addEventListener('DOMContentLoaded', function() {
             {% endif %}
           </td>
           <td class="text-nowrap">
-            <a href="/companies/{{ c.id }}" class="btn btn-sm btn-outline-info py-0 px-2"><i class="bi bi-chevron-right"></i></a>
+            <a href="/companies/{{ c.id }}" class="btn btn-sm btn-outline-info py-0 px-2" title="详情"><i class="bi bi-chevron-right"></i></a>
+            <button class="btn btn-sm btn-outline-warning py-0 px-2 btn-rescore" title="重评分"
+                    data-id="{{ c.id }}" data-name="{{ c.name }}">
+              <i class="bi bi-arrow-repeat"></i>
+            </button>
             <form method="post" action="/companies/{{ c.id }}/delete" class="d-inline" onsubmit="return confirm('确定删除「{{ c.name }}」及其所有投递记录？')">
               <button class="btn btn-sm btn-outline-danger py-0 px-2"><i class="bi bi-trash"></i></button>
             </form>
