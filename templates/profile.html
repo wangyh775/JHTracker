@@ -21,8 +21,8 @@
           <h6 class="card-title mb-0"><i class="bi bi-pencil-square me-2"></i>编辑画像</h6>
           <div class="d-flex gap-2">
             <ul class="nav nav-pills mb-0" id="profileTab" role="tablist">
-              <li class="nav-item"><button class="nav-link py-1 px-2 active" data-bs-toggle="pill" data-bs-target="#editPane" type="button"><i class="bi bi-pencil me-1"></i>编辑</button></li>
-              <li class="nav-item"><button class="nav-link py-1 px-2" data-bs-toggle="pill" data-bs-target="#previewPane" type="button" id="previewBtn"><i class="bi bi-eye me-1"></i>预览</button></li>
+              <li class="nav-item"><button class="nav-link py-1 px-2" data-bs-toggle="pill" data-bs-target="#editPane" type="button" id="editBtn"><i class="bi bi-pencil me-1"></i>编辑</button></li>
+              <li class="nav-item"><button class="nav-link py-1 px-2 active" data-bs-toggle="pill" data-bs-target="#previewPane" type="button" id="previewBtn"><i class="bi bi-eye me-1"></i>预览</button></li>
             </ul>
             <a href="/resumes" class="btn btn-sm btn-outline-info mb-0">
               <i class="bi bi-files me-1"></i>简历版本管理
@@ -32,13 +32,13 @@
 
         <form method="post" action="/profile/save">
           <div class="tab-content">
-            <div class="tab-pane fade show active" id="editPane" role="tabpanel">
+            <div class="tab-pane fade" id="editPane" role="tabpanel">
               <div class="mb-3">
                 <textarea class="form-control font-monospace small" name="content" id="profileEditor" rows="28"
                           style="font-size:0.85rem; line-height:1.8;">{{ content }}</textarea>
               </div>
             </div>
-            <div class="tab-pane fade" id="previewPane" role="tabpanel">
+            <div class="tab-pane fade show active" id="previewPane" role="tabpanel">
               <div id="profilePreview" class="profile-preview border rounded p-3 bg-dark"
                    style="min-height:560px; line-height:1.7;"></div>
             </div>

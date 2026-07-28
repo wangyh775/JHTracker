@@ -3,28 +3,7 @@
 <div class="d-flex justify-content-between align-items-center mb-3">
   <div class="dashboard-title"><i class="bi bi-building me-2 text-primary"></i>公司清单 <span class="badge bg-primary fs-6">{{ companies.total }}</span></div>
   <div class="d-flex gap-2">
-    <form method="post" action="/companies/score" class="d-inline" onsubmit="return confirm('启动 AI 批量评分？将对无评分的公司进行匹配度评分')">
-      <button class="btn btn-sm btn-outline-warning" id="btnScore"><i class="bi bi-stars me-1"></i>AI 评分</button>
-    </form>
     <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addModal"><i class="bi bi-plus-lg me-1"></i>添加公司</button>
-  </div>
-</div>
-
-<!-- 评分进度条 (默认隐藏) -->
-<div class="card mb-3 d-none border-warning shadow-sm" id="scoreProgressCard">
-  <div class="card-body py-2">
-    <div class="d-flex justify-content-between small mb-1">
-      <span><i class="bi bi-robot me-1 text-warning"></i> 正在进行 AI 匹配评分... <span id="scoreStatusText" class="text-secondary ms-2"></span></span>
-      <div>
-        <a href="/import/score/log" target="_blank" class="btn btn-sm btn-outline-secondary py-0 px-2 me-1" title="查看评分日志">
-          <i class="bi bi-file-text"></i>
-        </a>
-        <span class="fw-bold"><span id="scoreCurrent">0</span> / <span id="scoreTotal">0</span></span>
-      </div>
-    </div>
-    <div class="progress" style="height: 8px;">
-      <div class="progress-bar progress-bar-striped progress-bar-animated bg-warning" id="scoreProgressBar" style="width: 0%"></div>
-    </div>
   </div>
 </div>
 
@@ -111,88 +90,6 @@ document.addEventListener('DOMContentLoaded', function() {
       var all = document.getElementById(group + '_all');
       var checked = document.querySelectorAll('.filter-opt[data-group="' + group + '"]:checked');
       all.checked = checked.length === 0;
-    });
-  });
-
-  // 评分进度轮询
-  var scoreCard = document.getElementById('scoreProgressCard');
-  var bar = document.getElementById('scoreProgressBar');
-  var curEl = document.getElementById('scoreCurrent');
-  var totEl = document.getElementById('scoreTotal');
-  var statusText = document.getElementById('scoreStatusText');
-  var btn = document.getElementById('btnScore');
-  var pollTimer = null;
-
-  function checkProgress() {
-    fetch('/api/score-progress').then(function(r) { return r.json(); }).then(function(data) {
-      if (data.status === 'running' || data.status === 'starting') {
-        scoreCard.classList.remove('d-none');
-        curEl.textContent = data.current;
-        totEl.textContent = data.total;
-        var pct = data.total > 0 ? (data.current / data.total * 100) : 0;
-        bar.style.width = pct + '%';
-        if (data.name && data.current > 0) {
-          statusText.textContent = data.name + ' (' + data.score + '分)';
-        }
-        if (data.status === 'running') {
-          pollTimer = setTimeout(checkProgress, 1500);
-        }
-      } else if (data.status === 'done') {
-        bar.style.width = '100%';
-        statusText.textContent = '✅ 完成！';
-        btn.disabled = false;
-        setTimeout(function() {
-          scoreCard.classList.add('d-none');
-          bar.style.width = '0%';
-          location.reload(); // 刷新显示评分
-        }, 2000);
-      }
-    }).catch(function() {
-      pollTimer = setTimeout(checkProgress, 3000);
-    });
-  }
-
-  // 启动评分后开始轮询
-  var scoreForm = document.querySelector('form[action="/companies/score"]');
-  if (scoreForm) {
-    scoreForm.addEventListener('submit', function() {
-      btn.disabled = true;
-      setTimeout(checkProgress, 1000);
-    });
-  }
-
-  // 单公司重评分
-  document.querySelectorAll('.btn-rescore').forEach(function(b) {
-    b.addEventListener('click', async function() {
-      var id = this.dataset.id;
-      var name = this.dataset.name;
-      if (!confirm('对「' + name + '」单独重评分？\n会调用 1 次 LLM。')) return;
-
-      // 临时禁用所有重评分按钮，避免并发触发
-      document.querySelectorAll('.btn-rescore').forEach(function(x) { x.disabled = true; });
-      this.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
-
-      try {
-        var resp = await fetch('/companies/' + id + '/score', { method: 'POST' });
-        var data = await resp.json();
-        if (!data.ok) {
-          alert(data.msg || '启动失败');
-          document.querySelectorAll('.btn-rescore').forEach(function(x) {
-            x.disabled = false;
-            x.innerHTML = '<i class="bi bi-arrow-repeat"></i>';
-          });
-          return;
-        }
-        // 启动进度条轮询（复用现有进度卡片）
-        btn.disabled = true;
-        setTimeout(checkProgress, 800);
-      } catch (e) {
-        alert('请求失败: ' + e.message);
-        document.querySelectorAll('.btn-rescore').forEach(function(x) {
-          x.disabled = false;
-          x.innerHTML = '<i class="bi bi-arrow-repeat"></i>';
-        });
-      }
     });
   });
 });</script>
@@ -282,10 +179,6 @@ document.addEventListener('DOMContentLoaded', function() {
           </td>
           <td class="col-actions">
             <a href="/companies/{{ c.id }}" class="btn btn-sm btn-outline-info py-0 px-2" title="详情"><i class="bi bi-chevron-right"></i></a>
-            <button class="btn btn-sm btn-outline-warning py-0 px-2 btn-rescore" title="重评分"
-                    data-id="{{ c.id }}" data-name="{{ c.name }}">
-              <i class="bi bi-arrow-repeat"></i>
-            </button>
             <form method="post" action="/companies/{{ c.id }}/delete" class="d-inline" onsubmit="return confirm('确定删除「{{ c.name }}」及其所有投递记录？')">
               <button class="btn btn-sm btn-outline-danger py-0 px-2"><i class="bi bi-trash"></i></button>
             </form>
