@@ -36,6 +36,27 @@ def timeline_add():
     return redirect(url_for('timeline.timeline_view'))
 
 
+@bp.route('/timeline/<int:t_id>/edit', methods=['POST'])
+def timeline_edit(t_id):
+    t = Timeline.query.get_or_404(t_id)
+    try:
+        event_date = parse_date(request.form['event_date'])
+        end_date = parse_date(request.form.get('end_date', ''))
+        if event_date is None:
+            raise ValueError('开始日期不能为空')
+        if end_date and end_date < event_date:
+            raise ValueError('结束日期不能早于开始日期')
+        t.event_date = event_date
+        t.end_date = end_date
+        t.title = request.form['title']
+        t.description = request.form.get('description', '')
+        t.event_type = request.form.get('event_type', 'action')
+        db.session.commit()
+    except ValueError:
+        pass
+    return redirect(url_for('timeline.timeline_view'))
+
+
 @bp.route('/timeline/<int:t_id>/toggle', methods=['POST'])
 def timeline_toggle(t_id):
     t = Timeline.query.get_or_404(t_id)

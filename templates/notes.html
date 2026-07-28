@@ -8,19 +8,19 @@
 <div class="row">
   {% for n in notes.items %}
   <div class="col-md-6 mb-3">
-    <div class="card h-100">
+    <div class="card h-100" style="cursor:pointer;" onclick="openEditModal({{ n.id }}, {{ n.category|tojson }}, {{ n.title|tojson }}, {{ (n.content or '')|tojson }}, {{ n.company_id|tojson }})">
       <div class="card-body">
         <div class="d-flex justify-content-between align-items-start mb-2">
           <div>
             <span class="badge bg-secondary me-2">{{ n.category }}</span>
             <span class="fw-bold">{{ n.title }}</span>
           </div>
-          <form method="post" action="/notes/{{ n.id }}/delete" onsubmit="return confirm('确定删除？')">
+          <form method="post" action="/notes/{{ n.id }}/delete" onclick="event.stopPropagation();" onsubmit="return confirm('确定删除？')">
             <button class="btn btn-sm btn-outline-danger py-0"><i class="bi bi-trash"></i></button>
           </form>
         </div>
-        <div class="small text-secondary mb-2">{{ n.created_at.strftime('%Y-%m-%d %H:%M') }}{% if n.company_id %} · <a href="/companies/{{ n.company_id }}" class="text-decoration-none">关联公司</a>{% endif %}</div>
-        <div class="small text-white">{{ n.content or '' }}</div>
+        <div class="small text-secondary mb-2">{{ n.created_at.strftime('%Y-%m-%d %H:%M') }}{% if n.company_id %} · <a href="/companies/{{ n.company_id }}" class="text-decoration-none" onclick="event.stopPropagation();">关联公司</a>{% endif %}</div>
+        <div class="small text-white text-truncate">{{ (n.content or '')[:100] }}{% if n.content|length > 100 %}...{% endif %}</div>
       </div>
     </div>
   </div>
@@ -39,7 +39,7 @@
 
 <!-- Add Modal -->
 <div class="modal fade" id="addModal" tabindex="-1">
-  <div class="modal-dialog">
+  <div class="modal-dialog modal-lg">
     <div class="modal-content">
       <form method="post" action="/notes">
         <div class="modal-header"><h5 class="modal-title">写笔记</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
@@ -58,7 +58,7 @@
             <datalist id="companyList"></datalist>
           </div>
           <div class="mb-3"><label class="form-label">标题 *</label><input class="form-control" name="title" required></div>
-          <div class="mb-3"><label class="form-label">内容</label><textarea class="form-control" name="content" rows="5"></textarea></div>
+          <div class="mb-3"><label class="form-label">内容</label><textarea class="form-control" name="content" rows="8"></textarea></div>
         </div>
         <div class="modal-footer"><button class="btn btn-primary">保存</button></div>
       </form>
@@ -66,16 +66,69 @@
   </div>
 </div>
 
+<!-- Edit Modal (点击卡片弹出) -->
+<div class="modal fade" id="editModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <form method="post" action="" id="editForm">
+        <div class="modal-header">
+          <h5 class="modal-title">编辑笔记</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label">类型</label>
+            <select class="form-select" name="category" id="editCategory">
+              <option value="interview">面试记录</option>
+              <option value="company_note">公司背调</option>
+              <option value="reflection">复盘/反思</option>
+              <option value="other">其他</option>
+            </select>
+          </div>
+          <div class="mb-3"><label class="form-label">关联公司</label>
+            <input class="form-control" id="editCompanySearch" list="companyList2" name="company_id" placeholder="搜索公司...">
+            <datalist id="companyList2"></datalist>
+          </div>
+          <div class="mb-3"><label class="form-label">标题 *</label><input class="form-control" name="title" id="editTitle" required></div>
+          <div class="mb-3"><label class="form-label">内容</label><textarea class="form-control" name="content" id="editContent" rows="8"></textarea></div>
+        </div>
+        <div class="modal-footer"><button class="btn btn-primary">保存修改</button></div>
+      </form>
+    </div>
+  </div>
+</div>
+
 <script>
+// 公司搜索（新增）
 document.getElementById('companySearch').addEventListener('input', function() {
   const q = this.value;
   if(q.length < 1) return;
   fetch('/api/companies/search?q=' + encodeURIComponent(q))
     .then(r => r.json())
     .then(data => {
-      const dl = document.getElementById('companyList');
-      dl.innerHTML = data.map(c => '<option value="' + c.id + '">' + c.name + ' (' + c.city + ')' + '</option>').join('');
+      document.getElementById('companyList').innerHTML = data.map(c => '<option value="' + c.id + '">' + c.name + ' (' + c.city + ')' + '</option>').join('');
     });
 });
+
+// 公司搜索（编辑）
+document.getElementById('editCompanySearch').addEventListener('input', function() {
+  const q = this.value;
+  if(q.length < 1) return;
+  fetch('/api/companies/search?q=' + encodeURIComponent(q))
+    .then(r => r.json())
+    .then(data => {
+      document.getElementById('companyList2').innerHTML = data.map(c => '<option value="' + c.id + '">' + c.name + ' (' + c.city + ')' + '</option>').join('');
+    });
+});
+
+// 编辑弹窗：点击卡片时触发
+function openEditModal(id, category, title, content, companyId) {
+  document.getElementById('editForm').action = '/notes/' + id + '/edit';
+  document.getElementById('editCategory').value = category;
+  document.getElementById('editTitle').value = title;
+  document.getElementById('editContent').value = content;
+  document.getElementById('editCompanySearch').value = companyId || '';
+  new bootstrap.Modal(document.getElementById('editModal')).show();
+}
 </script>
 {% endblock %}

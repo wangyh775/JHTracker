@@ -24,6 +24,17 @@ def notes():
     return render_template('notes.html', notes=ns)
 
 
+@bp.route('/notes/<int:n_id>/edit', methods=['POST'])
+def note_edit(n_id):
+    n = Note.query.get_or_404(n_id)
+    n.category = request.form.get('category', n.category)
+    n.title = request.form['title']
+    n.content = request.form.get('content', '')
+    n.company_id = try_int(request.form.get('company_id')) or None
+    db.session.commit()
+    return redirect(url_for('note.notes'))
+
+
 @bp.route('/notes/<int:n_id>/delete', methods=['POST'])
 def note_delete(n_id):
     n = Note.query.get_or_404(n_id)
