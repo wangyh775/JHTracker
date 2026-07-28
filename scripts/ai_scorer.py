@@ -34,6 +34,13 @@ import json
 import sqlite3
 import hashlib
 
+# 加载 .env 文件（从命令行直接跑时也能读到 API Key）
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
+
 # 连接到 tracker.db
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DB_PATH = os.path.join(BASE_DIR, 'data', 'tracker.db')
@@ -154,7 +161,10 @@ def _format_companies_block(companies):
 
 
 def _call_llm(prompt, max_tokens=2000):
-    """调用 LLM（兼容 Anthropic / OpenAI）。批量评分需要更大 max_tokens。"""
+    """调用 LLM（兼容 Anthropic / OpenAI）。批量评分需要更大 max_tokens。
+
+    失败时返回 None 并打印错误到 stderr（会被日志文件捕获）。
+    """
     # 优先使用环境变量 ANTHROPIC_API_KEY
     api_key = os.environ.get('ANTHROPIC_API_KEY')
     if api_key:
@@ -169,7 +179,10 @@ def _call_llm(prompt, max_tokens=2000):
             )
             return msg.content[0].text
         except ImportError:
-            pass
+            print("⚠️  anthropic 库未安装，尝试 OpenAI fallback", file=sys.stderr)
+        except Exception as e:
+            print(f"❌ Anthropic API 调用失败: {type(e).__name__}: {e}", file=sys.stderr)
+            return None
 
     # Fallback: OpenAI 兼容接口
     api_key = os.environ.get('OPENAI_API_KEY')
@@ -190,9 +203,12 @@ def _call_llm(prompt, max_tokens=2000):
             )
             return resp.choices[0].message.content
         except ImportError:
-            pass
+            print("⚠️  openai 库未安装", file=sys.stderr)
+        except Exception as e:
+            print(f"❌ OpenAI API 调用失败: {type(e).__name__}: {e}", file=sys.stderr)
+            return None
 
-    print("⚠️  未设置 ANTHROPIC_API_KEY 或 OPENAI_API_KEY，跳过 LLM 评分")
+    print("⚠️  未设置 ANTHROPIC_API_KEY 或 OPENAI_API_KEY，跳过 LLM 评分", file=sys.stderr)
     return None
 
 
@@ -268,14 +284,16 @@ def score_batch(companies, profile):
     expected_ids = {c['id'] for c in to_llm}
     llm_scores = _parse_batch_scores(response_text, expected_ids)
 
-    # 合并结果：LLM 评分 + 预筛结果 + LLM 失败的默认分
+    # 合并结果：LLM 评分 + 预筛结果
+    # LLM 失败的公司不给默认分，保持 None，下次增量评分会自动重试
     result = dict(prefiltered)
     for c in to_llm:
         cid = c['id']
         if cid in llm_scores:
             result[cid] = llm_scores[cid]
         else:
-            result[cid] = (50, "LLM 评分失败，默认中分")
+            # 标记为失败，但 score 保持 None（不写入 50）
+            result[cid] = (None, "LLM 评分失败（JSON 漏掉或解析失败），下次重试")
     return result
 
 
@@ -380,8 +398,19 @@ def main():
             if cid in batch_scores:
                 score, reason = batch_scores[cid]
             else:
-                score, reason = 50, "评分缺失，默认中分"
+                score, reason = None, "评分缺失，下次重试"
                 errors += 1
+
+            if score is None:
+                # LLM 失败：只写 reason，不写 score（保持 NULL，下次增量评分自动重试）
+                cursor.execute("UPDATE companies SET score_reason = ? WHERE id = ?",
+                               (reason, cid))
+                conn.commit()
+                global_idx = batch_start + i + 1
+                write_progress(global_idx, total, c['name'], 0)
+                print(f"({global_idx}/{total})  [LLM 失败] {c['name']:50s} -> {reason}")
+                errors += 1
+                continue
 
             if score == 0:
                 prefiltered += 1

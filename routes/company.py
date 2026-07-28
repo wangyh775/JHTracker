@@ -137,19 +137,26 @@ def api_company_search():
 @bp.route('/companies/score', methods=['POST'])
 def company_score_all():
     """触发后台批量 AI 评分（异步）。"""
-    from flask import flash, jsonify
+    from flask import flash
     import subprocess
     import os
+    import sys
 
     from dotenv import load_dotenv
     load_dotenv()
 
-    script_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'scripts', 'ai_scorer.py')
+    base_dir = os.path.dirname(os.path.dirname(__file__))
+    script_path = os.path.join(base_dir, 'scripts', 'ai_scorer.py')
+    log_path = os.path.join(base_dir, 'data', '.score_log.txt')
+
     try:
-        # 后台异步执行
+        # 日志写入文件（不再 DEVNULL），前端可查看失败原因
+        log_fp = open(log_path, 'w', encoding='utf-8')
         subprocess.Popen(
-            ['python', script_path],
-            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
+            [sys.executable, script_path],
+            cwd=base_dir,
+            stdout=log_fp,
+            stderr=subprocess.STDOUT,
         )
         flash('✅ 评分已启动，请观察进度条等待完成', 'success')
     except Exception as e:
@@ -168,6 +175,7 @@ def company_score_one(c_id):
     from flask import jsonify
     import subprocess
     import os
+    import sys
     import json
 
     from dotenv import load_dotenv
@@ -177,7 +185,10 @@ def company_score_one(c_id):
     c = Company.query.get_or_404(c_id)
 
     # 防重入：已有评分任务在跑
-    progress_file = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'data', '.score_progress.json')
+    base_dir = os.path.dirname(os.path.dirname(__file__))
+    progress_file = os.path.join(base_dir, 'data', '.score_progress.json')
+    log_path = os.path.join(base_dir, 'data', '.score_log.txt')
+
     try:
         with open(progress_file) as f:
             prog = json.load(f)
@@ -193,11 +204,15 @@ def company_score_one(c_id):
     except OSError:
         pass
 
-    script_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'scripts', 'ai_scorer.py')
+    script_path = os.path.join(base_dir, 'scripts', 'ai_scorer.py')
     try:
+        # 日志写入文件，前端可查看失败原因
+        log_fp = open(log_path, 'w', encoding='utf-8')
         subprocess.Popen(
-            ['python', script_path, '--company-id', str(c_id)],
-            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
+            [sys.executable, script_path, '--company-id', str(c_id)],
+            cwd=base_dir,
+            stdout=log_fp,
+            stderr=subprocess.STDOUT,
         )
     except Exception as e:
         return jsonify({'ok': False, 'msg': f'启动失败：{e}'}), 500
