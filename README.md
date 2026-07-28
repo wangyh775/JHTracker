@@ -396,6 +396,15 @@ python -m pytest tests/
 
 贡献指南见 [CONTRIBUTING.md](CONTRIBUTING.md)。
 
+## ⚠️ 免责声明
+
+本项目为 **100% Vibe Coding** 产物——所有代码均由 AI 编写，**尚未经过完整人工审核**。
+
+- 可能存在逻辑缺陷、安全漏洞或边界场景未覆盖
+- 单元测试虽通过，但不保证生产环境可靠性
+- 建议在本地环境使用，**不要直接用于关键业务或部署到公网**
+- 使用前请自行审查代码，欢迎提 Issue 或 PR 协助改进
+
 ## License
 
 MIT，见 [LICENSE](LICENSE)。
