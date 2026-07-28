@@ -23,6 +23,11 @@ Thumbs.db
 .github/code-review-graph.instruction.md
 .mcp.json
 
+# open-code-review (ocr) 工具会话与日志
+.opencodereview/
+ocr-scan-output.log
+*-scan-output.log
+
 # 各 AI agent 平台配置（code-review-graph 自动生成，工具会重建）
 .claude/
 .codebuddy/
