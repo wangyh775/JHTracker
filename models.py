@@ -61,18 +61,6 @@ class Note(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.now)
 
 
-class StudyMaterial(db.Model):
-    __tablename__ = 'study_materials'
-    id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(200))
-    category = db.Column(db.String(50))
-    subcategory = db.Column(db.String(100))
-    source_file = db.Column(db.String(200))
-    summary = db.Column(db.Text)
-    is_learned = db.Column(db.Boolean, default=False)
-    created_at = db.Column(db.DateTime, default=datetime.now)
-
-
 class Timeline(db.Model):
     __tablename__ = 'timeline'
     id = db.Column(db.Integer, primary_key=True)

@@ -1,9 +1,9 @@
-"""数据导入路由：公司、复习资料、时间线。"""
+"""数据导入路由：公司、时间线。"""
 import os
 import glob
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from extensions import db
-from models import Company, StudyMaterial, Timeline
+from models import Company, Timeline
 from config import Config
 from constants import infer_priority, infer_industry_from_filename
 from utils import parse_all_markdown_tables, parse_date
@@ -207,46 +207,6 @@ def _infer_source_from_filename(fp):
     if '_B_' in bn or '_B.' in bn:
         return '清单B'
     return None
-
-
-@bp.route('/import/study', methods=['POST'])
-def import_study():
-    """从面试复习手册导入科目分类。"""
-    path = os.path.join(Config.CAREER_DIR, Config.STUDY_FILE)
-    cats = {
-        '自动控制原理': 'control', '机械设计基础': 'mechanical', '传感器与检测技术': 'sensor',
-        '电机与运动控制': 'motor', '嵌入式与编程': 'embedded', 'PLC与工业网络': 'plc',
-        '热工基础': 'thermal', '面试行为问题': 'behavior'
-    }
-    try:
-        with open(path, 'r', encoding='utf-8') as f:
-            f.read()  # 仅验证可读
-        for cn, cat in cats.items():
-            existing = StudyMaterial.query.filter_by(category=cat).first()
-            if not existing:
-                sm = StudyMaterial(title=f"面试复习——{cn}", category=cat,
-                                   source_file=path, summary=f"自动导入：{cn}", is_learned=False)
-                db.session.add(sm)
-        db.session.commit()
-        flash('复习资料导入完成')
-    except Exception as e:
-        flash(f'复习资料导入失败：{str(e)}')
-
-    path2 = os.path.join(Config.CAREER_DIR, Config.CODING_FILE)
-    try:
-        with open(path2, 'r', encoding='utf-8') as f:
-            f.read()
-        existing = StudyMaterial.query.filter_by(category='coding').first()
-        if not existing:
-            sm = StudyMaterial(title="面试编程题集（12题）", category='coding',
-                               source_file=path2, summary="自动导入：PID仿真、串口通信、运动控制等", is_learned=False)
-            db.session.add(sm)
-            db.session.commit()
-        flash('编程题集导入完成')
-    except Exception as e:
-        flash(f'编程题集导入失败：{str(e)}')
-
-    return redirect(url_for('study.study_list'))
 
 
 @bp.route('/import/timeline', methods=['POST'])

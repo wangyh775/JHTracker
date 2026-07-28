@@ -46,8 +46,6 @@ class Config:
     # 公司清单数据源：默认 career_data/，可由环境变量覆盖
     CAREER_DIR = os.environ.get('CAREER_DIR', os.path.join(BASE_DIR, 'career_data'))
     COMPANY_FILE_PATTERN = '企业清单_{source}_*.md'
-    STUDY_FILE = '面试复习手册_自动化机电工程师.md'
-    CODING_FILE = '面试编程题.md'
 
     # 分页
     PER_PAGE_COMPANIES = 40

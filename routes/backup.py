@@ -5,7 +5,7 @@ import shutil
 from datetime import datetime
 from flask import Blueprint, render_template, request, redirect, url_for, flash, send_file, current_app
 from extensions import db
-from models import Company, Application, Note, StudyMaterial, Timeline, InterviewFeedback, Resume
+from models import Company, Application, Note, Timeline, InterviewFeedback, Resume
 from config import Config
 
 bp = Blueprint('backup', __name__)
@@ -19,7 +19,6 @@ def backup_page():
         'companies': Company.query.count(),
         'applications': Application.query.count(),
         'notes': Note.query.count(),
-        'study_materials': StudyMaterial.query.count(),
         'timelines': Timeline.query.count(),
         'interview_feedbacks': InterviewFeedback.query.count(),
         'resumes': Resume.query.count(),
@@ -48,7 +47,6 @@ def backup_export():
         'companies': [_serialize(c, Company) for c in Company.query.all()],
         'applications': [_serialize(a, Application) for a in Application.query.all()],
         'notes': [_serialize(n, Note) for n in Note.query.all()],
-        'study_materials': [_serialize(s, StudyMaterial) for s in StudyMaterial.query.all()],
         'timelines': [_serialize(t, Timeline) for t in Timeline.query.all()],
         'interview_feedbacks': [_serialize(f, InterviewFeedback) for f in InterviewFeedback.query.all()],
         'resumes': [_serialize(r, Resume) for r in Resume.query.all()],
@@ -85,7 +83,7 @@ def backup_restore():
 
         id_map = {'companies': {}}
         stats = {'companies': 0, 'applications': 0, 'notes': 0, 'timelines': 0,
-                 'study_materials': 0, 'interview_feedbacks': 0, 'resumes': 0}
+                 'interview_feedbacks': 0, 'resumes': 0}
 
         for c_data in data.get('companies', []):
             name = c_data.get('name')
@@ -114,10 +112,6 @@ def backup_restore():
                 n_data['company_id'] = id_map['companies'].get(old_company_id, old_company_id)
             n_data.pop('id', None)
             db.session.add(Note(**{k: v for k, v in n_data.items() if v is not None}))
-
-        for s_data in data.get('study_materials', []):
-            s_data.pop('id', None)
-            db.session.add(StudyMaterial(**{k: v for k, v in s_data.items() if v is not None}))
 
         for t_data in data.get('timelines', []):
             t_data.pop('id', None)

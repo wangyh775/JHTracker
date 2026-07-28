@@ -2,7 +2,7 @@
 import os
 import json
 import tempfile
-from flask import Blueprint, render_template, request, flash, redirect, url_for
+from flask import Blueprint, render_template, request, flash, redirect, url_for, current_app
 from werkzeug.utils import secure_filename
 from config import DATA_DIR
 
@@ -23,18 +23,24 @@ def profile_view():
             content = f.read()
     else:
         content = """## 教育背景
-- 硕士在读，机械工程 (2024-2027)
+- (学历 / 学校 / 专业 / 时间)
 
 ## 核心技术栈
-- 控制系统：Klipper 固件二次开发, MPC/PID控制
-- 嵌入式：ARM Cortex-M 系列 MCU
-- 软件：Python, C, C++
+- (分类列出你的技能，每行一条)
+
+## 项目经验
+1. (项目名：简述你的角色和成果)
 
 ## 目标岗位
-- 控制算法工程师 (运动控制/电机控制)
-- 嵌入式软件/硬件工程师
+- (你想投递的岗位方向)
+
+## 求职偏好
+- (行业 / 城市 / 企业性质偏好)
 """
-    return render_template('profile.html', content=content)
+    return render_template('profile.html', content=content,
+                           ai_configured=bool(current_app.config.get('AI_API_KEY', '')),
+                           ai_provider=current_app.config.get('AI_PROVIDER', 'anthropic'),
+                           ai_model=current_app.config.get('AI_MODEL', 'gpt-4o-mini'))
 
 
 @bp.route('/profile/save', methods=['POST'])
@@ -130,8 +136,8 @@ def extract_resume_text(filepath):
 
 
 def parse_with_llm(text):
-    """调用本地 LLM 将简历文本转为结构化画像。"""
-    api_key = os.environ.get('OPENAI_API_KEY')
+    """调用 LLM 将简历文本转为结构化画像。使用 app config 中的 AI 配置。"""
+    api_key = current_app.config.get('AI_API_KEY', '')
     if not api_key:
         return None
 
@@ -158,12 +164,10 @@ def parse_with_llm(text):
 
     try:
         from openai import OpenAI
-        client = OpenAI(
-            api_key=api_key,
-            base_url=os.environ.get('OPENAI_BASE_URL', 'https://api.openai.com/v1')
-        )
+        base_url = current_app.config.get('AI_BASE_URL') or None
+        client = OpenAI(api_key=api_key, base_url=base_url) if base_url else OpenAI(api_key=api_key)
         resp = client.chat.completions.create(
-            model="kr/claude-sonnet-4",
+            model=current_app.config.get('AI_MODEL', 'gpt-4o-mini'),
             max_tokens=2000,
             messages=[
                 {"role": "system", "content": "你是一个专业的求职简历整理助手。输出结构化 Markdown。"},
