@@ -37,6 +37,46 @@ def resume_upload():
     file.save(storage_path)
     file_size = os.path.getsize(storage_path)
 
+    # 支持更新现有简历：replace_id 指定要替换的简历 ID
+    replace_id = request.form.get('replace_id', '').strip()
+    if replace_id:
+        from utils import try_int
+        rid = try_int(replace_id)
+        r = db.session.get(Resume, rid) if rid else None
+        if r is None:
+            # 校验失败，删除已保存的新文件以避免垃圾残留
+            try:
+                os.remove(storage_path)
+            except OSError:
+                pass
+            flash('未找到要更新的简历')
+            return redirect(url_for('resume.resume_list'))
+        # 删除旧文件
+        old_abs = os.path.join(current_app.config['BASE_DIR'], r.file_path)
+        try:
+            if os.path.exists(old_abs):
+                os.remove(old_abs)
+        except OSError as e:
+            current_app.logger.warning(f'删除旧简历文件失败: {old_abs} - {e}')
+        # 更新记录
+        r.file_path = f'data/resumes/{storage_name}'
+        r.file_type = ext
+        r.file_size = file_size
+        # 名称/版本/备注仅在表单提供了非空值时才覆盖
+        new_name = request.form.get('name', '').strip()
+        if new_name:
+            r.name = new_name
+        new_version = request.form.get('version', '').strip()
+        if new_version:
+            r.version = new_version
+        new_note = request.form.get('note', '').strip()
+        if new_note:
+            r.note = new_note
+        db.session.commit()
+        flash(f'已更新简历文件：{r.name}')
+        return redirect(url_for('resume.resume_list'))
+
+    # 新建简历
     is_first = Resume.query.count() == 0
 
     r = Resume(

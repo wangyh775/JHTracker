@@ -54,7 +54,75 @@
 </div>
 
 {% if resume.file_type == 'docx' %}
-<script src="https://cdn.jsdelivr.net/npm/mammoth@1.6/mammoth.browser.min.js"></script>
+<script src="{{ url_for('static', filename='vendor/js/mammoth.browser.min.js') }}"></script>
+<style>
+/* Word 文档预览样式：模拟 Word 默认排版，避免格式混乱 */
+#wordContent {
+  font-family: "Times New Roman", "宋体", "SimSun", serif;
+  font-size: 12pt;
+  line-height: 1.5;
+  color: #000;
+  max-width: 800px;
+  margin: 0 auto;
+}
+#wordContent p {
+  margin: 0 0 8pt 0;
+  text-align: left;
+}
+#wordContent h1, #wordContent h2, #wordContent h3,
+#wordContent h4, #wordContent h5, #wordContent h6 {
+  font-family: "Arial", "黑体", "SimHei", sans-serif;
+  font-weight: bold;
+  margin: 12pt 0 6pt 0;
+  color: #000;
+}
+#wordContent h1 { font-size: 18pt; }
+#wordContent h2 { font-size: 16pt; }
+#wordContent h3 { font-size: 14pt; }
+#wordContent h4 { font-size: 12pt; }
+#wordContent ul, #wordContent ol {
+  margin: 0 0 8pt 24pt;
+  padding-left: 0;
+}
+#wordContent li { margin: 2pt 0; }
+#wordContent table {
+  border-collapse: collapse;
+  width: auto;
+  max-width: 100%;
+  margin: 8pt 0;
+  font-size: 11pt;
+}
+#wordContent table td, #wordContent table th {
+  border: 1px solid #000;
+  padding: 4pt 6pt;
+  vertical-align: top;
+}
+#wordContent table th {
+  background: #f0f0f0;
+  font-weight: bold;
+}
+#wordContent img {
+  max-width: 100%;
+  height: auto;
+}
+#wordContent a {
+  color: #0563c1;
+  text-decoration: underline;
+}
+#wordContent strong, #wordContent b { font-weight: bold; }
+#wordContent em, #wordContent i { font-style: italic; }
+#wordContent hr {
+  border: none;
+  border-top: 1px solid #999;
+  margin: 12pt 0;
+}
+#wordContent blockquote {
+  border-left: 3px solid #ccc;
+  margin: 8pt 0;
+  padding: 4pt 12pt;
+  color: #555;
+}
+</style>
 <script>
   fetch('/resumes/{{ resume.id }}/file')
     .then(r => {

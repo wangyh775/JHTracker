@@ -41,15 +41,12 @@ try:
 except ImportError:
     pass
 
-# 连接到 tracker.db
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-DB_PATH = os.path.join(BASE_DIR, 'data', 'tracker.db')
-
-# 候选人画像文件（用户填写，不进 git）
-PROFILE_FILE = os.path.join(BASE_DIR, 'data', 'profile.md')
+# 路径：统一从 config.py 读取，尊重 JH_DATA_DIR 环境变量，与 Web 应用保持同步
+from config import DATA_DIR, PROFILE_FILE
+DB_PATH = os.path.join(DATA_DIR, 'tracker.db')
 
 # Profile 指纹缓存：记录上次评分时的 profile hash
-PROFILE_HASH_FILE = os.path.join(BASE_DIR, 'data', '.profile_hash')
+PROFILE_HASH_FILE = os.path.join(DATA_DIR, '.profile_hash')
 
 # 批量评分大小：一次 prompt 评多少家公司
 DEFAULT_BATCH_SIZE = 15
@@ -297,7 +294,7 @@ def score_batch(companies, profile):
     return result
 
 
-PROGRESS_FILE = os.path.join(BASE_DIR, 'data', '.score_progress.json')
+PROGRESS_FILE = os.path.join(DATA_DIR, '.score_progress.json')
 
 
 def write_progress(current, total, name, score, status='running'):

@@ -28,7 +28,16 @@
   <div class="card-body">
     <h6 class="card-title mb-3"><i class="bi bi-list-ul me-2"></i>节点详情</h6>
     {% for item in items %}
-    <div id="item-{{ item.id }}" class="border-bottom py-2 {% if item.done %}opacity-50{% endif %}" style="cursor:pointer;" onclick="openEditModal({{ item.id }}, {{ item.event_date.strftime('%Y-%m-%d')|tojson }}, {{ (item.end_date or item.event_date).strftime('%Y-%m-%d')|tojson }}, {{ item.event_type|tojson }}, {{ item.title|tojson }}, {{ (item.description or '')|tojson }})">
+    <div id="item-{{ item.id }}"
+         class="border-bottom py-2 timeline-item {% if item.done %}opacity-50{% endif %}"
+         style="cursor:pointer;"
+         data-id="{{ item.id }}"
+         data-start="{{ item.event_date.strftime('%Y-%m-%d') }}"
+         data-end="{{ (item.end_date or item.event_date).strftime('%Y-%m-%d') }}"
+         data-type="{{ item.event_type }}"
+         data-title="{{ (item.title or '')|e }}"
+         data-description="{{ (item.description or '')|e }}"
+         data-done="{{ 'true' if item.done else 'false' }}">
       <div class="d-flex align-items-center">
         <span class="badge {% if item.event_type=='deadline' %}bg-danger{% elif item.event_type=='milestone' %}bg-warning text-dark{% elif item.event_type=='reminder' %}bg-secondary{% else %}bg-primary{% endif %} me-2">
           {{ item.event_type }}
@@ -80,28 +89,55 @@
   </div>
 </div>
 
-<!-- Edit Modal（点击节点弹出） -->
+<!-- View/Edit Modal（点击节点弹出，支持查看与编辑切换） -->
 <div class="modal fade" id="editModal" tabindex="-1">
   <div class="modal-dialog">
     <div class="modal-content">
-      <form method="post" action="" id="editForm">
-        <div class="modal-header"><h5 class="modal-title">编辑节点</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
-        <div class="modal-body">
-          <div class="mb-3"><label class="form-label">开始日期 *</label><input type="date" class="form-control" name="event_date" id="editEventDate" required></div>
-          <div class="mb-3"><label class="form-label">结束日期</label><input type="date" class="form-control" name="end_date" id="editEndDate"></div>
-          <div class="mb-3"><label class="form-label">类型</label>
-            <select class="form-select" name="event_type" id="editEventType">
-              <option value="action">行动项 (Action)</option>
-              <option value="deadline">截止日 (Deadline)</option>
-              <option value="milestone">里程碑 (Milestone)</option>
-              <option value="reminder">提醒 (Reminder)</option>
-            </select>
-          </div>
-          <div class="mb-3"><label class="form-label">标题 *</label><input class="form-control" name="title" id="editTitle" required></div>
-          <div class="mb-3"><label class="form-label">描述</label><textarea class="form-control" name="description" id="editDescription" rows="3"></textarea></div>
+      <!-- 查看模式 -->
+      <div id="viewPane">
+        <div class="modal-header">
+          <h5 class="modal-title"><i class="bi bi-calendar3 me-2"></i><span id="viewTitle"></span></h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
-        <div class="modal-footer"><button class="btn btn-primary">保存修改</button></div>
-      </form>
+        <div class="modal-body">
+          <div class="mb-3">
+            <span class="badge me-2" id="viewTypeBadge"></span>
+            <span class="text-secondary small" id="viewDateRange"></span>
+            <span class="badge bg-success ms-2" id="viewDoneBadge" style="display:none;">已完成</span>
+          </div>
+          <hr>
+          <div id="viewDescription" style="white-space: pre-wrap; word-wrap: break-word; line-height: 1.7;"></div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">关闭</button>
+          <button type="button" class="btn btn-primary" onclick="switchToEdit()"><i class="bi bi-pencil me-1"></i>编辑</button>
+        </div>
+      </div>
+
+      <!-- 编辑模式 -->
+      <div id="editPane" style="display:none;">
+        <form method="post" action="" id="editForm">
+          <div class="modal-header"><h5 class="modal-title"><i class="bi bi-pencil me-2"></i>编辑节点</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+          <div class="modal-body">
+            <div class="mb-3"><label class="form-label">开始日期 *</label><input type="date" class="form-control" name="event_date" id="editEventDate" required></div>
+            <div class="mb-3"><label class="form-label">结束日期</label><input type="date" class="form-control" name="end_date" id="editEndDate"></div>
+            <div class="mb-3"><label class="form-label">类型</label>
+              <select class="form-select" name="event_type" id="editEventType">
+                <option value="action">行动项 (Action)</option>
+                <option value="deadline">截止日 (Deadline)</option>
+                <option value="milestone">里程碑 (Milestone)</option>
+                <option value="reminder">提醒 (Reminder)</option>
+              </select>
+            </div>
+            <div class="mb-3"><label class="form-label">标题 *</label><input class="form-control" name="title" id="editTitle" required></div>
+            <div class="mb-3"><label class="form-label">描述</label><textarea class="form-control" name="description" id="editDescription" rows="3"></textarea></div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-outline-secondary" onclick="switchToView()">取消</button>
+            <button class="btn btn-primary">保存修改</button>
+          </div>
+        </form>
+      </div>
     </div>
   </div>
 </div>
@@ -213,8 +249,8 @@ function render(rangeKind) {
       onClick: (e, els) => {
         if (els.length > 0) {
           const idx = els[0].index;
-          const id = items[idx].id;
-          document.getElementById('item-' + id).scrollIntoView({behavior: 'smooth', block: 'center'});
+          const i = items[idx];
+          openTimelineModal(i.id, i.start, i.end, i.type, i.title, i.description, i.done);
         }
       }
     }
@@ -233,15 +269,67 @@ document.querySelectorAll('#rangeSwitch [data-range]').forEach(btn => {
   });
 });
 
-// 编辑弹窗：点击节点时弹出
-function openEditModal(id, eventDate, endDate, eventType, title, description) {
+// 类型标签映射
+const TYPE_LABELS = {
+  'action': '行动项',
+  'deadline': '截止日',
+  'milestone': '里程碑',
+  'reminder': '提醒'
+};
+const TYPE_BADGE_CLASSES = {
+  'deadline': 'bg-danger',
+  'milestone': 'bg-warning text-dark',
+  'reminder': 'bg-secondary',
+  'action': 'bg-primary'
+};
+
+// 点击节点/列表项：默认进入查看模式
+function openTimelineModal(id, eventDate, endDate, eventType, title, description, done) {
+  // 填充查看模式
+  document.getElementById('viewTitle').textContent = title;
+  const badge = document.getElementById('viewTypeBadge');
+  badge.textContent = TYPE_LABELS[eventType] || eventType;
+  badge.className = 'badge me-2 ' + (TYPE_BADGE_CLASSES[eventType] || 'bg-primary');
+  const dateStr = (eventDate === endDate) ? eventDate : eventDate + ' ~ ' + endDate;
+  document.getElementById('viewDateRange').textContent = dateStr;
+  document.getElementById('viewDoneBadge').style.display = done ? '' : 'none';
+  document.getElementById('viewDescription').textContent = description || '（无描述）';
+  // 同时填充编辑模式
   document.getElementById('editForm').action = '/timeline/' + id + '/edit';
   document.getElementById('editEventDate').value = eventDate;
   document.getElementById('editEndDate').value = endDate;
   document.getElementById('editEventType').value = eventType;
   document.getElementById('editTitle').value = title;
   document.getElementById('editDescription').value = description;
+  // 默认显示查看模式
+  switchToView();
   new bootstrap.Modal(document.getElementById('editModal')).show();
+}
+
+// 绑定列表项点击事件（使用 data 属性读取，避免特殊字符破坏语法）
+document.querySelectorAll('.timeline-item').forEach(el => {
+  el.addEventListener('click', () => {
+    const id = parseInt(el.dataset.id, 10);
+    const eventDate = el.dataset.start || '';
+    const endDate = el.dataset.end || '';
+    const eventType = el.dataset.type || '';
+    const title = el.dataset.title || '';
+    const description = el.dataset.description || '';
+    const done = el.dataset.done === 'true';
+    openTimelineModal(id, eventDate, endDate, eventType, title, description, done);
+  });
+});
+
+// 切换到查看模式
+function switchToView() {
+  document.getElementById('viewPane').style.display = '';
+  document.getElementById('editPane').style.display = 'none';
+}
+
+// 切换到编辑模式
+function switchToEdit() {
+  document.getElementById('viewPane').style.display = 'none';
+  document.getElementById('editPane').style.display = '';
 }
 </script>
 {% endblock %}

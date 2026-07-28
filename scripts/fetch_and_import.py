@@ -37,9 +37,10 @@ import re
 import argparse
 from datetime import datetime, date
 
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-DB_PATH = os.path.join(BASE_DIR, 'data', 'tracker.db')
-CAREER_DIR = os.path.join(BASE_DIR, 'career_data')
+# 路径：统一从 config.py 读取，尊重 JH_DATA_DIR / CAREER_DIR 环境变量，与 Web 应用保持同步
+from config import DATA_DIR, Config
+DB_PATH = os.path.join(DATA_DIR, 'tracker.db')
+CAREER_DIR = Config.CAREER_DIR
 
 
 def normalize(name):

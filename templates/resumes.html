@@ -125,15 +125,39 @@
 <div class="modal fade" id="uploadModal" tabindex="-1">
   <div class="modal-dialog">
     <div class="modal-content">
-      <form method="post" action="/resumes/upload" enctype="multipart/form-data">
+      <form method="post" action="/resumes/upload" enctype="multipart/form-data" id="uploadForm">
         <div class="modal-header">
           <h5 class="modal-title">上传简历</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body">
+          <!-- 模式切换 -->
           <div class="mb-3">
-            <label class="form-label">名称 *</label>
-            <input class="form-control" name="name" placeholder="如 算法岗-主简历" required>
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="radio" name="mode" id="modeNew" value="new" checked onchange="toggleUploadMode()">
+              <label class="form-check-label" for="modeNew">新建简历</label>
+            </div>
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="radio" name="mode" id="modeReplace" value="replace" onchange="toggleUploadMode()">
+              <label class="form-check-label" for="modeReplace">更新现有简历</label>
+            </div>
+          </div>
+
+          <!-- 替换现有简历时显示 -->
+          <div class="mb-3" id="replaceBox" style="display:none;">
+            <label class="form-label">选择要更新的简历 *</label>
+            <select class="form-select" name="replace_id" id="replaceSelect">
+              <option value="">-- 选择简历 --</option>
+              {% for r in resumes %}
+              <option value="{{ r.id }}">{{ r.name }}{% if r.version %} ({{ r.version }}){% endif %} · {{ r.created_at.strftime('%Y-%m-%d') }}</option>
+              {% endfor %}
+            </select>
+            <div class="form-text">将替换该简历的文件，原文件会被删除。名称/版本/备注留空则保持原值。</div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">名称 <span class="text-secondary small" id="nameHint">*</span></label>
+            <input class="form-control" name="name" id="nameInput" placeholder="如 算法岗-主简历">
           </div>
           <div class="mb-3">
             <label class="form-label">版本号</label>
@@ -152,10 +176,34 @@
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">取消</button>
-          <button class="btn btn-primary">上传</button>
+          <button class="btn btn-primary" id="uploadSubmit">上传</button>
         </div>
       </form>
     </div>
   </div>
 </div>
+<script>
+function toggleUploadMode() {
+  const isReplace = document.getElementById('modeReplace').checked;
+  document.getElementById('replaceBox').style.display = isReplace ? '' : 'none';
+  // 替换模式：名称/版本/备注均可选
+  document.getElementById('nameHint').textContent = isReplace ? '（留空保持原值）' : '*';
+  document.getElementById('nameInput').required = !isReplace;
+  document.getElementById('replaceSelect').required = isReplace;
+}
+// 提交时校验
+document.getElementById('uploadForm').addEventListener('submit', function(e) {
+  if (document.getElementById('modeReplace').checked) {
+    if (!document.getElementById('replaceSelect').value) {
+      e.preventDefault();
+      alert('请选择要更新的简历');
+    }
+  } else {
+    if (!document.getElementById('nameInput').value.trim()) {
+      e.preventDefault();
+      alert('请填写简历名称');
+    }
+  }
+});
+</script>
 {% endblock %}
