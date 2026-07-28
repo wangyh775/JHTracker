@@ -41,5 +41,226 @@
     </div>
   </div>
 
+  <!-- AI 评分卡片 -->
+  <div class="col-12">
+    <div class="card">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h5 class="card-title mb-0"><i class="bi bi-stars me-2 text-warning"></i>3. AI 评分</h5>
+          <span class="badge bg-secondary" id="scoreStatusBadge">空闲</span>
+        </div>
+        <p class="text-secondary small mb-3">
+          基于 <code>data/profile.md</code> 对每家公司做匹配度打分。采用<b>批量评分</b>省 token（默认一次评 15 家），
+          <code>--force</code> 时若 profile 未变会自动跳过 LLM 仅重跑预筛。
+        </p>
+
+        <div class="row g-3 mb-3">
+          <div class="col-md-4">
+            <label class="form-label small mb-1">评分模式</label>
+            <select id="scoreMode" class="form-select form-select-sm bg-dark text-white">
+              <option value="incremental">增量评分（仅评未评分的）</option>
+              <option value="force">强制重评（profile 未变跳过 LLM）</option>
+              <option value="force-profile">profile 修改后强制 LLM 重评</option>
+              <option value="single">单公司评分</option>
+            </select>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label small mb-1">批量大小</label>
+            <input type="number" id="batchSize" class="form-control form-control-sm" value="15" min="1" max="50">
+          </div>
+          <div class="col-md-3" id="companyIdWrap" style="display:none;">
+            <label class="form-label small mb-1">公司 ID</label>
+            <input type="number" id="companyId" class="form-control form-control-sm" placeholder="如 312">
+          </div>
+          <div class="col-md-2 d-flex align-items-end">
+            <button id="scoreStartBtn" class="btn btn-warning w-100 btn-sm">
+              <i class="bi bi-play-fill me-1"></i>开始评分
+            </button>
+          </div>
+        </div>
+
+        <!-- 进度区 -->
+        <div id="scoreProgressWrap" style="display:none;">
+          <div class="d-flex justify-content-between mb-1">
+            <span class="small text-secondary" id="scoreCurrentName">准备中…</span>
+            <span class="small text-secondary" id="scoreCounter">0 / 0</span>
+          </div>
+          <div class="progress" style="height: 22px;">
+            <div id="scoreProgressBar" class="progress-bar progress-bar-striped progress-bar-animated bg-warning"
+                 role="progressbar" style="width: 0%;">0%</div>
+          </div>
+          <div class="row g-2 mt-2 small">
+            <div class="col-md-3">
+              <div class="stat-card p-2">
+                <div class="text-secondary" style="font-size:0.75rem;">当前公司</div>
+                <div id="scoreName" class="fw-bold text-truncate">-</div>
+              </div>
+            </div>
+            <div class="col-md-2">
+              <div class="stat-card p-2">
+                <div class="text-secondary" style="font-size:0.75rem;">当前分数</div>
+                <div id="scoreCurrentScore" class="fw-bold text-warning" style="font-size:1.1rem;">-</div>
+              </div>
+            </div>
+            <div class="col-md-7 d-flex align-items-center">
+              <button id="scoreLogBtn" class="btn btn-sm btn-outline-secondary me-2" disabled>
+                <i class="bi bi-file-text me-1"></i>查看日志
+              </button>
+              <span class="text-secondary" style="font-size:0.75rem;" id="scoreHint">
+                批量评分中，每批处理 15 家，请耐心等待…
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 日志 modal -->
+        <div class="modal fade" id="scoreLogModal" tabindex="-1">
+          <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h6 class="modal-title"><i class="bi bi-file-text me-2"></i>评分日志（尾部 50 行）</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+              </div>
+              <div class="modal-body">
+                <pre id="scoreLogContent" class="small bg-dark text-light p-3 rounded" style="max-height:60vh; overflow:auto; white-space:pre-wrap;"></pre>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const $ = (id) => document.getElementById(id);
+let pollTimer = null;
+
+// 单公司模式切换显示 companyId 输入
+$('scoreMode').addEventListener('change', (e) => {
+  $('companyIdWrap').style.display = (e.target.value === 'single') ? '' : 'none';
+});
+
+// 启动评分
+$('scoreStartBtn').addEventListener('click', async () => {
+  const mode = $('scoreMode').value;
+  const batchSize = $('batchSize').value || '15';
+  const companyId = $('companyId').value;
+
+  if (mode === 'single' && !companyId) {
+    alert('请填写公司 ID');
+    return;
+  }
+
+  if (!confirm(`确认启动 AI 评分？\n模式: ${mode}\n批量大小: ${batchSize}\n\n注意：会调用 LLM 消耗 token，未配置 API Key 时仅做关键词预筛。`)) return;
+
+  const btn = $('scoreStartBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>启动中';
+
+  try {
+    const body = new URLSearchParams({ mode, batch_size: batchSize });
+    if (mode === 'single') body.append('company_id', companyId);
+
+    const resp = await fetch('/import/score/start', { method: 'POST', body });
+    const data = await resp.json();
+
+    if (!data.ok) {
+      alert(data.msg || '启动失败');
+      btn.disabled = false;
+      btn.innerHTML = '<i class="bi bi-play-fill me-1"></i>开始评分';
+      return;
+    }
+
+    // 启动轮询
+    $('scoreProgressWrap').style.display = '';
+    $('scoreStatusBadge').className = 'badge bg-info';
+    $('scoreStatusBadge').textContent = '运行中';
+    btn.innerHTML = '<i class="bi bi-hourglass-split me-1"></i>评分中…';
+    startPolling();
+  } catch (e) {
+    alert('启动失败: ' + e.message);
+    btn.disabled = false;
+    btn.innerHTML = '<i class="bi bi-play-fill me-1"></i>开始评分';
+  }
+});
+
+function startPolling() {
+  if (pollTimer) clearInterval(pollTimer);
+  // 立即查一次
+  queryProgress();
+  pollTimer = setInterval(queryProgress, 1000);
+}
+
+async function queryProgress() {
+  try {
+    const resp = await fetch('/import/score/progress');
+    const d = await resp.json();
+    updateUI(d);
+    if (d.status === 'done') {
+      clearInterval(pollTimer);
+      pollTimer = null;
+      const btn = $('scoreStartBtn');
+      btn.disabled = false;
+      btn.innerHTML = '<i class="bi bi-play-fill me-1"></i>开始评分';
+      $('scoreStatusBadge').className = 'badge bg-success';
+      $('scoreStatusBadge').textContent = '完成';
+      $('scoreLogBtn').disabled = false;
+      $('scoreHint').textContent = '评分完成，可查看日志或到「公司库」查看分数。';
+    } else if (d.status === 'running' || d.status === 'starting') {
+      $('scoreLogBtn').disabled = false;
+    }
+  } catch (e) {
+    console.error('轮询失败', e);
+  }
+}
+
+function updateUI(d) {
+  const total = d.total || 0;
+  const current = d.current || 0;
+  const pct = total > 0 ? Math.round((current / total) * 100) : 0;
+
+  $('scoreCounter').textContent = `${current} / ${total}`;
+  $('scoreProgressBar').style.width = pct + '%';
+  $('scoreProgressBar').textContent = pct + '%';
+  $('scoreName').textContent = d.name || '-';
+  $('scoreCurrentName').textContent = d.name || (d.status === 'starting' ? '启动中…' : '-');
+  $('scoreCurrentScore').textContent = (d.score !== undefined && d.score !== 0) ? d.score : '-';
+}
+
+// 日志按钮
+$('scoreLogBtn').addEventListener('click', async () => {
+  try {
+    const resp = await fetch('/import/score/log');
+    const d = await resp.json();
+    $('scoreLogContent').textContent = d.log || '(无日志)';
+    // 用 bootstrap Modal 实例显示
+    const modal = new bootstrap.Modal($('scoreLogModal'));
+    modal.show();
+  } catch (e) {
+    alert('读取日志失败: ' + e.message);
+  }
+});
+
+// 页面加载时检查是否有未完成的评分（刷新恢复）
+(async function checkRunning() {
+  try {
+    const resp = await fetch('/import/score/progress');
+    const d = await resp.json();
+    if (d.status === 'running' || d.status === 'starting') {
+      $('scoreProgressWrap').style.display = '';
+      $('scoreStatusBadge').className = 'badge bg-info';
+      $('scoreStatusBadge').textContent = '运行中';
+      $('scoreStartBtn').disabled = true;
+      $('scoreStartBtn').innerHTML = '<i class="bi bi-hourglass-split me-1"></i>评分中…';
+      $('scoreLogBtn').disabled = false;
+      startPolling();
+    }
+  } catch (e) { /* ignore */ }
+})();
+</script>
 {% endblock %}

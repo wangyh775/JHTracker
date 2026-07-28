@@ -1,14 +1,21 @@
-"""数据导入路由：公司、时间线。"""
+"""数据导入路由：公司、时间线、AI 评分触发。"""
 import os
+import sys
+import json
 import glob
-from flask import Blueprint, render_template, request, redirect, url_for, flash
+import subprocess
+from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, current_app
 from extensions import db
 from models import Company, Timeline
-from config import Config
+from config import Config, DATA_DIR
 from constants import infer_priority, infer_industry_from_filename
 from utils import parse_all_markdown_tables, parse_date
 
 bp = Blueprint('import_data', __name__)
+
+# AI 评分进度文件 & 日志文件（与 scripts/ai_scorer.py 保持一致）
+_SCORE_PROGRESS_FILE = os.path.join(DATA_DIR, '.score_progress.json')
+_SCORE_LOG_FILE = os.path.join(DATA_DIR, '.score_log.txt')
 
 
 @bp.route('/import')
@@ -237,3 +244,99 @@ def import_timeline():
     db.session.commit()
     flash(f'时间线导入完成，新增 {added} 条')
     return redirect(url_for('timeline.timeline_view'))
+
+
+# ============ AI 评分触发与进度查询 ============
+
+@bp.route('/import/score/start', methods=['POST'])
+def score_start():
+    """后台启动 AI 评分子进程。
+
+    支持 form 参数：
+      - mode: 'incremental' (默认) / 'force' / 'force-profile' / 'single'
+      - company_id: int (mode=single 时必填)
+      - batch_size: int (默认 15)
+    """
+    # 先检查是否已有评分进程在跑
+    existing = _read_progress()
+    if existing and existing.get('status') == 'running':
+        return jsonify({'ok': False, 'msg': '已有评分任务进行中，请等待完成'}), 409
+
+    mode = request.form.get('mode', 'incremental')
+    batch_size = request.form.get('batch_size', '15')
+    company_id = request.form.get('company_id', '')
+
+    base_dir = current_app.config['BASE_DIR']
+    scorer = os.path.join(base_dir, 'scripts', 'ai_scorer.py')
+    cmd = [sys.executable, scorer, '--batch-size', str(batch_size)]
+
+    if mode == 'force':
+        cmd.append('--force')
+    elif mode == 'force-profile':
+        cmd.extend(['--force', '--profile-changed'])
+    elif mode == 'single':
+        if not company_id:
+            return jsonify({'ok': False, 'msg': '单公司评分需要 company_id'}), 400
+        cmd.extend(['--company-id', str(company_id)])
+    # incremental: 不加 flag
+
+    # 重置进度文件为 starting 状态
+    _write_progress(0, 0, '启动中', 0, 'starting')
+
+    # 子进程输出重定向到日志文件，不阻塞主进程
+    log_fp = open(_SCORE_LOG_FILE, 'w', encoding='utf-8')
+    # cwd 设为项目根目录，让 ai_scorer.py 的相对路径生效
+    subprocess.Popen(cmd, cwd=base_dir, stdout=log_fp, stderr=subprocess.STDOUT)
+    # 注意：log_fp 不能立即关闭，否则子进程写入会失败；交给 OS 在子进程结束时回收
+
+    return jsonify({
+        'ok': True,
+        'msg': '评分已启动',
+        'mode': mode,
+        'batch_size': batch_size,
+    })
+
+
+@bp.route('/import/score/progress')
+def score_progress():
+    """返回当前评分进度（前端轮询）。"""
+    data = _read_progress()
+    if not data:
+        return jsonify({
+            'current': 0, 'total': 0, 'name': '', 'score': 0,
+            'status': 'idle', 'msg': '尚未启动评分'
+        })
+    return jsonify(data)
+
+
+@bp.route('/import/score/log')
+def score_log():
+    """返回评分日志尾部（可选，便于排错）。"""
+    try:
+        with open(_SCORE_LOG_FILE, 'r', encoding='utf-8') as f:
+            lines = f.readlines()[-50:]
+        return jsonify({'ok': True, 'log': ''.join(lines)})
+    except (OSError, IOError):
+        return jsonify({'ok': False, 'log': ''})
+
+
+def _read_progress():
+    """读取进度文件，失败返回 None。"""
+    try:
+        with open(_SCORE_PROGRESS_FILE, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    except (OSError, IOError, ValueError):
+        return None
+
+
+def _write_progress(current, total, name, score, status):
+    """写入进度文件（仅用于启动时重置）。"""
+    try:
+        with open(_SCORE_PROGRESS_FILE, 'w', encoding='utf-8') as f:
+            json.dump({
+                'current': current, 'total': total, 'name': name,
+                'score': score, 'status': status,
+            }, f)
+    except OSError:
+        pass
+
