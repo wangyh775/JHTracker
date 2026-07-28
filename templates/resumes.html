@@ -1,5 +1,8 @@
 {% extends "base.html" %}
 {% block content %}
+<style>
+.border-dashed { border: 2px dashed #444 !important; }
+</style>
 <div class="d-flex justify-content-between align-items-center mb-4">
   <div class="dashboard-title">
     <i class="bi bi-file-earmark-person me-2 text-primary"></i>简历版本管理
@@ -103,9 +106,17 @@
     </div>
   </div>
   {% else %}
-  <div class="col-12 text-center text-secondary py-5">
-    <i class="bi bi-file-earmark-person fs-1"></i><br>
-    暂无简历，点击右上角上传
+  <div class="col-12">
+    <div class="card border-dashed text-center py-5">
+      <div class="card-body">
+        <i class="bi bi-file-earmark-person display-1 text-secondary opacity-50"></i>
+        <h5 class="mt-3 mb-1">还没有上传简历</h5>
+        <p class="text-secondary small mb-3">上传 PDF/DOCX 简历后，可对智能体说「解析我的简历生成画像」</p>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#uploadModal">
+          <i class="bi bi-plus-lg me-1"></i>上传第一份简历
+        </button>
+      </div>
+    </div>
   </div>
   {% endfor %}
 </div>

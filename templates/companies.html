@@ -31,11 +31,23 @@
 .filter-dropdown .form-check-input { margin-right: 5px; }
 .filter-btn { text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-.score-badge { font-size: 0.75rem; font-weight: 600; min-width: 28px; text-align: center; }
+.score-badge { font-size: 0.75rem; font-weight: 600; min-width: 30px; padding: 4px 0; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.4); }
 .score-high { background: #198754; color: #fff; }
-.score-mid { background: #fd7e14; color: #fff; }
-.score-low { background: #6c757d; color: #fff; }
-.score-none { background: #333; color: #666; }
+.score-mid  { background: #fd7e14; color: #fff; }
+.score-low  { background: #dc3545; color: #fff; }   /* 提高低分对比度 */
+.score-none { background: #2a2a2a; color: #888; border: 1px solid #444; }
+
+/* 表格优化：关键列不换行，统一行高 */
+.table tbody tr td { line-height: 1.5; vertical-align: middle; }
+.col-nowrap { white-space: nowrap; }
+.col-name { min-width: 140px; max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.col-match { max-width: 280px; }
+.col-actions { width: 130px; white-space: nowrap; text-align: right; }
+.col-actions .btn { margin-left: 2px; }
+
+/* 空状态 */
+.empty-state { padding: 3rem 1rem; text-align: center; color: #6c757d; }
+.empty-state i { font-size: 3rem; opacity: 0.5; margin-bottom: 1rem; display: block; }
 </style>
 
 <!-- Filters -->
@@ -219,9 +231,20 @@ document.addEventListener('DOMContentLoaded', function() {
 <!-- Table -->
 <div class="card shadow-sm border-0">
   <div class="table-responsive">
-    <table class="table table-hover align-middle mb-0">
-      <thead class="table-dark small">
-        <tr><th style="width:56px">评分</th><th>优先级</th><th>公司名称</th><th>性质</th><th>行业</th><th>城市</th><th>岗位方向</th><th>参考薪资</th><th>匹配理由</th><th style="width:50px"></th></tr>
+    <table class="table table-hover align-middle mb-0 small">
+      <thead class="table-dark">
+        <tr>
+          <th style="width:60px">评分</th>
+          <th style="width:60px">优先级</th>
+          <th>公司名称</th>
+          <th style="width:80px">性质</th>
+          <th style="width:110px">行业</th>
+          <th style="width:80px">城市</th>
+          <th style="width:130px">岗位方向</th>
+          <th style="width:110px">参考薪资</th>
+          <th>匹配理由</th>
+          <th class="col-actions">操作</th>
+        </tr>
       </thead>
       <tbody>
         {% for c in companies.items %}
@@ -234,17 +257,17 @@ document.addEventListener('DOMContentLoaded', function() {
             {% endif %}
           </td>
           <td><span class="badge badge-priority-{{ c.priority }}">{{ c.priority }}</span></td>
-          <td><a href="/companies/{{ c.id }}" class="text-decoration-none fw-bold">{{ c.name }}</a></td>
-          <td>{% if c.company_type %}<span class="badge {% if '外企' in c.company_type %}bg-info{% elif c.company_type == '央企' %}bg-danger{% elif c.company_type == '国企' %}bg-warning text-dark{% elif c.company_type == '合资' %}bg-secondary{% else %}bg-success{% endif %}">{{ c.company_type }}</span>{% else %}-{% endif %}</td>
-          <td><span class="badge bg-secondary">{{ c.industry or '-' }}</span></td>
-          <td>{{ c.city or '-' }}</td>
-          <td class="small">{{ c.job_type or '-' }}</td>
-          <td class="small">
+          <td class="col-name"><a href="/companies/{{ c.id }}" class="text-decoration-none fw-bold" title="{{ c.name }}">{{ c.name }}</a></td>
+          <td class="col-nowrap">{% if c.company_type %}<span class="badge {% if '外企' in c.company_type %}bg-info{% elif c.company_type == '央企' %}bg-danger{% elif c.company_type == '国企' %}bg-warning text-dark{% elif c.company_type == '合资' %}bg-secondary{% else %}bg-success{% endif %}">{{ c.company_type }}</span>{% else %}-{% endif %}</td>
+          <td class="col-nowrap"><span class="badge bg-secondary">{{ c.industry or '-' }}</span></td>
+          <td class="col-nowrap">{{ c.city or '-' }}</td>
+          <td class="col-nowrap">{{ c.job_type or '-' }}</td>
+          <td class="col-nowrap">
             {% if c.salary_min or c.salary_max %}
             {{ c.salary_min or '?' }}-{{ c.salary_max or '?' }}k
             {% else %}-{% endif %}
           </td>
-          <td class="small text-secondary" style="max-width:260px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"
+          <td class="col-match small text-secondary" style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"
               title="{{ c.score_reason or c.match_reason or '' }}">
             {% if c.score_reason %}
             <span class="text-muted">{{ c.score_reason[:50] }}{% if c.score_reason|length > 50 %}...{% endif %}</span>
@@ -252,7 +275,7 @@ document.addEventListener('DOMContentLoaded', function() {
             {{ c.match_reason or '-' }}
             {% endif %}
           </td>
-          <td class="text-nowrap">
+          <td class="col-actions">
             <a href="/companies/{{ c.id }}" class="btn btn-sm btn-outline-info py-0 px-2" title="详情"><i class="bi bi-chevron-right"></i></a>
             <button class="btn btn-sm btn-outline-warning py-0 px-2 btn-rescore" title="重评分"
                     data-id="{{ c.id }}" data-name="{{ c.name }}">
@@ -264,7 +287,11 @@ document.addEventListener('DOMContentLoaded', function() {
           </td>
         </tr>
         {% else %}
-        <tr><td colspan="10" class="text-center text-secondary py-4">暂无数据，请先<a href="/import">导入公司清单</a></td></tr>
+        <tr><td colspan="10" class="empty-state">
+          <i class="bi bi-inboxes"></i>
+          <div class="fw-bold mb-1">公司库还是空的</div>
+          <div class="small">请先 <a href="/import">导入公司清单</a> 或对智能体说「帮我找 XX 行业的公司」</div>
+        </td></tr>
         {% endfor %}
       </tbody>
     </table>

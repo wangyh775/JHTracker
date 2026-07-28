@@ -1,5 +1,17 @@
 {% extends "base.html" %}
 {% block content %}
+<style>
+.border-dashed { border: 2px dashed #444 !important; }
+.empty-state { padding: 3rem 1rem; text-align: center; color: #6c757d; }
+.empty-state i { font-size: 3rem; opacity: 0.5; margin-bottom: 1rem; display: block; }
+.loading-skeleton {
+  background: linear-gradient(90deg, #2a2a2a 25%, #333 50%, #2a2a2a 75%);
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s infinite;
+}
+@keyframes skeleton-loading { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+.skeleton-card { height: 80px; border-radius: 4px; margin-bottom: 8px; }
+</style>
 <div class="d-flex justify-content-between align-items-center mb-3">
   <div class="dashboard-title"><i class="bi bi-send me-2 text-primary"></i>投递记录 <span class="badge bg-primary fs-6">{{ apps.total }}</span></div>
 </div>
@@ -58,7 +70,7 @@
       </div>
     </div>
     <div class="d-flex justify-content-between align-items-center mt-2">
-      <form method="post" action="/applications/{{ a.id }}/status" class="d-flex gap-2">
+      <form method="post" action="/applications/{{ a.id }}/status" class="d-flex gap-2 align-items-center">
         <select class="form-select form-select-sm" name="status" style="width:150px">
           {% for s in status_list %}<option {% if a.status==s %}selected{% endif %}>{{ s }}</option>{% endfor %}
         </select>
@@ -72,8 +84,12 @@
   </div>
 </div>
 {% else %}
-<div class="text-center text-secondary py-5">
-  <i class="bi bi-inbox fs-1"></i><br>暂无投递记录
+<div class="card border-dashed">
+  <div class="card-body empty-state">
+    <i class="bi bi-send"></i>
+    <div class="fw-bold mb-1">还没有投递记录</div>
+    <div class="small">去 <a href="/companies">公司库</a> 选公司，记录你的第一份投递</div>
+  </div>
 </div>
 {% endfor %}
 

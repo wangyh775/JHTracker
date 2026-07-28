@@ -1,5 +1,5 @@
 """看板路由。"""
-from flask import Blueprint, render_template
+from flask import Blueprint, render_template, redirect, url_for
 from sqlalchemy import func
 from extensions import db
 from models import Company, Application, Timeline
@@ -22,6 +22,7 @@ def _top_n_with_other(counts, n):
 
 
 @bp.route('/')
+@bp.route('/dashboard')
 def dashboard():
     total = Company.query.count()
     s_count = Company.query.filter_by(priority='S').count()

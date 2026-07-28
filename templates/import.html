@@ -8,7 +8,7 @@
   <div class="col-md-6">
     <div class="card h-100">
       <div class="card-body">
-        <h5 class="card-title mb-3">1. 导入目标公司清单</h5>
+        <h6 class="card-title mb-3"><i class="bi bi-cloud-arrow-down me-2 text-primary"></i>1. 导入目标公司清单</h6>
         <p class="text-secondary small">从 `career/` 目录下的 Markdown 清单读取公司数据并自动导入数据库，跳过已存在的公司。</p>
         <form method="post" action="/import/companies">
           <div class="mb-3">
@@ -32,7 +32,7 @@
   <div class="col-md-6">
     <div class="card h-100">
       <div class="card-body">
-        <h5 class="card-title mb-3">2. 初始化秋招时间线</h5>
+        <h6 class="card-title mb-3"><i class="bi bi-calendar-check me-2 text-warning"></i>2. 初始化秋招时间线</h6>
         <p class="text-secondary small">自动生成 2026 年秋招/春招的关键节点提醒（如拓竹提前批截止日、秋招高峰期等）。</p>
         <form method="post" action="/import/timeline">
           <button class="btn btn-warning w-100"><i class="bi bi-calendar-check me-2"></i>初始化时间线</button>
@@ -46,7 +46,7 @@
     <div class="card">
       <div class="card-body">
         <div class="d-flex justify-content-between align-items-center mb-3">
-          <h5 class="card-title mb-0"><i class="bi bi-stars me-2 text-warning"></i>3. AI 评分</h5>
+          <h6 class="card-title mb-0"><i class="bi bi-stars me-2 text-warning"></i>3. AI 评分</h6>
           <span class="badge bg-secondary" id="scoreStatusBadge">空闲</span>
         </div>
         <p class="text-secondary small mb-3">
@@ -65,8 +65,9 @@
             </select>
           </div>
           <div class="col-md-3">
-            <label class="form-label small mb-1">批量大小</label>
-            <input type="number" id="batchSize" class="form-control form-control-sm" value="15" min="1" max="50">
+            <label class="form-label small mb-1">批量大小 <span class="text-secondary">(家/批)</span></label>
+            <input type="number" id="batchSize" class="form-control form-control-sm" value="15" min="1" max="50" placeholder="15">
+            <div class="form-text" style="font-size:0.7rem;">一次 prompt 评多少家</div>
           </div>
           <div class="col-md-3" id="companyIdWrap" style="display:none;">
             <label class="form-label small mb-1">公司 ID</label>

@@ -162,9 +162,9 @@
       <div class="card-body">
         <h6 class="card-title mb-3"><i class="bi bi-clock-history me-2"></i>最近动态</h6>
         {% for a in recent %}
-        <div class="d-flex align-items-center mb-2">
+        <div class="d-flex align-items-center mb-3">
           <span class="status-dot bg-{{ status_badge[a.status] }}"></span>
-          <div class="small">
+          <div class="small" style="line-height:1.8;">
             <strong>{{ a.company.name }}</strong>
             <span class="badge bg-{{ status_badge[a.status] }} ms-1">{{ a.status }}</span>
             {% if a.position %}
@@ -241,7 +241,7 @@ const doughnutOpts = {
         pointStyle: 'circle',
         boxWidth: 10,
         boxHeight: 10,
-        padding: 10,
+        padding: 8,
         font: { size: 11 }
       }
     },

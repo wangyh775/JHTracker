@@ -38,7 +38,7 @@
           {{ item.event_date.strftime('%Y-%m-%d') }}{% if item.end_date and item.end_date != item.event_date %} ~ {{ item.end_date.strftime('%Y-%m-%d') }}{% endif %}
         </span>
         <form method="post" action="/timeline/{{ item.id }}/toggle" class="ms-auto">
-          <button class="btn btn-sm btn-link p-0 {% if item.done %}text-success{% else %}text-secondary{% endif %}">
+          <button class="btn btn-sm {% if item.done %}btn-success{% else %}btn-outline-success{% endif %} py-0 px-2">
             {% if item.done %}<i class="bi bi-check-circle-fill"></i> 已完成{% else %}<i class="bi bi-circle"></i> 标记完成{% endif %}
           </button>
         </form>
@@ -136,11 +136,12 @@ function rangeFor(kind) {
 }
 
 function colorFor(item) {
-  if (item.done) return 'rgba(25,135,84,0.5)';
-  if (item.type === 'deadline') return '#dc3545';
-  if (item.type === 'milestone') return '#ffc107';
-  if (item.type === 'reminder') return '#6c757d';
-  return '#0d6efd';
+  // 提高饱和度+不透明度，确保暗色背景下清晰可见
+  if (item.done) return 'rgba(25,135,84,0.85)';
+  if (item.type === 'deadline') return '#e0312d';     // 更亮红
+  if (item.type === 'milestone') return '#ffce3a';    // 更亮黄
+  if (item.type === 'reminder') return '#8a94a6';     // 更亮灰
+  return '#3b8bff';                                    // 更亮蓝
 }
 
 let chart = null;
@@ -156,7 +157,9 @@ function render(rangeKind) {
         backgroundColor: items.map(i => colorFor(i)),
         borderColor: items.map(i => colorFor(i)),
         borderWidth: 1,
-        barPercentage: 0.6,
+        barPercentage: 0.7,
+        categoryPercentage: 0.85,
+        borderRadius: 3,
       }]
     },
     options: {
@@ -168,18 +171,38 @@ function render(rangeKind) {
           type: 'time',
           min: xmin,
           max: xmax,
-          time: { unit: unit, displayFormats: { day: 'yyyy-MM-dd', week: 'yyyy-MM-dd', month: 'yyyy-MM' } },
-          ticks: { color: '#aaa', autoSkip: true, maxRotation: 0 },
+          time: {
+            unit: unit,
+            displayFormats: { day: 'yyyy-MM-dd', week: 'yyyy-MM-dd', month: 'yyyy-MM' },
+            // 提高刻度间距，避免标签拥挤
+            stepSize: unit === 'day' ? 3 : (unit === 'week' ? 1 : 1),
+          },
+          ticks: {
+            color: '#bbb',
+            autoSkip: true,
+            maxRotation: 0,
+            maxTicksLimit: 12,
+            font: { size: 11 }
+          },
           grid: { color: '#2a2a2a' }
         },
         y: {
-          ticks: { color: '#aaa' },
+          ticks: {
+            color: '#bbb',
+            font: { size: 12 },
+            callback: function(value) {
+              const label = this.getLabelForValue(value);
+              return label.length > 18 ? label.substring(0, 18) + '…' : label;
+            }
+          },
           grid: { color: '#1a1a1a' }
         }
       },
       plugins: {
         legend: { display: false },
         tooltip: {
+          backgroundColor: 'rgba(20,20,20,0.95)',
+          padding: 10,
           callbacks: {
             label: (ctx) => {
               const item = items[ctx.dataIndex];
