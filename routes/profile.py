@@ -54,18 +54,16 @@ def profile_save():
 
 @bp.route('/profile/upload', methods=['POST'])
 def profile_upload():
-    """上传简历并调用 LLM 解析为结构化画像。"""
+    """上传简历并调用 LLM 解析为结构化画像。返回 JSON 供前端 AJAX 显示进度。"""
     from dotenv import load_dotenv
     load_dotenv()
 
     file = request.files.get('resume')
     if not file or not file.filename:
-        flash('❌ 请选择简历文件', 'danger')
-        return redirect(url_for('profile.profile_view'))
+        return {'ok': False, 'msg': '请选择简历文件'}, 400
 
     if not allowed_file(file.filename):
-        flash('❌ 仅支持 PDF 或 Word 文档', 'danger')
-        return redirect(url_for('profile.profile_view'))
+        return {'ok': False, 'msg': '仅支持 PDF 或 Word 文档'}, 400
 
     # 保存到临时文件
     tmp = tempfile.NamedTemporaryFile(suffix='.' + file.filename.rsplit('.', 1)[1], delete=False)
@@ -73,29 +71,33 @@ def profile_upload():
     tmp.close()
 
     try:
-        # 先提取文本
+        # 提取文本
         text = extract_resume_text(tmp.name)
         if not text or len(text.strip()) < 50:
-            flash('❌ 无法提取简历文本，请确认文件内容正确', 'danger')
             os.unlink(tmp.name)
-            return redirect(url_for('profile.profile_view'))
+            return {'ok': False, 'msg': '无法提取简历文本，请确认文件内容正确'}, 400
 
-        # 用 LLM 解析为结构化画像
+        # 用 LLM 解析
         parsed = parse_with_llm(text)
         if parsed:
             with open(PROFILE_FILE, 'w', encoding='utf-8') as f:
                 f.write(parsed)
-            flash('✅ 简历解析成功！个人画像已更新。建议重新评分以刷新匹配度。', 'success')
+            return {'ok': True, 'msg': '简历解析成功！个人画像已更新。建议重新评分以刷新匹配度。',
+                    'fallback': False}
         else:
-            flash('⚠️ LLM 解析失败，已将原始文本保存为画像（可手动编辑）', 'warning')
+            # LLM 未配置或失败，保存原始文本
             with open(PROFILE_FILE, 'w', encoding='utf-8') as f:
                 f.write(f"## 原始简历文本（待整理）\n\n{text[:3000]}")
+            return {'ok': True, 'msg': 'LLM 未配置或解析失败，已保存原始文本（可手动编辑）。',
+                    'fallback': True}
 
     except Exception as e:
-        flash(f'❌ 解析失败：{str(e)[:80]}', 'danger')
-
-    os.unlink(tmp.name)
-    return redirect(url_for('profile.profile_view'))
+        return {'ok': False, 'msg': f'解析失败：{str(e)[:80]}'}, 500
+    finally:
+        try:
+            os.unlink(tmp.name)
+        except OSError:
+            pass
 
 
 def extract_resume_text(filepath):
