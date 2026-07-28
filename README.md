@@ -73,6 +73,8 @@ JHTracker 的公司库由 AI 智能体深度检索网络生成，而非固定预
 
 ### AI 评分配置（可选）
 
+评分引擎采用**批量评分 + profile 指纹缓存**省 token 策略：默认一次 prompt 评 15 家（500 家从 500 次调用降到 ~34 次），且 profile 未变时 `--force` 会跳过 LLM 调用。
+
 ```bash
 pip install -r requirements-ai.txt
 
@@ -81,14 +83,23 @@ set ANTHROPIC_API_KEY=sk-ant-...
 # macOS / Linux
 export ANTHROPIC_API_KEY=sk-ant-...
 
-# 评分所有公司
+# 评分所有未评分公司（增量，不重复评分已有分数的）
 python scripts/ai_scorer.py
 
 # 只评一家
 python scripts/ai_scorer.py --company-id 1
 
-# 强制重新评分
+# 重新评分所有公司（profile 未变则自动跳过 LLM，仅重跑预筛）
 python scripts/ai_scorer.py --force
+
+# profile 修改后强制 LLM 重评所有公司
+python scripts/ai_scorer.py --force --profile-changed
+
+# 自定义批量大小（一次 prompt 评 N 家，默认 15）
+python scripts/ai_scorer.py --batch-size 20
+
+# 仅预览待评分公司，不调 LLM
+python scripts/ai_scorer.py --dry-run
 ```
 
 未配置 API Key 时，系统自动降级为关键词预筛评分，功能不受影响。

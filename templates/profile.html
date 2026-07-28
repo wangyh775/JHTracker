@@ -8,16 +8,31 @@
       <div class="card-body">
         <div class="d-flex justify-content-between align-items-center mb-3">
           <h6 class="card-title mb-0"><i class="bi bi-pencil-square me-2"></i>编辑画像</h6>
-          <a href="/resumes" class="btn btn-sm btn-outline-info mb-0">
-            <i class="bi bi-files me-1"></i>简历版本管理
-          </a>
-        </div>
-        <form method="post" action="/profile/save">
-          <div class="mb-3">
-            <textarea class="form-control font-monospace small" name="content" rows="28"
-                      style="font-size:0.85rem; line-height:1.6;">{{ content }}</textarea>
+          <div class="d-flex gap-2">
+            <ul class="nav nav-pills mb-0" id="profileTab" role="tablist">
+              <li class="nav-item"><button class="nav-link py-1 px-2 active" data-bs-toggle="pill" data-bs-target="#editPane" type="button"><i class="bi bi-pencil me-1"></i>编辑</button></li>
+              <li class="nav-item"><button class="nav-link py-1 px-2" data-bs-toggle="pill" data-bs-target="#previewPane" type="button" id="previewBtn"><i class="bi bi-eye me-1"></i>预览</button></li>
+            </ul>
+            <a href="/resumes" class="btn btn-sm btn-outline-info mb-0">
+              <i class="bi bi-files me-1"></i>简历版本管理
+            </a>
           </div>
-          <button class="btn btn-primary"><i class="bi bi-floppy me-1"></i>保存</button>
+        </div>
+
+        <form method="post" action="/profile/save">
+          <div class="tab-content">
+            <div class="tab-pane fade show active" id="editPane" role="tabpanel">
+              <div class="mb-3">
+                <textarea class="form-control font-monospace small" name="content" id="profileEditor" rows="28"
+                          style="font-size:0.85rem; line-height:1.6;">{{ content }}</textarea>
+              </div>
+            </div>
+            <div class="tab-pane fade" id="previewPane" role="tabpanel">
+              <div id="profilePreview" class="profile-preview border rounded p-3 bg-dark"
+                   style="min-height:560px; line-height:1.7;"></div>
+            </div>
+          </div>
+          <button class="btn btn-primary mt-3"><i class="bi bi-floppy me-1"></i>保存</button>
           <span class="text-secondary small ms-3">保存后建议重新评分以更新匹配度</span>
         </form>
       </div>
@@ -29,7 +44,7 @@
         <h6 class="card-title mb-3"><i class="bi bi-info-circle me-2"></i>使用说明</h6>
         <ul class="small text-secondary mb-0" style="line-height:1.8; padding-left:1rem;">
           <li>个人画像是 AI 评分引擎的输入，决定每家公司的匹配度打分</li>
-          <li>可直接编辑左侧 Markdown 文本</li>
+          <li>左侧「编辑」可直接改 Markdown，「预览」标签实时渲染</li>
           <li>AI 自动解析简历功能已迁移到智能体 Skill，请对智能体说「解析我的简历生成画像」</li>
           <li>修改后请到「数据导入」或命令行重新跑 AI 评分</li>
           <li>建议包含：教育背景 / 技术栈 / 项目经验 / 目标岗位 / 求职偏好</li>
@@ -53,4 +68,45 @@
     </div>
   </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='vendor/js/marked.min.js') }}"></script>
+<script>
+// 预览渲染：切换到预览标签或编辑时同步
+const editor = document.getElementById('profileEditor');
+const preview = document.getElementById('profilePreview');
+
+function renderPreview() {
+  if (!window.marked || !editor || !preview) return;
+  // marked 默认配置即可，开启 break 换行
+  marked.setOptions({ breaks: true, gfm: true });
+  preview.innerHTML = marked.parse(editor.value);
+}
+
+// 首次渲染一次，避免切到预览时空白
+renderPreview();
+
+// 切换到预览标签时重新渲染（保证最新内容）
+document.getElementById('previewBtn').addEventListener('click', renderPreview);
+
+// 编辑时实时同步到预览（切回预览即看到最新）
+editor.addEventListener('input', renderPreview);
+</script>
+<style>
+.profile-preview h1,
+.profile-preview h2,
+.profile-preview h3 { color: #fff; font-weight: 600; margin-top: 0.8rem; }
+.profile-preview h2 { font-size: 1.1rem; border-bottom: 1px solid #333; padding-bottom: 0.3rem; }
+.profile-preview h3 { font-size: 1rem; }
+.profile-preview ul,
+.profile-preview ol { padding-left: 1.2rem; }
+.profile-preview li { margin: 0.2rem 0; }
+.profile-preview p { margin: 0.4rem 0; }
+.profile-preview code {
+  background: #2a2a2a; padding: 0.1rem 0.3rem; border-radius: 3px;
+  font-size: 0.85em; color: #ffd479;
+}
+.profile-preview strong { color: #fff; }
+</style>
 {% endblock %}
