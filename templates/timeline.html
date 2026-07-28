@@ -8,7 +8,15 @@
 <!-- 甘特图 -->
 <div class="card mb-4">
   <div class="card-body">
-    <h6 class="card-title mb-3"><i class="bi bi-bar-chart-steps me-2"></i>时间甘特图</h6>
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h6 class="card-title mb-0"><i class="bi bi-bar-chart-steps me-2"></i>时间甘特图</h6>
+      <div class="btn-group btn-group-sm" role="group" id="rangeSwitch">
+        <button type="button" class="btn btn-outline-secondary" data-range="month">近1月</button>
+        <button type="button" class="btn btn-outline-secondary" data-range="quarter">近3月</button>
+        <button type="button" class="btn btn-outline-secondary" data-range="season">秋招季</button>
+        <button type="button" class="btn btn-outline-secondary" data-range="all">全部</button>
+      </div>
+    </div>
     <div style="height: 400px;">
       <canvas id="ganttChart"></canvas>
     </div>
@@ -73,8 +81,8 @@
 {% endblock %}
 
 {% block scripts %}
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+<!-- chart.js 已在 base.html head 加载，这里只需日期适配器 -->
+<script src="{{ url_for('static', filename='vendor/js/chartjs-adapter-date-fns.bundle.min.js') }}"></script>
 <script>
 const items = [
   {% for item in items %}
@@ -90,6 +98,43 @@ const items = [
   {% endfor %}
 ];
 
+// 字符串日期 → 毫秒时间戳，避免 Chart.js time scale 解析字符串数组时把 min 当成 0（1970）
+function toTs(s) { return new Date(s).getTime(); }
+const ONE_DAY = 86400000;
+// 单日节点（start==end）给 3 天宽度，否则在时间轴上是一条 0 宽的线看不见
+const chartData = items.map(i => {
+  const s = toTs(i.start);
+  const e = toTs(i.end);
+  return e > s ? [s, e] : [s, s + ONE_DAY * 3];
+});
+
+// 各时间跨度对应的 x 轴范围
+function rangeFor(kind) {
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = now.getMonth();
+  if (kind === 'month') {
+    // 近一个月：今天 0 点 ~ 今天往后 30 天
+    const start = new Date(y, m, now.getDate(), 0, 0, 0).getTime();
+    const end = new Date(y, m, now.getDate() + 30, 23, 59, 59).getTime();
+    return [start, end, 'day'];
+  }
+  if (kind === 'quarter') {
+    // 近 3 月：今天往前 30 天 ~ 往后 60 天
+    const start = new Date(y, m, now.getDate() - 30).getTime();
+    const end = new Date(y, m, now.getDate() + 60).getTime();
+    return [start, end, 'week'];
+  }
+  if (kind === 'season') {
+    // 秋招季：2026-07 ~ 2026-12
+    return [new Date(2026, 6, 1).getTime(), new Date(2026, 11, 31, 23, 59, 59).getTime(), 'month'];
+  }
+  // 全部：用数据本身的范围
+  const allMin = Math.min(...chartData.map(d => d[0]));
+  const allMax = Math.max(...chartData.map(d => d[1]));
+  return [allMin, allMax, 'month'];
+}
+
 function colorFor(item) {
   if (item.done) return 'rgba(25,135,84,0.5)';
   if (item.type === 'deadline') return '#dc3545';
@@ -98,53 +143,74 @@ function colorFor(item) {
   return '#0d6efd';
 }
 
-new Chart(document.getElementById('ganttChart'), {
-  type: 'bar',
-  data: {
-    labels: items.map(i => i.title),
-    datasets: [{
-      data: items.map(i => [i.start, i.end]),
-      backgroundColor: items.map(i => colorFor(i)),
-      borderColor: items.map(i => colorFor(i)),
-      borderWidth: 1,
-      barPercentage: 0.6,
-    }]
-  },
-  options: {
-    indexAxis: 'y',
-    responsive: true,
-    maintainAspectRatio: false,
-    scales: {
-      x: {
-        type: 'time',
-        time: { unit: 'month', displayFormats: { month: 'yyyy-MM' } },
-        ticks: { color: '#aaa' },
-        grid: { color: '#2a2a2a' }
-      },
-      y: {
-        ticks: { color: '#aaa' },
-        grid: { color: '#1a1a1a' }
-      }
+let chart = null;
+function render(rangeKind) {
+  const [xmin, xmax, unit] = rangeFor(rangeKind);
+  if (chart) chart.destroy();
+  chart = new Chart(document.getElementById('ganttChart'), {
+    type: 'bar',
+    data: {
+      labels: items.map(i => i.title),
+      datasets: [{
+        data: chartData,
+        backgroundColor: items.map(i => colorFor(i)),
+        borderColor: items.map(i => colorFor(i)),
+        borderWidth: 1,
+        barPercentage: 0.6,
+      }]
     },
-    plugins: {
-      legend: { display: false },
-      tooltip: {
-        callbacks: {
-          label: (ctx) => {
-            const item = items[ctx.dataIndex];
-            return item.description || `${item.start} ~ ${item.end}`;
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        x: {
+          type: 'time',
+          min: xmin,
+          max: xmax,
+          time: { unit: unit, displayFormats: { day: 'yyyy-MM-dd', week: 'yyyy-MM-dd', month: 'yyyy-MM' } },
+          ticks: { color: '#aaa', autoSkip: true, maxRotation: 0 },
+          grid: { color: '#2a2a2a' }
+        },
+        y: {
+          ticks: { color: '#aaa' },
+          grid: { color: '#1a1a1a' }
+        }
+      },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: (ctx) => {
+              const item = items[ctx.dataIndex];
+              return item.description || `${item.start} ~ ${item.end}`;
+            }
           }
         }
-      }
-    },
-    onClick: (e, els) => {
-      if (els.length > 0) {
-        const idx = els[0].index;
-        const id = items[idx].id;
-        document.getElementById('item-' + id).scrollIntoView({behavior: 'smooth', block: 'center'});
+      },
+      onClick: (e, els) => {
+        if (els.length > 0) {
+          const idx = els[0].index;
+          const id = items[idx].id;
+          document.getElementById('item-' + id).scrollIntoView({behavior: 'smooth', block: 'center'});
+        }
       }
     }
-  }
+  });
+}
+
+// 默认本月
+const defaultBtn = document.querySelector('#rangeSwitch [data-range="month"]');
+defaultBtn.classList.add('active');
+render('month');
+
+// 切换按钮
+document.querySelectorAll('#rangeSwitch [data-range]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('#rangeSwitch [data-range]').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    render(btn.dataset.range);
+  });
 });
 </script>
 {% endblock %}

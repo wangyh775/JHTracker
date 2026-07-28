@@ -6,7 +6,7 @@ from extensions import db
 from models import Company, StudyMaterial, Timeline
 from config import Config
 from constants import infer_priority, infer_industry_from_filename
-from utils import parse_markdown_table, parse_date
+from utils import parse_all_markdown_tables, parse_date
 
 bp = Blueprint('import_data', __name__)
 
@@ -34,44 +34,52 @@ def import_companies():
         try:
             with open(fp, 'r', encoding='utf-8') as f:
                 lines = f.readlines()
-            headers, rows = parse_markdown_table(lines)
-            if not headers:
+            tables = parse_all_markdown_tables(lines)
+            if not tables:
                 failed_rows.append(f'{os.path.basename(fp)}: 未找到表格')
                 continue
 
-            # 找出列名对应的 header
-            name_key = _find_header(headers, ['公司', '公司名称', '名称'])
-            city_key = _find_header(headers, ['城市', '地点'])
-            job_key = _find_header(headers, ['岗位', '职位', '方向'])
-            reason_key = _find_header(headers, ['匹配', '理由', '匹配理由'])
+            file_industry = infer_industry_from_filename(fp)
+            file_updated = False
 
-            if not name_key:
-                failed_rows.append(f'{os.path.basename(fp)}: 找不到公司名列')
-                continue
-
-            industry = infer_industry_from_filename(fp)
-
-            for row in rows:
-                name = row.get(name_key, '').replace('**', '').strip()
-                if not name:
+            for headers, rows in tables:
+                # 严格匹配公司名列，跳过总览统计表/薪资表/策略表
+                name_key = _find_company_name_header(headers)
+                if not name_key:
                     continue
-                existing = Company.query.filter_by(name=name).first()
-                if existing:
-                    skipped_count += 1
-                    continue
-                priority = infer_priority(name)
-                c = Company(
-                    name=name,
-                    industry=industry,
-                    city=row.get(city_key, '').strip() if city_key else '',
-                    job_type=row.get(job_key, '').strip() if job_key else '',
-                    match_reason=row.get(reason_key, '').strip() if reason_key else '',
-                    priority=priority,
-                    source_list=f'清单{source}',
-                )
-                db.session.add(c)
-                imported_count += 1
-            db.session.commit()
+                city_key = _find_header(headers, ['城市', '地点'])
+                job_key = _find_header(headers, ['岗位', '职位', '方向'])
+                reason_key = _find_header(headers, ['匹配', '理由', '匹配理由'])
+                sub_industry_key = _find_header(headers, ['细分行业', '行业'])
+
+                for row in rows:
+                    name = row.get(name_key, '').replace('**', '').strip()
+                    if not name:
+                        continue
+                    if name in _HEADER_NAME_KEYWORDS:
+                        continue
+                    existing = Company.query.filter_by(name=name).first()
+                    if existing:
+                        skipped_count += 1
+                        continue
+                    priority = infer_priority(name)
+                    # 优先用行内的细分行业，其次文件名推断
+                    row_industry = row.get(sub_industry_key, '').strip() if sub_industry_key else ''
+                    industry = row_industry or file_industry
+                    c = Company(
+                        name=name,
+                        industry=industry,
+                        city=row.get(city_key, '').strip() if city_key else '',
+                        job_type=row.get(job_key, '').strip() if job_key else '',
+                        match_reason=row.get(reason_key, '').strip() if reason_key else '',
+                        priority=priority,
+                        source_list=f'清单{source}',
+                    )
+                    db.session.add(c)
+                    imported_count += 1
+                    file_updated = True
+            if file_updated:
+                db.session.commit()
         except Exception as e:
             failed_rows.append(f'{os.path.basename(fp)}: {str(e)}')
 
@@ -83,11 +91,121 @@ def import_companies():
 
 
 def _find_header(headers, candidates):
-    """从 headers 中找第一个匹配 candidates 的列名。"""
+    """从 headers 中找第一个匹配 candidates 的列名（子串匹配）。"""
     for h in headers:
         for c in candidates:
             if c in h:
                 return h
+    return None
+
+
+def _find_company_name_header(headers):
+    """严格匹配公司名列：必须是 '公司名称' / '公司' / '名称' 之一（精确匹配）。
+    避免把 '公司数量' / '推荐公司举例' 等误判为公司名列。
+    """
+    for target in ['公司名称', '公司', '名称']:
+        if target in headers:
+            return target
+    return None
+
+
+# 表头行关键字：导入时误入库的 markdown 表头，重新同步时清理
+_HEADER_NAME_KEYWORDS = {'序号', '公司名称', '名称', '#', '排名', '行业', '公司数量'}
+
+
+@bp.route('/import/companies/resync', methods=['POST'])
+def import_companies_resync():
+    """从源 markdown 重新读取，按公司名更新现有 Company 的字段（修存量数据错位）。
+
+    - 保留：id、priority、salary_min/max、source_list、created_at、applications、notes
+    - 更新：city、industry、job_type、match_reason
+    - 清理：误入库的表头行
+    - 多表文件：迭代每张表，跳过无公司名列的表（如总览统计表）
+    - 行业：优先用源行的细分行业/行业列，回退到文件名推断
+    - 防交叉污染：只从与公司 source_list 匹配的文件更新（清单A 公司不从清单B 覆盖）
+    """
+    all_md = glob.glob(os.path.join(Config.CAREER_DIR, '*.md'))
+    files = [f for f in all_md if '企业清单' in os.path.basename(f)]
+    if not files:
+        flash('未找到企业清单 markdown 文件')
+        return redirect(url_for('import_data.import_page'))
+
+    updated_count = 0
+    not_found_count = 0
+    skipped_cross_source = 0
+    failed_rows = []
+
+    for fp in files:
+        try:
+            file_source = _infer_source_from_filename(fp)  # '清单A' / '清单B' / None
+            with open(fp, 'r', encoding='utf-8') as f:
+                lines = f.readlines()
+            tables = parse_all_markdown_tables(lines)
+            if not tables:
+                failed_rows.append(f'{os.path.basename(fp)}: 未找到表格')
+                continue
+
+            file_industry = infer_industry_from_filename(fp)
+
+            for headers, rows in tables:
+                # 严格匹配公司名列，跳过总览统计表/薪资表/策略表
+                name_key = _find_company_name_header(headers)
+                if not name_key:
+                    continue
+                city_key = _find_header(headers, ['城市', '地点'])
+                job_key = _find_header(headers, ['岗位', '职位', '方向'])
+                reason_key = _find_header(headers, ['匹配', '理由', '匹配理由'])
+                sub_industry_key = _find_header(headers, ['细分行业', '行业'])
+
+                for row in rows:
+                    name = row.get(name_key, '').replace('**', '').strip()
+                    if not name:
+                        continue
+                    # 跳过表头行
+                    if name in _HEADER_NAME_KEYWORDS:
+                        continue
+                    existing = Company.query.filter_by(name=name).first()
+                    if not existing:
+                        not_found_count += 1
+                        continue
+                    # 防交叉污染：公司 source_list 必须匹配文件来源
+                    if file_source and existing.source_list and existing.source_list != file_source:
+                        skipped_cross_source += 1
+                        continue
+                    # 更新字段（保留 id、priority、salary、关联数据）
+                    existing.city = row.get(city_key, '').strip() if city_key else existing.city
+                    # 行业：优先用源行的细分行业/行业列，回退到文件名推断
+                    row_industry = row.get(sub_industry_key, '').strip() if sub_industry_key else ''
+                    existing.industry = row_industry or file_industry
+                    existing.job_type = row.get(job_key, '').strip() if job_key else existing.job_type
+                    existing.match_reason = row.get(reason_key, '').strip() if reason_key else existing.match_reason
+                    updated_count += 1
+            db.session.commit()
+        except Exception as e:
+            failed_rows.append(f'{os.path.basename(fp)}: {str(e)}')
+
+    # 清理误入库的表头行
+    header_rows = Company.query.filter(Company.name.in_(_HEADER_NAME_KEYWORDS)).all()
+    header_count = len(header_rows)
+    for h in header_rows:
+        db.session.delete(h)
+    db.session.commit()
+
+    msg = (f'重新同步完成。更新 {updated_count} 家，未匹配 {not_found_count} 家，'
+           f'跨源跳过 {skipped_cross_source} 家，清理表头行 {header_count} 条。')
+    if failed_rows:
+        msg += f' 失败：{"; ".join(failed_rows)}'
+    flash(msg)
+    return redirect(url_for('import_data.import_page'))
+
+
+def _infer_source_from_filename(fp):
+    """从文件名推断 source_list 值：'清单A' / '清单B' / None。"""
+    bn = os.path.basename(fp)
+    if '_A_' in bn or '_A.' in bn:
+        return '清单A'
+    if '_B_' in bn or '_B.' in bn:
+        return '清单B'
     return None
 
 

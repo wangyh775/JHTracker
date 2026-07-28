@@ -2,51 +2,205 @@
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-3">
   <div class="dashboard-title"><i class="bi bi-building me-2 text-primary"></i>公司清单 <span class="badge bg-primary fs-6">{{ companies.total }}</span></div>
-  <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addModal"><i class="bi bi-plus-lg me-1"></i>添加公司</button>
+  <div class="d-flex gap-2">
+    <form method="post" action="/companies/score" class="d-inline" onsubmit="return confirm('启动 AI 批量评分？将对无评分的公司进行匹配度评分')">
+      <button class="btn btn-sm btn-outline-warning" id="btnScore"><i class="bi bi-stars me-1"></i>AI 评分</button>
+    </form>
+    <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addModal"><i class="bi bi-plus-lg me-1"></i>添加公司</button>
+  </div>
 </div>
 
+<!-- 评分进度条 (默认隐藏) -->
+<div class="card mb-3 d-none border-warning shadow-sm" id="scoreProgressCard">
+  <div class="card-body py-2">
+    <div class="d-flex justify-content-between small mb-1">
+      <span><i class="bi bi-robot me-1 text-warning"></i> 正在进行 AI 匹配评分... <span id="scoreStatusText" class="text-secondary ms-2"></span></span>
+      <span class="fw-bold"><span id="scoreCurrent">0</span> / <span id="scoreTotal">0</span></span>
+    </div>
+    <div class="progress" style="height: 8px;">
+      <div class="progress-bar progress-bar-striped progress-bar-animated bg-warning" id="scoreProgressBar" style="width: 0%"></div>
+    </div>
+  </div>
+</div>
+
+<style>
+.filter-dropdown { position: relative; }
+.filter-dropdown .dropdown-menu { width: 100%; max-height: 260px; overflow-y: auto; font-size: 0.85rem; }
+.filter-dropdown .form-check { padding: 3px 10px; margin: 0; }
+.filter-dropdown .form-check:hover { background: #333; }
+.filter-dropdown .form-check-input { margin-right: 5px; }
+.filter-btn { text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.score-badge { font-size: 0.75rem; font-weight: 600; min-width: 28px; text-align: center; }
+.score-high { background: #198754; color: #fff; }
+.score-mid { background: #fd7e14; color: #fff; }
+.score-low { background: #6c757d; color: #fff; }
+.score-none { background: #333; color: #666; }
+</style>
+
 <!-- Filters -->
-<form class="row g-2 mb-3" method="get">
+<form class="row g-2 mb-3" method="get" id="filterForm">
+  {% macro filter_dropdown(name, label, options, selected) %}
   <div class="col-md-2">
-    <select class="form-select form-select-sm" name="industry" onchange="this.form.submit()">
-      <option value="">全行业</option>
-      {% for i in industries %}<option value="{{ i }}" {% if request.args.get('industry')==i %}selected{% endif %}>{{ i }}</option>{% endfor %}
-    </select>
+    <div class="filter-dropdown">
+      <button class="btn btn-outline-secondary btn-sm w-100 filter-btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+        {% if selected %}{{ selected|length }} 项{% else %}全部{{ label }}{% endif %}
+      </button>
+      <div class="dropdown-menu p-2">
+        <div class="form-check">
+          <input class="form-check-input filter-all" type="checkbox" data-group="{{ name }}" id="{{ name }}_all" {% if not selected %}checked{% endif %}>
+          <label class="form-check-label" for="{{ name }}_all">全部</label>
+        </div>
+        <div class="dropdown-divider"></div>
+        {% for opt in options %}
+        <div class="form-check">
+          <input class="form-check-input filter-opt" type="checkbox" name="{{ name }}" value="{{ opt }}" id="{{ name }}_{{ loop.index }}" data-group="{{ name }}" {% if opt in selected %}checked{% endif %}>
+          <label class="form-check-label" for="{{ name }}_{{ loop.index }}">{{ opt }}</label>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
   </div>
+  {% endmacro %}
+
+  {{ filter_dropdown('industry', '行业', industries, request.args.getlist('industry')) }}
+  {{ filter_dropdown('city', '城市', cities, request.args.getlist('city')) }}
+  {{ filter_dropdown('priority', '优先级', ['S','A','B','C'], request.args.getlist('priority')) }}
+  {{ filter_dropdown('company_type', '性质', company_types, request.args.getlist('company_type')) }}
+
   <div class="col-md-2">
-    <select class="form-select form-select-sm" name="city" onchange="this.form.submit()">
-      <option value="">全城市</option>
-      {% for c in cities %}<option value="{{ c }}" {% if request.args.get('city')==c %}selected{% endif %}>{{ c }}</option>{% endfor %}
-    </select>
+    <div class="input-group input-group-sm">
+      <input type="text" class="form-control" name="q" placeholder="搜索..." value="{{ request.args.get('q','') }}">
+      <button class="btn btn-outline-primary" type="submit"><i class="bi bi-search"></i></button>
+      <a href="/companies" class="btn btn-outline-secondary"><i class="bi bi-x-lg"></i></a>
+    </div>
   </div>
-  <div class="col-md-1">
-    <select class="form-select form-select-sm" name="priority" onchange="this.form.submit()">
-      <option value="">全部</option>
-      <option value="S" {% if request.args.get('priority')=='S' %}selected{% endif %}>S</option>
-      <option value="A" {% if request.args.get('priority')=='A' %}selected{% endif %}>A</option>
-      <option value="B" {% if request.args.get('priority')=='B' %}selected{% endif %}>B</option>
-      <option value="C" {% if request.args.get('priority')=='C' %}selected{% endif %}>C</option>
-    </select>
-  </div>
-  <div class="col-md-4">
-    <input type="text" class="form-control form-control-sm" name="q" placeholder="搜索公司名/匹配理由..." value="{{ request.args.get('q','') }}">
-  </div>
-  <div class="col-md-1"><button class="btn btn-outline-primary btn-sm w-100"><i class="bi bi-search"></i></button></div>
   <div class="col-md-2 text-end"><a href="/import" class="btn btn-success btn-sm"><i class="bi bi-upload me-1"></i>批量导入</a></div>
 </form>
 
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('.filter-all').forEach(function(cb) {
+    cb.addEventListener('change', function() {
+      var group = this.dataset.group;
+      document.querySelectorAll('.filter-opt[data-group="' + group + '"]').forEach(function(opt) {
+        opt.checked = !cb.checked;
+      });
+    });
+  });
+  document.querySelectorAll('.filter-opt').forEach(function(cb) {
+    cb.addEventListener('change', function() {
+      var group = this.dataset.group;
+      var all = document.getElementById(group + '_all');
+      var checked = document.querySelectorAll('.filter-opt[data-group="' + group + '"]:checked');
+      all.checked = checked.length === 0;
+    });
+  });
+
+  // 评分进度轮询
+  var scoreCard = document.getElementById('scoreProgressCard');
+  var bar = document.getElementById('scoreProgressBar');
+  var curEl = document.getElementById('scoreCurrent');
+  var totEl = document.getElementById('scoreTotal');
+  var statusText = document.getElementById('scoreStatusText');
+  var btn = document.getElementById('btnScore');
+  var pollTimer = null;
+
+  function checkProgress() {
+    fetch('/api/score-progress').then(function(r) { return r.json(); }).then(function(data) {
+      if (data.status === 'running' || data.status === 'starting') {
+        scoreCard.classList.remove('d-none');
+        curEl.textContent = data.current;
+        totEl.textContent = data.total;
+        var pct = data.total > 0 ? (data.current / data.total * 100) : 0;
+        bar.style.width = pct + '%';
+        if (data.name && data.current > 0) {
+          statusText.textContent = data.name + ' (' + data.score + '分)';
+        }
+        if (data.status === 'running') {
+          pollTimer = setTimeout(checkProgress, 1500);
+        }
+      } else if (data.status === 'done') {
+        bar.style.width = '100%';
+        statusText.textContent = '✅ 完成！';
+        btn.disabled = false;
+        setTimeout(function() {
+          scoreCard.classList.add('d-none');
+          bar.style.width = '0%';
+          location.reload(); // 刷新显示评分
+        }, 2000);
+      }
+    }).catch(function() {
+      pollTimer = setTimeout(checkProgress, 3000);
+    });
+  }
+
+  // 启动评分后开始轮询
+  var scoreForm = document.querySelector('form[action="/companies/score"]');
+  if (scoreForm) {
+    scoreForm.addEventListener('submit', function() {
+      btn.disabled = true;
+      setTimeout(checkProgress, 1000);
+    });
+  }
+});</script>
+
+<!-- Stat bar (BossHunter 风格) -->
+<div class="row g-2 mb-3">
+  <div class="col-md-3">
+    <div class="card border-0 shadow-sm bg-dark-subtle">
+      <div class="card-body py-2 px-3 d-flex justify-content-between align-items-center">
+        <span class="text-secondary small">📊 已评分</span>
+        <span class="fw-bold">{{ stats.scored }}/{{ stats.total }}</span>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card border-0 shadow-sm bg-dark-subtle">
+      <div class="card-body py-2 px-3 d-flex justify-content-between align-items-center">
+        <span class="text-secondary small">🏆 高分 (≥70)</span>
+        <span class="fw-bold text-success">{{ stats.high }}</span>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card border-0 shadow-sm bg-dark-subtle">
+      <div class="card-body py-2 px-3 d-flex justify-content-between align-items-center">
+        <span class="text-secondary small">💡 中分 (40-69)</span>
+        <span class="fw-bold text-warning">{{ stats.mid }}</span>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card border-0 shadow-sm bg-dark-subtle">
+      <div class="card-body py-2 px-3 d-flex justify-content-between align-items-center">
+        <span class="text-secondary small">❌ 低分 (&lt;40)</span>
+        <span class="fw-bold text-secondary">{{ stats.low }}</span>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- Table -->
-<div class="card">
+<div class="card shadow-sm border-0">
   <div class="table-responsive">
     <table class="table table-hover align-middle mb-0">
-      <thead class="text-secondary small">
-        <tr><th>优先级</th><th>公司名称</th><th>行业</th><th>城市</th><th>岗位方向</th><th>参考薪资</th><th>匹配理由</th><th></th></tr>
+      <thead class="table-dark small">
+        <tr><th style="width:56px">评分</th><th>优先级</th><th>公司名称</th><th>性质</th><th>行业</th><th>城市</th><th>岗位方向</th><th>参考薪资</th><th>匹配理由</th><th style="width:50px"></th></tr>
       </thead>
       <tbody>
         {% for c in companies.items %}
         <tr>
+          <td>
+            {% if c.score is not none %}
+            <span class="badge score-badge rounded-circle {% if c.score >= 70 %}score-high{% elif c.score >= 40 %}score-mid{% else %}score-low{% endif %}">{{ c.score }}</span>
+            {% else %}
+            <span class="badge score-badge rounded-circle score-none">-</span>
+            {% endif %}
+          </td>
           <td><span class="badge badge-priority-{{ c.priority }}">{{ c.priority }}</span></td>
           <td><a href="/companies/{{ c.id }}" class="text-decoration-none fw-bold">{{ c.name }}</a></td>
+          <td>{% if c.company_type %}<span class="badge {% if '外企' in c.company_type %}bg-info{% elif c.company_type == '央企' %}bg-danger{% elif c.company_type == '国企' %}bg-warning text-dark{% elif c.company_type == '合资' %}bg-secondary{% else %}bg-success{% endif %}">{{ c.company_type }}</span>{% else %}-{% endif %}</td>
           <td><span class="badge bg-secondary">{{ c.industry or '-' }}</span></td>
           <td>{{ c.city or '-' }}</td>
           <td class="small">{{ c.job_type or '-' }}</td>
@@ -55,11 +209,23 @@
             {{ c.salary_min or '?' }}-{{ c.salary_max or '?' }}k
             {% else %}-{% endif %}
           </td>
-          <td class="small text-secondary" style="max-width:300px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">{{ c.match_reason or '-' }}</td>
-          <td><a href="/companies/{{ c.id }}" class="btn btn-sm btn-outline-info py-0 px-2"><i class="bi bi-chevron-right"></i></a></td>
+          <td class="small text-secondary" style="max-width:260px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"
+              title="{{ c.score_reason or c.match_reason or '' }}">
+            {% if c.score_reason %}
+            <span class="text-muted">{{ c.score_reason[:50] }}{% if c.score_reason|length > 50 %}...{% endif %}</span>
+            {% else %}
+            {{ c.match_reason or '-' }}
+            {% endif %}
+          </td>
+          <td class="text-nowrap">
+            <a href="/companies/{{ c.id }}" class="btn btn-sm btn-outline-info py-0 px-2"><i class="bi bi-chevron-right"></i></a>
+            <form method="post" action="/companies/{{ c.id }}/delete" class="d-inline" onsubmit="return confirm('确定删除「{{ c.name }}」及其所有投递记录？')">
+              <button class="btn btn-sm btn-outline-danger py-0 px-2"><i class="bi bi-trash"></i></button>
+            </form>
+          </td>
         </tr>
         {% else %}
-        <tr><td colspan="8" class="text-center text-secondary py-4">暂无数据，请先<a href="/import">导入公司清单</a></td></tr>
+        <tr><td colspan="10" class="text-center text-secondary py-4">暂无数据，请先<a href="/import">导入公司清单</a></td></tr>
         {% endfor %}
       </tbody>
     </table>
@@ -68,39 +234,43 @@
 
 <!-- Pagination -->
 {% if companies.pages > 1 %}
-<div class="d-flex justify-content-center mt-3">
-  <nav><ul class="pagination pagination-sm">
-    {% for p in range(1, companies.pages+1) %}
-    <li class="page-item {% if p==companies.page %}active{% endif %}"><a class="page-link" href="?page={{ p }}&industry={{ request.args.get('industry','') }}&city={{ request.args.get('city','') }}&priority={{ request.args.get('priority','') }}&q={{ request.args.get('q','') }}">{{ p }}</a></li>
-    {% endfor %}
-  </ul></nav>
-</div>
+{% macro qs_params() %}
+  {% for i in request.args.getlist('industry') %}&industry={{ i }}{% endfor %}
+  {% for c in request.args.getlist('city') %}&city={{ c }}{% endfor %}
+  {% for p in request.args.getlist('priority') %}&priority={{ p }}{% endfor %}
+  {% for t in request.args.getlist('company_type') %}&company_type={{ t }}{% endfor %}
+  {% if request.args.get('q') %}&q={{ request.args.get('q') }}{% endif %}
+{% endmacro %}
+<nav class="mt-3"><ul class="pagination pagination-sm justify-content-center">
+  {% for p in range(1, companies.pages+1) %}
+  <li class="page-item {% if p==companies.page %}active{% endif %}"><a class="page-link" href="?page={{ p }}{{ qs_params() }}">{{ p }}</a></li>
+  {% endfor %}
+</ul></nav>
 {% endif %}
 
 <!-- Add Modal -->
 <div class="modal fade" id="addModal" tabindex="-1">
-  <div class="modal-dialog modal-lg">
-    <div class="modal-content">
-      <form method="post" action="/companies/add">
-        <div class="modal-header"><h5 class="modal-title">添加公司</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
-        <div class="modal-body">
-          <div class="row g-3">
-            <div class="col-md-6"><label class="form-label">公司名称 *</label><input class="form-control" name="name" required></div>
-            <div class="col-md-3"><label class="form-label">行业</label><select class="form-select" name="industry">{% for i in industries %}<option>{{ i }}</option>{% endfor %}</select></div>
-            <div class="col-md-3"><label class="form-label">优先级</label><select class="form-select" name="priority"><option>S</option><option>A</option><option selected>B</option><option>C</option></select></div>
-            <div class="col-md-4"><label class="form-label">城市</label><select class="form-select" name="city">{% for c in cities %}<option>{{ c }}</option>{% endfor %}</select></div>
-            <div class="col-md-4"><label class="form-label">具体地点</label><input class="form-control" name="sub_city"></div>
-            <div class="col-md-4"><label class="form-label">官网</label><input class="form-control" name="website"></div>
-            <div class="col-md-3"><label class="form-label">岗位方向</label><input class="form-control" name="job_type" placeholder="自动化/机电/电气"></div>
-            <div class="col-md-3"><label class="form-label">来源清单</label><input class="form-control" name="source_list" placeholder="A/B/手动"></div>
-            <div class="col-md-3"><label class="form-label">参考薪资下限 (k)</label><input type="number" class="form-control" name="salary_min" min="0"></div>
-            <div class="col-md-3"><label class="form-label">参考薪资上限 (k)</label><input type="number" class="form-control" name="salary_max" min="0"></div>
-            <div class="col-12"><label class="form-label">匹配理由</label><textarea class="form-control" name="match_reason" rows="2"></textarea></div>
-          </div>
-        </div>
-        <div class="modal-footer"><button class="btn btn-primary">保存</button></div>
-      </form>
-    </div>
-  </div>
+  <div class="modal-dialog modal-lg"><div class="modal-content">
+    <form method="post" action="/companies/add">
+      <div class="modal-header"><h5 class="modal-title">添加公司</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-body"><div class="row g-3">
+        <div class="col-md-6"><label class="form-label">公司名称 *</label><input class="form-control" name="name" required></div>
+        <div class="col-md-3"><label class="form-label">行业</label><select class="form-select" name="industry">{% for i in industries %}<option>{{ i }}</option>{% endfor %}</select></div>
+        <div class="col-md-3"><label class="form-label">优先级</label><select class="form-select" name="priority"><option>S</option><option>A</option><option selected>B</option><option>C</option></select></div>
+        <div class="col-md-4"><label class="form-label">城市</label><select class="form-select" name="city">{% for c in cities %}<option>{{ c }}</option>{% endfor %}</select></div>
+        <div class="col-md-4"><label class="form-label">具体地点</label><input class="form-control" name="sub_city"></div>
+        <div class="col-md-4"><label class="form-label">官网</label><input class="form-control" name="website"></div>
+        <div class="col-md-3"><label class="form-label">岗位方向</label><input class="form-control" name="job_type"></div>
+        <div class="col-md-3"><label class="form-label">来源清单</label><input class="form-control" name="source_list"></div>
+        <div class="col-md-3"><label class="form-label">薪资下限 (k)</label><input type="number" class="form-control" name="salary_min" min="0"></div>
+        <div class="col-md-3"><label class="form-label">薪资上限 (k)</label><input type="number" class="form-control" name="salary_max" min="0"></div>
+        <div class="col-md-6"><label class="form-label">公司规模</label><select class="form-select" name="scale"><option value="">未知</option>{% for s in scale_choices %}<option>{{ s }}</option>{% endfor %}</select></div>
+        <div class="col-md-6"><label class="form-label">融资阶段</label><select class="form-select" name="financing_stage"><option value="">未知</option>{% for f in financing_choices %}<option>{{ f }}</option>{% endfor %}</select></div>
+        <div class="col-12"><label class="form-label">标签</label><input class="form-control" name="tags" placeholder="逗号分隔"></div>
+        <div class="col-12"><label class="form-label">匹配理由</label><textarea class="form-control" name="match_reason" rows="2"></textarea></div>
+      </div></div>
+      <div class="modal-footer"><button class="btn btn-primary">保存</button></div>
+    </form>
+  </div></div>
 </div>
 {% endblock %}

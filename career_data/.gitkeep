@@ -1,0 +1,7 @@
+# 公司清单数据源目录
+
+把你的企业清单 Markdown 文件放在这里，文件名建议遵循：
+- `企业清单_A_工业自动化_能源_半导体_汽车.md`
+- `企业清单_B_机器人_3D打印_高端装备_消费电子.md`
+
+清单格式见 `prompts/company_list_prompt.md`，可以用 AI 智能体（如 ChatGPT、Claude、DeepSeek、Kimi 等带联网搜索的）按该 Prompt 生成。

@@ -19,6 +19,12 @@
           </div>
           <button class="btn btn-primary w-100"><i class="bi bi-cloud-arrow-down me-2"></i>执行导入</button>
         </form>
+        <hr class="text-secondary">
+        <p class="text-secondary small mb-2"><i class="bi bi-arrow-repeat me-1"></i>已有数据字段错位？从源文件按公司名重新同步 city/行业/岗位/匹配理由，保留 id 与关联数据。</p>
+        <form method="post" action="/import/companies/resync"
+              onsubmit="return confirm('将按公司名从源 Markdown 重新同步字段。保留 id、优先级、薪资、投递记录、笔记。继续？');">
+          <button class="btn btn-outline-warning w-100"><i class="bi bi-lightning me-2"></i>重新同步存量数据</button>
+        </form>
       </div>
     </div>
   </div>

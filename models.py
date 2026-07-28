@@ -17,6 +17,12 @@ class Company(db.Model):
     source_list = db.Column(db.String(100))
     salary_min = db.Column(db.Integer)  # 公司级参考薪资下限 k/月
     salary_max = db.Column(db.Integer)  # 公司级参考薪资上限 k/月
+    scale = db.Column(db.String(50))  # 规模：少于50人/50-200人/200-1000人/1000-5000人/5000人以上
+    financing_stage = db.Column(db.String(50))  # 融资阶段：未融资/天使轮/A轮/B轮/C轮/D轮及以上/已上市/国企
+    tags = db.Column(db.String(500))  # 自定义标签，逗号分隔，如"内推,已联系HR,面试中"
+    company_type = db.Column(db.String(50))  # 企业性质：民企/央企/国企/合资/外企-XX
+    score = db.Column(db.Integer)  # AI 匹配评分 0-100
+    score_reason = db.Column(db.String(500))  # AI 评分理由
     created_at = db.Column(db.DateTime, default=datetime.now)
 
     applications = db.relationship('Application', backref='company', lazy='dynamic', cascade='all,delete-orphan')

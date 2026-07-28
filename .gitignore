@@ -1,8 +1,12 @@
 __pycache__/
 *.pyc
 
-# Runtime data: SQLite DB, uploaded resumes, backups
-data/
+# Test cache
+.pytest_cache/
+
+# Runtime data: SQLite DB, uploaded resumes, backups, secret key, profile
+data/*
+!data/.gitkeep
 
 .env
 venv/
@@ -13,3 +17,5 @@ venv/
 .vscode/
 .DS_Store
 Thumbs.db
+# Added by code-review-graph
+.code-review-graph/

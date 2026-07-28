@@ -37,17 +37,32 @@ def validate_dates(apply_date, deadline):
 
 
 def parse_markdown_table(lines):
-    """解析 markdown 表格，返回 (headers, rows)。
+    """解析 markdown 表格，返回第一个表格的 (headers, rows)。
     每行是 dict: {header: value}。
     跳过分隔行 |---|---|。
+    文件含多张表时仅返回第一张，需遍历所有表请用 parse_all_markdown_tables。
     """
+    tables = parse_all_markdown_tables(lines)
+    if not tables:
+        return [], []
+    return tables[0]
+
+
+def parse_all_markdown_tables(lines):
+    """解析 markdown 文件中的所有表格，返回 [(headers, rows), ...]。
+    每行是 dict: {header: value}。
+    跳过分隔行 |---|---|。文件含多张表时全部返回，调用方可按表头筛选需要的表。
+    """
+    tables = []
     headers = []
     rows = []
     in_table = False
     for line in lines:
         if '|' not in line:
             if in_table and headers:
-                break
+                tables.append((headers, rows))
+                headers, rows = [], []
+                in_table = False
             continue
         parts = [p.strip() for p in line.split('|')]
         # 去掉首尾空元素（split 首尾会产生空串）
@@ -64,9 +79,18 @@ def parse_markdown_table(lines):
             headers = [p.replace('**', '').strip() for p in parts]
             in_table = True
         else:
-            if len(parts) == len(headers):
-                rows.append(dict(zip(headers, parts)))
-    return headers, rows
+            # 表头列数变化 → 视为新表
+            if len(parts) != len(headers):
+                if headers:
+                    tables.append((headers, rows))
+                headers = [p.replace('**', '').strip() for p in parts]
+                rows = []
+                in_table = True
+                continue
+            rows.append(dict(zip(headers, parts)))
+    if in_table and headers:
+        tables.append((headers, rows))
+    return tables
 
 
 def safe_filename(name, ext):

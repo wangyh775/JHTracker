@@ -7,7 +7,10 @@
     <span class="badge badge-priority-{{ company.priority }}">{{ company.priority }}</span>
   </div>
   <div>
-    <button class="btn btn-outline-info btn-sm me-2" data-bs-toggle="modal" data-bs-target="#editModal">编辑资料</button>
+    <button class="btn btn-outline-info btn-sm me-2" data-bs-toggle="modal" data-bs-target="#editModal"><i class="bi bi-pencil"></i> 编辑</button>
+    <form method="post" action="/companies/{{ company.id }}/delete" class="d-inline me-2" onsubmit="return confirm('确定删除「{{ company.name }}」及其所有投递记录？此操作不可恢复。')">
+      <button class="btn btn-outline-danger btn-sm"><i class="bi bi-trash"></i> 删除</button>
+    </form>
     <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addAppModal"><i class="bi bi-plus-lg me-1"></i>添加投递</button>
   </div>
 </div>
@@ -26,7 +29,17 @@
           <strong>{{ company.salary_min or '?' }}-{{ company.salary_max or '?' }}k/月</strong>
           {% else %}<span class="text-secondary">未填写</span>{% endif %}
         </div>
+        {% if company.scale %}<div class="mb-2"><span class="text-secondary me-2">规模:</span> {{ company.scale }}</div>{% endif %}
+        {% if company.financing_stage %}<div class="mb-2"><span class="text-secondary me-2">融资:</span> <span class="badge bg-info">{{ company.financing_stage }}</span></div>{% endif %}
         {% if company.website %}<div class="mb-2"><span class="text-secondary me-2">官网:</span> <a href="{{ company.website }}" target="_blank">{{ company.website }}</a></div>{% endif %}
+        {% if company.tags %}
+        <div class="mb-2">
+          <span class="text-secondary me-2">标签:</span>
+          {% for tag in company.tags.split(',') %}
+          <span class="badge bg-success me-1">{{ tag.strip() }}</span>
+          {% endfor %}
+        </div>
+        {% endif %}
         <hr class="text-secondary">
         <div class="small text-secondary mb-1">匹配理由</div>
         <div class="small bg-dark p-2 rounded border border-secondary">{{ company.match_reason or '无' }}</div>
@@ -108,7 +121,7 @@
         <div class="modal-body">
           <div class="mb-3"><label class="form-label">岗位名称 *</label><input class="form-control" name="position" value="{{ company.job_type }}" required></div>
           <div class="row g-3 mb-3">
-            <div class="col-6"><label class="form-label">投递渠道</label><select class="form-select" name="channel"><option>BOSS直聘</option><option>官网直投</option><option>猎聘</option><option>内推</option><option>邮箱</option></select></div>
+            <div class="col-6"><label class="form-label">投递渠道</label><select class="form-select" name="channel"><option>官网直投</option><option>BOSS直聘</option><option>猎聘</option><option>内推</option><option>邮箱</option></select></div>
             <div class="col-6"><label class="form-label">当前状态</label><select class="form-select" name="status">{% for s in status_list %}<option>{{ s }}</option>{% endfor %}</select></div>
             <div class="col-6"><label class="form-label">投递日期</label><input type="date" class="form-control" name="apply_date" value="{{ now().strftime('%Y-%m-%d') }}"></div>
             <div class="col-6"><label class="form-label">截止日期</label><input type="date" class="form-control" name="deadline"></div>
@@ -157,6 +170,9 @@
             <div class="col-md-4"><label class="form-label">具体地点</label><input class="form-control" name="sub_city" value="{{ company.sub_city or '' }}"></div>
             <div class="col-md-4"><label class="form-label">官网</label><input class="form-control" name="website" value="{{ company.website or '' }}"></div>
             <div class="col-md-12"><label class="form-label">岗位方向</label><input class="form-control" name="job_type" value="{{ company.job_type or '' }}"></div>
+            <div class="col-md-6"><label class="form-label">公司规模</label><select class="form-select" name="scale">{% for s in scale_choices %}<option {% if company.scale==s %}selected{% endif %}>{{ s }}</option>{% endfor %}</select></div>
+            <div class="col-md-6"><label class="form-label">融资阶段</label><select class="form-select" name="financing_stage">{% for f in financing_choices %}<option {% if company.financing_stage==f %}selected{% endif %}>{{ f }}</option>{% endfor %}</select></div>
+            <div class="col-12"><label class="form-label">标签</label><input class="form-control" name="tags" placeholder="逗号分隔，如: 内推,已联系HR,面试中" value="{{ company.tags or '' }}"></div>
             <div class="col-12"><label class="form-label">匹配理由</label><textarea class="form-control" name="match_reason" rows="2">{{ company.match_reason or '' }}</textarea></div>
           </div>
         </div>

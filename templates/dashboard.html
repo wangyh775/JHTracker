@@ -74,8 +74,8 @@
         <div class="funnel-row">
           <div class="funnel-label text-secondary">{{ s }}</div>
           <div class="funnel-bar-wrap">
-            <div class="funnel-bar-fill bg-{{ status_badge[s] }}" 
-                 style="width: {{ funnel[s]/max_funnel * 100 }}%; 
+            <div class="funnel-bar-fill bg-{{ status_badge[s] }}"
+                 style="width: {{ (funnel[s]/max_funnel * 100) if max_funnel else 0 }}%;
                         background: {% if s=='Offer' %}#198754{% elif s=='已拒'%}#dc3545{% elif s=='待投递'%}#6c757d{% elif s in ['一面','二面','终面']%}#ffc107{% elif s=='笔试'%}#0d6efd{% else %}#0dcaf0{% endif %};"></div>
           </div>
           <div class="funnel-count text-secondary">{{ funnel[s] }}</div>
@@ -90,7 +90,13 @@
     <div class="card h-100">
       <div class="card-body">
         <h6 class="card-title mb-3"><i class="bi bi-geo-alt me-2"></i>城市分布</h6>
+        {% if city_counts %}
         <canvas id="cityChart" height="200"></canvas>
+        {% else %}
+        <div class="text-center text-secondary py-5">
+          <i class="bi bi-geo-alt fs-1"></i><br>暂无城市数据
+        </div>
+        {% endif %}
       </div>
     </div>
   </div>
@@ -98,7 +104,13 @@
     <div class="card h-100">
       <div class="card-body">
         <h6 class="card-title mb-3"><i class="bi bi-pie-chart me-2"></i>行业分布</h6>
+        {% if ind_counts %}
         <canvas id="industryChart" height="200"></canvas>
+        {% else %}
+        <div class="text-center text-secondary py-5">
+          <i class="bi bi-pie-chart fs-1"></i><br>暂无行业数据
+        </div>
+        {% endif %}
       </div>
     </div>
   </div>
@@ -186,6 +198,7 @@
 {% block scripts %}
 <script>
 const palette = ['#0d6efd','#6f42c1','#fd7e14','#20c997','#dc3545','#ffc107','#198754','#0dcaf0','#d63384','#adb5bd','#6610f2','#0dcaf0','#fd7e14','#20c997','#6c757d'];
+{% if city_counts %}
 new Chart(document.getElementById('cityChart'), {
   type: 'doughnut',
   data: {
@@ -197,6 +210,8 @@ new Chart(document.getElementById('cityChart'), {
   },
   options: { responsive: true, plugins: { legend: { position: 'right', labels: { color: '#aaa' } } } }
 });
+{% endif %}
+{% if ind_counts %}
 new Chart(document.getElementById('industryChart'), {
   type: 'pie',
   data: {
@@ -208,5 +223,6 @@ new Chart(document.getElementById('industryChart'), {
   },
   options: { responsive: true, plugins: { legend: { position: 'right', labels: { color: '#aaa' } } } }
 });
+{% endif %}
 </script>
 {% endblock %}
