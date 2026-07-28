@@ -24,10 +24,13 @@ Thumbs.db
 .mcp.json
 
 # 各 AI agent 平台配置（code-review-graph 自动生成，工具会重建）
+.claude/
 .codebuddy/
 .cursorrules
 .gemini/
 .kiro/
 .qoder/
 .windsurfrules
+AGENTS.md
+CLAUDE.md
 
