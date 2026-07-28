@@ -6,7 +6,9 @@
   <img src="docs/product-diagram.png" alt="JHTracker 产品总览图" width="800">
 </p>
 
-> 点击查看大图：[产品总览图](docs/product-diagram.png)  |  [系统框图](docs/product-diagram.svg)
+<p align="center">
+  <em>系统框图：<a href="docs/product-diagram.html">交互式 HTML 版</a>（含产品总览 + 系统数据流）</em>
+</p>
 
 ## 特性
 
@@ -16,6 +18,7 @@
 - **数据看板**：投递漏斗、转化率、城市分布、行业分布、优先级分布
 - **甘特图时间线**：秋招/春招关键节点，支持近1月/近3月/秋招季/全部多视图切换
 - **简历版本管理**：多版本 PDF/DOCX 上传、预览、下载、设默认
+- **简历智能解析**：Profile Skill 读取已上传简历，AI 自动生成结构化候选人画像
 - **Offer 对比**：多 Offer 并排比较，辅助决策
 - **备份恢复**：一键导出/导入 SQLite 数据库
 - **100% 本地**：SQLite + 本地文件，数据不离开你的电脑
@@ -60,7 +63,7 @@ JHTracker 的公司库由 AI 智能体深度检索网络生成，而非固定预
 
 ### 工作流
 
-1. **编辑候选人画像**：复制 `prompts/profile.example.md` → `data/profile.md`，填入你的背景
+1. **生成候选人画像**：在「简历版本管理」页上传简历后，用 Profile Skill 让智能体自动解析简历生成 `data/profile.md`（详见下方 [Profile Skill](#career-tracker-profile-skill简历智能解析)）；也可手动复制 `prompts/profile.example.md` → `data/profile.md` 编辑
 2. **生成公司清单**：打开 `prompts/company_list_prompt.md`，按 Prompt 模板喂给任何带联网搜索的 AI 智能体（ChatGPT / Claude / DeepSeek / Kimi / 智谱清言 等）
 3. **保存清单**：AI 返回的 Markdown 表格保存到 `career_data/企业清单_X_xxx.md`
 4. **导入数据库**：在 Web 界面「数据导入」页点击「执行导入」
@@ -160,6 +163,82 @@ Cursor 通过 `.cursorrules` 或 MCP 触发，在 `.cursorrules` 中添加：
 
 详见 [skills/company-finder/SKILL.md](skills/company-finder/SKILL.md)。
 
+## Career Tracker Profile Skill（简历智能解析）
+
+JHTracker 内置一个跨平台 Skill，让 AI 智能体读取「简历版本管理」中上传的简历，自动提取文本并调用 LLM 生成结构化候选人画像 `data/profile.md`，供 AI 评分使用。
+
+### 支持的智能体平台
+
+| 平台 | 安装方式 |
+|---|---|
+| Trae | 见下方「Trae」 |
+| Claude Code | 见下方「Claude Code」 |
+| Cursor | 见下方「Cursor」 |
+| Codex / 其他 | 见下方「通用」 |
+
+### Trae
+
+```bash
+# Windows（管理员 PowerShell）
+New-Item -ItemType SymbolicLink -Path ".trae\skills\career-tracker-profile" -Target "skills\career-tracker-profile"
+
+# macOS / Linux
+ln -s ../../skills/career-tracker-profile .trae/skills/career-tracker-profile
+```
+
+或直接复制：
+```bash
+cp -r skills/career-tracker-profile .trae/skills/
+```
+
+安装后对 Trae 智能体说："解析我的简历生成画像"，即可触发。
+
+### Claude Code
+
+```bash
+mkdir -p ~/.claude/skills
+cp -r skills/career-tracker-profile ~/.claude/skills/
+```
+
+然后在 Claude Code 中打开本项目，说："根据简历更新画像"。
+
+### Cursor
+
+在 `.cursorrules` 中添加：
+```
+当用户要求解析简历/生成画像/更新 profile 时，参考 skills/career-tracker-profile/SKILL.md 的工作流执行。
+```
+
+### 通用（Codex / 其他智能体）
+
+把 `skills/career-tracker-profile/SKILL.md` 的内容粘贴给任何支持文件读写 + LLM 调用的智能体作为系统提示，然后正常对话即可。
+
+### 使用示例
+
+安装后，先在「简历版本管理」页上传一份 PDF/DOCX 简历，然后对智能体说：
+- "解析我的简历生成画像"
+- "根据简历更新 profile"
+- "parse my resume and generate profile"
+
+智能体会自动：
+1. 从数据库读取默认（或最新）简历
+2. 提取文本（PDF → PyPDF2/pdfplumber；DOCX → python-docx，含表格）
+3. 调用 LLM 结构化为标准画像格式
+4. 写入 `data/profile.md`
+5. 询问是否运行 AI 评分
+
+### 依赖安装（一次性）
+
+```bash
+pip install python-docx pdfplumber
+# 或
+pip install -r requirements-ai.txt
+```
+
+### Skill 工作流详情
+
+详见 [skills/career-tracker-profile/SKILL.md](skills/career-tracker-profile/SKILL.md)。
+
 ## 数据目录说明
 
 ```
@@ -175,7 +254,8 @@ career-tracker/
 │   ├── company_list_prompt.md   # 公司清单生成 Prompt
 │   └── profile.example.md       # 候选人画像示例
 ├── skills/                 # 跨平台智能体 Skill
-│   └── company-finder/     # 自动检索入库 skill
+│   ├── company-finder/     # 自动检索入库 skill
+│   └── career-tracker-profile/  # 简历智能解析 skill
 ├── requirements.txt        # 核心依赖
 └── requirements-ai.txt     # AI 功能可选依赖
 ```

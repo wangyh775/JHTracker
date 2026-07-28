@@ -8,10 +8,9 @@
       <div class="card-body">
         <div class="d-flex justify-content-between align-items-center mb-3">
           <h6 class="card-title mb-0"><i class="bi bi-pencil-square me-2"></i>编辑画像</h6>
-          <label class="btn btn-sm btn-outline-info mb-0" for="resumeInput">
-            <i class="bi bi-file-earmark-arrow-up me-1"></i>上传简历自动解析
-          </label>
-          <input type="file" id="resumeInput" accept=".pdf,.docx" class="d-none">
+          <a href="/resumes" class="btn btn-sm btn-outline-info mb-0">
+            <i class="bi bi-files me-1"></i>简历版本管理
+          </a>
         </div>
         <form method="post" action="/profile/save">
           <div class="mb-3">
@@ -30,7 +29,8 @@
         <h6 class="card-title mb-3"><i class="bi bi-info-circle me-2"></i>使用说明</h6>
         <ul class="small text-secondary mb-0" style="line-height:1.8; padding-left:1rem;">
           <li>个人画像是 AI 评分引擎的输入，决定每家公司的匹配度打分</li>
-          <li>可直接编辑左侧 Markdown，或上传 PDF/Word 简历自动解析</li>
+          <li>可直接编辑左侧 Markdown 文本</li>
+          <li>AI 自动解析简历功能已迁移到智能体 Skill，请对智能体说「解析我的简历生成画像」</li>
           <li>修改后请到「数据导入」或命令行重新跑 AI 评分</li>
           <li>建议包含：教育背景 / 技术栈 / 项目经验 / 目标岗位 / 求职偏好</li>
         </ul>
@@ -38,168 +38,19 @@
     </div>
     <div class="card mt-3">
       <div class="card-body">
-        <h6 class="card-title mb-3"><i class="bi bi-key me-2"></i>AI 解析配置</h6>
+        <h6 class="card-title mb-3"><i class="bi bi-robot me-2"></i>AI 解析（Skill）</h6>
         <div class="small text-secondary" style="line-height:1.7;">
-          {% if ai_configured %}
-          <span class="text-success"><i class="bi bi-check-circle me-1"></i>已配置 API Key（{{ ai_provider }} / {{ ai_model }}）</span>
-          {% else %}
-          <span class="text-warning"><i class="bi bi-exclamation-triangle me-1"></i>未配置 API Key，上传简历将保存原始文本</span>
-          <hr class="my-2">
-          <p class="mb-1">配置方法：</p>
-          <ol class="mb-0" style="padding-left:1.2rem;">
-            <li>设置环境变量 <code>OPENAI_API_KEY</code> 或 <code>ANTHROPIC_API_KEY</code></li>
-            <li>可选：<code>AI_MODEL</code> / <code>AI_BASE_URL</code></li>
+          <p class="mb-2">AI 解析已改为智能体驱动，不再走前端：</p>
+          <ol class="mb-2" style="padding-left:1.2rem;">
+            <li>在「简历版本管理」上传 PDF/Word 简历</li>
+            <li>对智能体说「解析我的简历生成画像」</li>
+            <li>智能体读取最新简历 → 调 LLM 解析 → 写回本页</li>
           </ol>
-          {% endif %}
+          <p class="mb-1">Skill 位置：</p>
+          <code class="small">skills/career-tracker-profile/SKILL.md</code>
         </div>
       </div>
     </div>
   </div>
 </div>
-
-<!-- 解析进度 Modal -->
-<div class="modal fade" id="parseModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header border-0 pb-0">
-        <h5 class="modal-title"><i class="bi bi-cpu me-2 text-primary"></i>简历解析中</h5>
-      </div>
-      <div class="modal-body pt-2">
-        <div id="parseSteps">
-          <div class="d-flex align-items-center mb-3" data-step="1">
-            <div class="step-icon me-3"><i class="bi bi-circle"></i></div>
-            <div>
-              <div class="fw-bold">上传文件</div>
-              <div class="small text-secondary">正在上传简历文件…</div>
-            </div>
-          </div>
-          <div class="d-flex align-items-center mb-3" data-step="2">
-            <div class="step-icon me-3"><i class="bi bi-circle"></i></div>
-            <div>
-              <div class="fw-bold">提取文本</div>
-              <div class="small text-secondary">解析 PDF / Word 内容…</div>
-            </div>
-          </div>
-          <div class="d-flex align-items-center mb-3" data-step="3">
-            <div class="step-icon me-3"><i class="bi bi-circle"></i></div>
-            <div>
-              <div class="fw-bold">AI 智能解析</div>
-              <div class="small text-secondary">调用 LLM 整理为结构化画像（最耗时）…</div>
-            </div>
-          </div>
-          <div class="d-flex align-items-center" data-step="4">
-            <div class="step-icon me-3"><i class="bi bi-circle"></i></div>
-            <div>
-              <div class="fw-bold">完成</div>
-              <div class="small text-secondary">保存并刷新页面</div>
-            </div>
-          </div>
-        </div>
-        <div id="parseError" class="alert alert-danger mt-3 mb-0 d-none small"></div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<style>
-.step-icon { width: 24px; text-align: center; font-size: 1.1rem; color: #555; }
-.step-icon .bi { transition: all 0.3s; }
-[data-step].active .step-icon { color: #0d6efd; }
-[data-step].active .step-icon .bi { animation: spin 1s linear infinite; }
-[data-step].done .step-icon { color: #198754; }
-[data-step].done .step-icon .bi { animation: none; }
-@keyframes spin { from { transform: rotate(0); } to { transform: rotate(360deg); } }
-</style>
-{% endblock %}
-
-{% block scripts %}
-<script>
-const parseModal = new bootstrap.Modal(document.getElementById('parseModal'));
-
-function setStep(n, state) {
-  document.querySelectorAll('#parseSteps [data-step]').forEach(el => {
-    const idx = parseInt(el.dataset.step);
-    el.classList.remove('active', 'done');
-    const icon = el.querySelector('.step-icon i');
-    if (idx < n) {
-      el.classList.add('done');
-      icon.className = 'bi bi-check-circle-fill';
-    } else if (idx === n) {
-      el.classList.add(state || 'active');
-      icon.className = state === 'done' ? 'bi bi-check-circle-fill' : 'bi bi-arrow-repeat';
-    } else {
-      icon.className = 'bi bi-circle';
-    }
-  });
-}
-
-function showError(msg) {
-  const box = document.getElementById('parseError');
-  box.textContent = msg;
-  box.classList.remove('d-none');
-  document.querySelectorAll('#parseSteps [data-step]').forEach(el => el.classList.remove('active'));
-}
-
-document.getElementById('resumeInput').addEventListener('change', async function(e) {
-  const file = e.target.files[0];
-  if (!file) return;
-
-  // 重置 UI
-  document.getElementById('parseError').classList.add('d-none');
-  document.querySelectorAll('#parseSteps [data-step]').forEach(el => el.classList.remove('active', 'done'));
-  parseModal.show();
-
-  // Step 1: 上传中
-  setStep(1, 'active');
-
-  try {
-    const fd = new FormData();
-    fd.append('resume', file);
-
-    // 600ms 后切到 Step 2（视觉过渡，提取文本实际很快）
-    setTimeout(() => setStep(2, 'active'), 600);
-
-    // 1.5s 后切到 Step 3（AI 解析，最耗时，await 会停在这里）
-    setTimeout(() => setStep(3, 'active'), 1500);
-
-    const resp = await fetch('/profile/upload', { method: 'POST', body: fd });
-    const data = await resp.json();
-
-    if (data.ok) {
-      setStep(4, 'done');
-      setTimeout(() => {
-        parseModal.hide();
-        // 用 flash 消息显示成功提示后刷新
-        const url = new URL(window.location.href);
-        url.searchParams.set('t', Date.now());
-        window.location.href = url.pathname + '?msg=' + encodeURIComponent(data.msg) + '&type=' + (data.fallback ? 'warning' : 'success');
-      }, 600);
-    } else {
-      showError(data.msg || '解析失败');
-    }
-  } catch (err) {
-    showError('网络错误：' + err.message);
-  } finally {
-    e.target.value = '';  // 允许重复选同一文件
-  }
-});
-
-// 显示 flash 消息（从 URL 参数）
-(function() {
-  const params = new URLSearchParams(window.location.search);
-  const msg = params.get('msg');
-  if (msg) {
-    const type = params.get('type') || 'success';
-    const alert = document.createElement('div');
-    alert.className = 'alert alert-' + type + ' alert-dismissible fade show position-fixed top-0 start-50 translate-middle-x mt-2';
-    alert.style.zIndex = 1080;
-    alert.innerHTML = '<i class="bi bi-' + (type === 'success' ? 'check-circle' : 'exclamation-triangle') + ' me-2"></i>' + msg +
-                      '<button type="button" class="btn-close" data-bs-dismiss="alert"></button>';
-    document.body.appendChild(alert);
-    setTimeout(() => alert.remove(), 5000);
-    // 清理 URL
-    history.replaceState({}, document.title, window.location.pathname);
-  }
-})();
-</script>
 {% endblock %}
