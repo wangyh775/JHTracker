@@ -6,10 +6,6 @@
   <img src="docs/product-diagram.png" alt="JHTracker 产品总览图" width="800">
 </p>
 
-<p align="center">
-  <em>系统框图：<a href="docs/product-diagram.html">交互式 HTML 版</a>（含产品总览 + 系统数据流）</em>
-</p>
-
 ## 特性
 
 - **公司库管理**：500+ 公司清单，按行业/城市/优先级/AI 匹配分多维筛选
