@@ -142,6 +142,18 @@ const CATEGORY_LABELS = {
   'other': '其他'
 };
 
+// HTML 转义，防止公司名/城市含特殊字符导致 XSS
+function escapeHtml(s) {
+  const d = document.createElement('div');
+  d.textContent = s || '';
+  return d.innerHTML;
+}
+
+// 构建 datalist option 的 HTML
+function buildOptions(data) {
+  return data.map(c => '<option value="' + escapeHtml(c.name + ' (' + c.city + ')') + '" data-id="' + c.id + '"></option>').join('');
+}
+
 // 公司搜索（新增）—— datalist option 的 value 为公司名，data-id 存 id
 // 输入框显示公司名，隐藏字段 company_id 存 id
 document.getElementById('companySearch').addEventListener('input', function() {
@@ -153,7 +165,7 @@ document.getElementById('companySearch').addEventListener('input', function() {
   fetch('/api/companies/search?q=' + encodeURIComponent(q))
     .then(r => r.json())
     .then(data => {
-      document.getElementById('companyList').innerHTML = data.map(c => '<option value="' + c.name + ' (' + c.city + ')" data-id="' + c.id + '"></option>').join('');
+      document.getElementById('companyList').innerHTML = buildOptions(data);
     });
 });
 
@@ -166,7 +178,7 @@ document.getElementById('editCompanySearch').addEventListener('input', function(
   fetch('/api/companies/search?q=' + encodeURIComponent(q))
     .then(r => r.json())
     .then(data => {
-      document.getElementById('companyList2').innerHTML = data.map(c => '<option value="' + c.name + ' (' + c.city + ')" data-id="' + c.id + '"></option>').join('');
+      document.getElementById('companyList2').innerHTML = buildOptions(data);
     });
 });
 

@@ -44,12 +44,12 @@ CAREER_DIR = Config.CAREER_DIR
 
 
 def normalize(name):
-    """公司名标准化，用于模糊去重。"""
+    """公司名标准化，用于模糊去重。仅移除法律后缀，保留行业描述词。"""
     if not name:
         return ''
     name = re.sub(r'[（(].*?[）)]', '', name)
-    name = name.replace('（中国）', '').replace('有限公司', '').replace('股份', '')
-    name = name.replace('集团', '').replace('科技', '').replace('（', '').replace('）', '')
+    name = name.replace('（中国）', '').replace('有限公司', '').replace('股份有限公司', '')
+    name = name.replace('（', '').replace('）', '')
     if '/' in name:
         name = name.split('/')[0]
     return name.strip()
@@ -63,15 +63,24 @@ def get_existing_names(cursor):
 
 
 def is_duplicate(new_name, raw_existing, norm_existing):
-    """检查是否重复：精确 + 模糊匹配。"""
+    """检查是否重复：精确 + 模糊匹配。
+
+    模糊匹配仅在较短的标准化名称长度 >= 较长名称的 60% 时才触发，
+    避免短名（如"中"）误匹配所有含该字的长公司名。
+    """
     if new_name in raw_existing:
         return True
     norm_new = normalize(new_name)
     if not norm_new or len(norm_new) < 2:
         return True
     for en in norm_existing:
-        if norm_new in en or en in norm_new:
+        if norm_new == en:
             return True
+        shorter = min(len(norm_new), len(en))
+        longer = max(len(norm_new), len(en))
+        if shorter >= 3 and shorter / longer >= 0.6:
+            if norm_new in en or en in norm_new:
+                return True
     return False
 
 

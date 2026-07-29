@@ -1,5 +1,6 @@
 """数据导入路由：公司清单、时间线初始化。AI 评分由智能体 skill 驱动，见 skills/career-tracker-scorer/。"""
 import os
+import re
 import glob
 from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app
 from extensions import db
@@ -9,6 +10,9 @@ from constants import infer_priority, infer_industry_from_filename
 from utils import parse_all_markdown_tables, parse_date
 
 bp = Blueprint('import_data', __name__)
+
+# source 参数白名单：仅允许字母数字，防止路径遍历
+_SAFE_SOURCE = re.compile(r'^[A-Za-z0-9]+$')
 
 
 @bp.route('/import')
@@ -27,6 +31,9 @@ def import_page():
 def import_companies():
     """从 career/ 目录的 markdown 清单批量导入公司。"""
     source = request.form.get('source', 'A')
+    if not _SAFE_SOURCE.match(source):
+        flash('source 参数无效，仅允许字母数字')
+        return redirect(url_for('import_data.import_page'))
     pattern = os.path.join(Config.CAREER_DIR, Config.COMPANY_FILE_PATTERN.format(source=source))
     files = glob.glob(pattern)
     if not files:

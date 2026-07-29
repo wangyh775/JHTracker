@@ -1,4 +1,5 @@
 """投递记录路由。"""
+from urllib.parse import urlparse
 from flask import Blueprint, render_template, request, redirect, url_for
 from sqlalchemy.orm import joinedload
 from extensions import db
@@ -7,6 +8,17 @@ from constants import STATUS_LIST, OFFER_STATUS_CHOICES, OFFER_STATUS_LABEL, OFF
 from utils import parse_date, try_int, validate_salary, validate_dates
 
 bp = Blueprint('application', __name__)
+
+
+def _safe_redirect(fallback_endpoint):
+    """安全重定向：仅允许同源 referrer，否则回退到指定 endpoint。"""
+    referrer = request.referrer
+    if referrer:
+        parsed = urlparse(referrer)
+        # 仅允许同 host（本地工具通常为 localhost / 127.0.0.1）
+        if parsed.host in ('localhost', '127.0.0.1', request.host):
+            return redirect(referrer)
+    return redirect(url_for(fallback_endpoint))
 
 
 @bp.route('/applications')
@@ -52,7 +64,7 @@ def app_add():
         db.session.commit()
     except ValueError:
         pass
-    return redirect(request.referrer or url_for('application.app_list'))
+    return _safe_redirect('application.app_list')
 
 
 @bp.route('/applications/<int:a_id>/status', methods=['POST'])
@@ -62,7 +74,7 @@ def app_status(a_id):
     if 'feedback' in request.form:
         a.feedback = request.form['feedback']
     db.session.commit()
-    return redirect(request.referrer or url_for('application.app_list'))
+    return _safe_redirect('application.app_list')
 
 
 @bp.route('/applications/<int:a_id>/offer_status', methods=['POST'])
@@ -70,7 +82,7 @@ def app_offer_status(a_id):
     a = Application.query.get_or_404(a_id)
     a.offer_status = request.form.get('offer_status', 'pending')
     db.session.commit()
-    return redirect(request.referrer or url_for('application.compare'))
+    return _safe_redirect('application.compare')
 
 
 @bp.route('/applications/<int:a_id>/delete', methods=['POST'])
@@ -96,7 +108,7 @@ def feedback_add(a_id):
     )
     db.session.add(f)
     db.session.commit()
-    return redirect(request.referrer or url_for('application.app_list'))
+    return _safe_redirect('application.app_list')
 
 
 @bp.route('/applications/<int:a_id>/feedback/<int:f_id>/delete', methods=['POST'])
@@ -104,7 +116,7 @@ def feedback_delete(a_id, f_id):
     f = InterviewFeedback.query.get_or_404(f_id)
     db.session.delete(f)
     db.session.commit()
-    return redirect(request.referrer or url_for('application.app_list'))
+    return _safe_redirect('application.app_list')
 
 
 @bp.route('/compare')

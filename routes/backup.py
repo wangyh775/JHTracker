@@ -132,7 +132,7 @@ def backup_restore():
             flash(f'版本不匹配：期望 {BACKUP_VERSION}，实际 {data.get("version")}')
             return redirect(url_for('backup.backup_page'))
 
-        id_map = {'companies': {}}
+        id_map = {'companies': {}, 'applications': {}}
         stats = {'companies': 0, 'applications': 0, 'notes': 0, 'timelines': 0,
                  'interview_feedbacks': 0, 'resumes': 0}
 
@@ -152,9 +152,12 @@ def backup_restore():
         for a_data in data.get('applications', []):
             old_company_id = a_data.get('company_id')
             a_data['company_id'] = id_map['companies'].get(old_company_id, old_company_id)
-            a_data.pop('id', None)
+            old_app_id = a_data.pop('id', None)
             a = Application(**{k: v for k, v in a_data.items() if v is not None})
             db.session.add(a)
+            db.session.flush()
+            if old_app_id is not None:
+                id_map['applications'][old_app_id] = a.id
             stats['applications'] += 1
 
         for n_data in data.get('notes', []):
@@ -163,13 +166,30 @@ def backup_restore():
                 n_data['company_id'] = id_map['companies'].get(old_company_id, old_company_id)
             n_data.pop('id', None)
             db.session.add(Note(**{k: v for k, v in n_data.items() if v is not None}))
+            stats['notes'] += 1
 
         for t_data in data.get('timelines', []):
             t_data.pop('id', None)
             db.session.add(Timeline(**{k: v for k, v in t_data.items() if v is not None}))
+            stats['timelines'] += 1
+
+        for f_data in data.get('interview_feedbacks', []):
+            old_app_id = f_data.get('application_id')
+            f_data['application_id'] = id_map['applications'].get(old_app_id, old_app_id)
+            f_data.pop('id', None)
+            db.session.add(InterviewFeedback(**{k: v for k, v in f_data.items() if v is not None}))
+            stats['interview_feedbacks'] += 1
+
+        for r_data in data.get('resumes', []):
+            existing_path = r_data.get('file_path')
+            if existing_path and mode == 'skip' and Resume.query.filter_by(file_path=existing_path).first():
+                continue
+            r_data.pop('id', None)
+            db.session.add(Resume(**{k: v for k, v in r_data.items() if v is not None}))
+            stats['resumes'] += 1
 
         db.session.commit()
-        flash(f'恢复完成：{stats["companies"]} 家公司、{stats["applications"]} 条投递{file_extra_msg}。当前 db 已备份到 {os.path.basename(bak_path)}')
+        flash(f'恢复完成：{stats["companies"]} 家公司、{stats["applications"]} 条投递、{stats["notes"]} 条笔记、{stats["timelines"]} 个时间线、{stats["interview_feedbacks"]} 条面试反馈、{stats["resumes"]} 个简历{file_extra_msg}。当前 db 已备份到 {os.path.basename(bak_path)}')
     except Exception as e:
         db.session.rollback()
         flash(f'恢复失败：{str(e)}。当前 db 未变更（备份在 {os.path.basename(bak_path)}）')
