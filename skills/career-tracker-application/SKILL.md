@@ -13,6 +13,7 @@ Manages job applications in the tracker.
 - "apply to {company}" / "mark {company} as {status}"
 - "记录面试/笔试/Offer/拒信"
 - "查看本周截止"
+- "归档投递" / "查看归档记录" / "恢复归档"
 
 ## Application Statuses
 
@@ -21,6 +22,14 @@ Status flow: 待投递 → 已投递 → 简历筛选 → 笔试 → 一面 → 
 ## Database Schema (applications table)
 - company_id, position, channel, status, apply_date, deadline
 - salary_min, salary_max, job_desc, url, feedback, offer_status
+- is_archived (bool, default 0), archived_at (datetime, nullable)
+
+## Archive Rules
+
+- Stale threshold: default 15 days since `updated_at` (configurable via `JH_ARCHIVE_STALE_DAYS` or `data/settings.json`)
+- Auto-archive excludes: `status='Offer' AND offer_status IN ('pending','accepted')`
+- All other stale records are archived (including 已拒, rejected offers, stalled interviews)
+- Archived records are hidden from active list and dashboard funnel
 
 ## Workflow
 
@@ -37,9 +46,23 @@ VALUES (?, ?, '已投递', CURRENT_DATE, ?);
 UPDATE applications SET status = 'Offer', offer_status = 'pending'
 WHERE company_id = ? AND position = ?;
 
--- Query upcoming deadlines
+-- Query upcoming deadlines (active only)
 SELECT c.name, a.position, a.deadline, a.status
 FROM applications a JOIN companies c ON a.company_id = c.id
-WHERE a.deadline >= CURRENT_DATE AND a.status NOT IN ('Offer', '已拒')
+WHERE a.is_archived = 0
+  AND a.deadline >= CURRENT_DATE AND a.status NOT IN ('Offer', '已拒')
 ORDER BY a.deadline LIMIT 10;
+
+-- Query stale applications eligible for archive (15 days)
+SELECT a.id, c.name, a.position, a.status, a.updated_at
+FROM applications a JOIN companies c ON a.company_id = c.id
+WHERE a.is_archived = 0
+  AND a.updated_at < datetime('now', '-15 days')
+  AND NOT (a.status = 'Offer' AND a.offer_status IN ('pending', 'accepted'));
+
+-- Manual archive
+UPDATE applications SET is_archived = 1, archived_at = CURRENT_TIMESTAMP WHERE id = ?;
+
+-- Restore from archive
+UPDATE applications SET is_archived = 0, archived_at = NULL WHERE id = ?;
 ```

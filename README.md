@@ -17,6 +17,7 @@
 - **简历版本管理**：多版本 PDF/DOCX 上传、预览、下载、设默认；支持上传新文件更新已有简历
 - **简历智能解析**：Profile Skill 读取已上传简历，AI 自动生成结构化候选人画像
 - **Offer 对比**：多 Offer 并排比较，辅助决策
+- **投递记录归档**：超过指定天数（默认 15 天）未更新的投递自动归档，活跃列表更清爽；支持查看归档、手动恢复、单条归档、自定义阈值
 - **备份恢复**：导出 ZIP 包（含数据库 JSON + 简历文件），支持跨机器完整恢复
 - **100% 本地**：SQLite + 本地文件，数据不离开你的电脑
 
@@ -53,6 +54,37 @@ source venv/bin/activate
 pip install -r requirements.txt
 python app.py
 ```
+
+## 投递记录归档
+
+长期无进展的投递记录会自动移出活跃列表，看板漏斗也只统计活跃记录。
+
+### 归档规则
+
+- **判定依据**：`updated_at` 距今天超过 N 天（默认 15 天）
+- **自动归档**：每天首次启动或访问投递列表时触发（可关闭）
+- **永不自动归档**：`Offer` 且 `offer_status` 为 `pending` 或 `accepted`（决策中的 Offer 保留可见）
+- **其余状态**（含已拒、Offer 已拒绝、面试停滞等）满足天数即归档
+
+### 配置
+
+```bash
+# 归档阈值（天），默认 15
+set JH_ARCHIVE_STALE_DAYS=15        # Windows
+export JH_ARCHIVE_STALE_DAYS=15     # macOS / Linux
+
+# 是否启用自动归档，默认 1（启用）
+set JH_ARCHIVE_AUTO=0               # 关闭自动归档
+```
+
+Web 界面可在「投递记录」页修改阈值与开关，设置保存在 `data/settings.json`，优先级高于环境变量。
+
+### 操作
+
+| 方式 | 说明 |
+|---|---|
+| Web 投递记录页 | 切换「活跃 / 已归档」Tab；单条归档/恢复；立即归档；修改阈值 |
+| 命令行 | `python scripts/archive_applications.py --dry-run` 预览待归档条目 |
 
 ## AI 智能体驱动公司库（核心工作流）
 

@@ -34,6 +34,9 @@ import json
 import sqlite3
 import hashlib
 
+# 把脚本所在目录（项目根目录）加入 sys.path，使 `from config import ...` 可工作
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 # 加载 .env 文件（从命令行直接跑时也能读到 API Key）
 try:
     from dotenv import load_dotenv
@@ -181,18 +184,20 @@ def _call_llm(prompt, max_tokens=2000):
             print(f"❌ Anthropic API 调用失败: {type(e).__name__}: {e}", file=sys.stderr)
             return None
 
-    # Fallback: OpenAI 兼容接口
-    api_key = os.environ.get('OPENAI_API_KEY')
+    # Fallback: OpenAI 兼容接口（9Router 用固定 dummy key，无需.env）
+    api_key = 'sk-dummy'
     if api_key:
         try:
             from openai import OpenAI
             client = OpenAI(
                 api_key=api_key,
-                base_url=os.environ.get('AI_BASE_URL', 'https://api.openai.com/v1')
+                base_url=os.environ.get('AI_BASE_URL', 'http://localhost:20128/v1')
             )
+            print(f"DEBUG: Calling LLM with base_url={client.base_url}")
             resp = client.chat.completions.create(
-                model=os.environ.get('AI_MODEL', 'gpt-4o-mini'),
+                model=os.environ.get('AI_MODEL', 'Hermes'),
                 max_tokens=max_tokens,
+                stream=False,
                 messages=[
                     {"role": "system", "content": "你是一个专业的求职匹配评估助手。请严格按 JSON 数组格式输出，不要输出其他内容。"},
                     {"role": "user", "content": prompt}
@@ -214,6 +219,7 @@ def _parse_batch_scores(text, expected_ids):
     if not text:
         return {}
     try:
+        print(f"DEBUG: LLM Response Raw: {text[:200]}")
         start = text.find('[')
         end = text.rfind(']') + 1
         if start >= 0 and end > start:

@@ -4,23 +4,76 @@
 .border-dashed { border: 2px dashed #444 !important; }
 .empty-state { padding: 3rem 1rem; text-align: center; color: #6c757d; }
 .empty-state i { font-size: 3rem; opacity: 0.5; margin-bottom: 1rem; display: block; }
-.loading-skeleton {
-  background: linear-gradient(90deg, #2a2a2a 25%, #333 50%, #2a2a2a 75%);
-  background-size: 200% 100%;
-  animation: skeleton-loading 1.5s infinite;
-}
-@keyframes skeleton-loading { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
-.skeleton-card { height: 80px; border-radius: 4px; margin-bottom: 8px; }
+.card-archived { opacity: 0.55; }
+.card-archived:hover { opacity: 0.85; transition: opacity 0.2s; }
 </style>
+
 <div class="d-flex justify-content-between align-items-center mb-3">
-  <div class="dashboard-title"><i class="bi bi-send me-2 text-primary"></i>投递记录 <span class="badge bg-primary fs-6">{{ apps.total }}</span></div>
+  <div class="dashboard-title"><i class="bi bi-send me-2 text-primary"></i>投递记录</div>
 </div>
 
+<!-- 视图切换 -->
+<ul class="nav nav-tabs mb-3">
+  <li class="nav-item">
+    <a class="nav-link {% if view != 'archived' %}active{% endif %}" href="/applications?view=active">
+      <i class="bi bi-inbox me-1"></i>活跃
+    </a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link {% if view == 'archived' %}active{% endif %}" href="/applications?view=archived">
+      <i class="bi bi-archive me-1"></i>归档 <span class="badge bg-secondary ms-1">{{ apps.total }}</span>
+    </a>
+  </li>
+</ul>
+
+{% if view != 'archived' %}
+<!-- 归档设置面板 -->
+<div class="card mb-3">
+  <div class="card-header py-2" data-bs-toggle="collapse" data-bs-target="#archiveSettings" role="button" style="cursor:pointer">
+    <i class="bi bi-gear me-1"></i>归档设置
+  </div>
+  <div class="collapse" id="archiveSettings">
+    <div class="card-body">
+      <form method="post" action="/applications/settings" class="row g-3 align-items-end">
+        <div class="col-auto">
+          <label class="form-label small">超过</label>
+          <input type="number" class="form-control form-control-sm" name="archive_stale_days" value="{{ archive_settings.archive_stale_days }}" min="1" style="width:80px">
+        </div>
+        <div class="col-auto">
+          <label class="form-label small">天未更新自动归档</label>
+        </div>
+        <div class="col-auto">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" name="archive_auto_enabled" value="1" id="autoArchive" {% if archive_settings.archive_auto_enabled %}checked{% endif %}>
+            <label class="form-check-label small" for="autoArchive">自动归档</label>
+          </div>
+        </div>
+        <div class="col-auto">
+          <button class="btn btn-sm btn-primary">保存</button>
+        </div>
+        <div class="col-auto">
+          <form method="post" action="/applications/archive/run" style="display:inline">
+            <button class="btn btn-sm btn-outline-secondary">立即执行归档</button>
+          </form>
+        </div>
+        {% if stale_count > 0 %}
+        <div class="col-auto">
+          <span class="text-warning small"><i class="bi bi-exclamation-triangle me-1"></i>{{ stale_count }} 条记录即将归档</span>
+        </div>
+        {% endif %}
+      </form>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<!-- 筛选栏 -->
 <div class="row g-3 mb-4">
   <div class="col-md-12">
     <div class="card">
       <div class="card-body py-2">
         <form class="row g-2 align-items-center" method="get">
+          <input type="hidden" name="view" value="{{ view }}">
           <div class="col-auto">
             <select class="form-select form-select-sm" name="status" onchange="this.form.submit()">
               <option value="">全部状态</option>
@@ -43,7 +96,7 @@
 </div>
 
 {% for a in apps.items %}
-<div class="card mb-2">
+<div class="card mb-2 {% if view == 'archived' %}card-archived{% endif %}">
   <div class="card-body py-3">
     <div class="d-flex justify-content-between align-items-center">
       <div>
@@ -51,6 +104,9 @@
         <span class="text-secondary mx-2">|</span>
         <span>{{ a.position or '未指定' }}</span>
         <span class="badge bg-{{ status_badge[a.status] }} ms-2">{{ a.status }}</span>
+        {% if view == 'archived' and a.archived_at %}
+        <span class="badge bg-secondary ms-1">归档于 {{ a.archived_at.strftime('%m-%d %H:%M') }}</span>
+        {% endif %}
       </div>
       <div class="small text-secondary text-end">
         <div>{{ a.apply_date.strftime('%m-%d') if a.apply_date else '?' }}{% if a.channel %} · {{ a.channel }}{% endif %}</div>
@@ -77,18 +133,41 @@
         <input type="text" class="form-control form-control-sm" name="feedback" placeholder="反馈..." value="{{ a.feedback or '' }}" style="width:200px">
         <button class="btn btn-sm btn-primary">更新</button>
       </form>
-      <form method="post" action="/applications/{{ a.id }}/delete" onsubmit="return confirm('确定删除？')">
-        <button class="btn btn-sm btn-outline-danger py-0"><i class="bi bi-x"></i></button>
-      </form>
+      <div class="d-flex gap-1">
+        {% if view == 'archived' %}
+        <form method="post" action="/applications/{{ a.id }}/unarchive">
+          <button class="btn btn-sm btn-outline-info py-0"><i class="bi bi-arrow-counterclockwise"></i> 恢复</button>
+        </form>
+        {% else %}
+        <form method="post" action="/applications/{{ a.id }}/archive">
+          <button class="btn btn-sm btn-outline-secondary py-0"><i class="bi bi-archive"></i></button>
+        </form>
+        {% endif %}
+        <form method="post" action="/applications/{{ a.id }}/delete" onsubmit="return confirm('确定删除？')">
+          <button class="btn btn-sm btn-outline-danger py-0"><i class="bi bi-x"></i></button>
+        </form>
+      </div>
     </div>
   </div>
 </div>
 {% else %}
 <div class="card border-dashed">
   <div class="card-body empty-state">
-    <i class="bi bi-send"></i>
-    <div class="fw-bold mb-1">还没有投递记录</div>
-    <div class="small">去 <a href="/companies">公司库</a> 选公司，记录你的第一份投递</div>
+    <i class="bi {% if view == 'archived' %}bi-archive{% else %}bi-send{% endif %}"></i>
+    <div class="fw-bold mb-1">
+      {% if view == 'archived' %}
+      还没有归档记录
+      {% else %}
+      还没有投递记录
+      {% endif %}
+    </div>
+    <div class="small">
+      {% if view == 'archived' %}
+      <a href="/applications?view=active">返回活跃列表</a>
+      {% else %}
+      去 <a href="/companies">公司库</a> 选公司，记录你的第一份投递
+      {% endif %}
+    </div>
   </div>
 </div>
 {% endfor %}
@@ -96,7 +175,7 @@
 {% if apps.pages > 1 %}
 <nav class="mt-3"><ul class="pagination pagination-sm justify-content-center">
   {% for p in range(1, apps.pages+1) %}
-  <li class="page-item {% if p==apps.page %}active{% endif %}"><a class="page-link" href="/applications?page={{ p }}&status={{ request.args.get('status','') }}&channel={{ request.args.get('channel','') }}">{{ p }}</a></li>
+  <li class="page-item {% if p==apps.page %}active{% endif %}"><a class="page-link" href="/applications?page={{ p }}&status={{ request.args.get('status','') }}&channel={{ request.args.get('channel','') }}&view={{ view }}">{{ p }}</a></li>
   {% endfor %}
 </ul></nav>
 {% endif %}

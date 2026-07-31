@@ -58,10 +58,14 @@ class Config:
     ALLOWED_RESUME_EXT = {'pdf', 'docx', 'doc'}
 
     # AI 评分配置（可选）
-    AI_PROVIDER = os.environ.get('AI_PROVIDER', 'anthropic')  # anthropic / openai
-    AI_MODEL = os.environ.get('AI_MODEL', 'claude-sonnet-4-20250514')
-    AI_API_KEY = os.environ.get('ANTHROPIC_API_KEY') or os.environ.get('OPENAI_API_KEY', '')
-    AI_BASE_URL = os.environ.get('AI_BASE_URL', '')
+    AI_PROVIDER = os.environ.get('AI_PROVIDER', 'openai')  # openai / anthropic
+    AI_MODEL = os.environ.get('AI_MODEL', 'Hermes')
+    AI_API_KEY = os.environ.get('OPENAI_API_KEY')  # 9Router / 组合模型使用 OpenAI 兼容接口
+    AI_BASE_URL = os.environ.get('AI_BASE_URL', 'http://localhost:20128/v1')
+
+    # 投递归档配置（可被 data/settings.json 覆盖）
+    ARCHIVE_STALE_DAYS = int(os.environ.get('JH_ARCHIVE_STALE_DAYS', 15))
+    ARCHIVE_AUTO_ENABLED = os.environ.get('JH_ARCHIVE_AUTO', '1') == '1'
 
 
 class DevConfig(Config):

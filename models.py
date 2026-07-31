@@ -44,6 +44,8 @@ class Application(db.Model):
     url = db.Column(db.String(500))
     feedback = db.Column(db.Text)
     offer_status = db.Column(db.String(20))  # pending/accepted/rejected，仅 status=Offer 时有意义
+    is_archived = db.Column(db.Boolean, default=False, index=True)
+    archived_at = db.Column(db.DateTime)
     created_at = db.Column(db.DateTime, default=datetime.now)
     updated_at = db.Column(db.DateTime, default=datetime.now, onupdate=datetime.now)
 
@@ -97,4 +99,5 @@ class Resume(db.Model):
     file_size = db.Column(db.Integer)
     note = db.Column(db.Text)
     is_default = db.Column(db.Boolean, default=False)
+    pdf_path = db.Column(db.String(500))  # LibreOffice 转换的 PDF 预览路径（DOCX 才有）
     created_at = db.Column(db.DateTime, default=datetime.now)

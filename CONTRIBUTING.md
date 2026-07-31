@@ -52,10 +52,18 @@ career-tracker/
 ├── app.py              # 应用入口
 ├── config.py           # 配置
 ├── models.py           # 数据模型
+├── services/           # 业务逻辑（如 archive.py、settings.py）
 ├── routes/             # 路由蓝图
 ├── templates/          # Jinja2 模板
-├── scripts/            # 命令行工具
+├── scripts/            # 命令行工具（含 archive_applications.py）
 ├── prompts/            # AI 提示词模板
 ├── career_data/        # 公司清单数据源（用户可编辑）
-└── data/               # 运行时数据（gitignore）
+└── data/               # 运行时数据（gitignore，含 settings.json）
+```
+
+新增数据库字段须通过 Flask-Migrate 生成迁移脚本：
+
+```bash
+flask db migrate -m "描述"
+flask db upgrade
 ```

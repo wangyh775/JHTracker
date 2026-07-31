@@ -13,6 +13,7 @@ Handles maintenance tasks for JHTracker.
 - Deduplication of company entries
 - Industry/priority/salary cleanup
 - Start/restart application
+- Application archive (auto/manual/preview)
 - General health check
 
 ## Prerequisites
@@ -28,6 +29,9 @@ import sqlite3
 c = sqlite3.connect('data/tracker.db').cursor()
 # Total companies
 c.execute('SELECT COUNT(*) FROM companies'); print('Companies:', c.fetchone()[0])
+# Active vs archived applications
+c.execute('SELECT COUNT(*) FROM applications WHERE is_archived = 0'); print('Active apps:', c.fetchone()[0])
+c.execute('SELECT COUNT(*) FROM applications WHERE is_archived = 1'); print('Archived apps:', c.fetchone()[0])
 # By priority
 c.execute('SELECT priority, COUNT(*) FROM companies GROUP BY priority ORDER BY priority')
 print('Priority:', c.fetchall())
@@ -38,6 +42,28 @@ print('Industry:', c.fetchall())
 c.execute('SELECT COUNT(*) FROM companies WHERE score IS NULL'); print('Unscored:', c.fetchone()[0])
 c.execute('SELECT COUNT(*) FROM companies WHERE score IS NOT NULL'); print('Scored:', c.fetchone()[0])
 "
+```
+
+### Application archive
+
+Preview stale applications (no DB changes):
+```bash
+python scripts/archive_applications.py --dry-run
+```
+
+Run archive with default threshold (15 days):
+```bash
+python scripts/archive_applications.py
+```
+
+Custom threshold:
+```bash
+python scripts/archive_applications.py --days 30
+```
+
+Restore a single record:
+```bash
+python scripts/archive_applications.py --unarchive 5
 ```
 
 ### Start Flask server

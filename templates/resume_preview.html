@@ -25,16 +25,29 @@
 <div class="card">
   <div class="card-body p-2">
     {% if resume.file_type == 'pdf' %}
-    <iframe src="/resumes/{{ resume.id }}/file"
+    {# PDF 直接 iframe 渲染 #}
+    <iframe src="/resumes/{{ resume.id }}/pdf"
             style="width:100%; height:80vh; border:0; border-radius: 8px;"></iframe>
 
     {% elif resume.file_type == 'docx' %}
-    <div id="wordContent" class="bg-white text-dark p-4 rounded" style="min-height: 80vh;">
-      <div class="text-center text-secondary py-5">
-        <div class="spinner-border spinner-border-sm"></div>
-        <div class="mt-2">正在加载 Word 文档...</div>
+      {% if resume.pdf_path %}
+      {# DOCX 已转换出 PDF，用 iframe 展示 #}
+      <iframe src="/resumes/{{ resume.id }}/pdf"
+              style="width:100%; height:80vh; border:0; border-radius: 8px;"></iframe>
+      {% else %}
+      {# DOCX 未安装 LibreOffice 或转换失败，提示下载 #}
+      <div class="alert alert-warning m-3">
+        <i class="bi bi-exclamation-triangle me-1"></i>
+        无法预览此 Word 文档，需要安装
+        <a href="https://www.libreoffice.org/download/" target="_blank">LibreOffice</a>
+        来自动转换为 PDF。安装后可重新上传此文档。
+        <div class="mt-2">
+          <a href="/resumes/{{ resume.id }}/download" class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-download me-1"></i>下载原文件
+          </a>
+        </div>
       </div>
-    </div>
+      {% endif %}
 
     {% elif resume.file_type == 'doc' %}
     <div class="alert alert-warning m-3">
@@ -52,93 +65,4 @@
     {% endif %}
   </div>
 </div>
-
-{% if resume.file_type == 'docx' %}
-<script src="{{ url_for('static', filename='vendor/js/mammoth.browser.min.js') }}"></script>
-<style>
-/* Word 文档预览样式：模拟 Word 默认排版，避免格式混乱 */
-#wordContent {
-  font-family: "Times New Roman", "宋体", "SimSun", serif;
-  font-size: 12pt;
-  line-height: 1.5;
-  color: #000;
-  max-width: 800px;
-  margin: 0 auto;
-}
-#wordContent p {
-  margin: 0 0 8pt 0;
-  text-align: left;
-}
-#wordContent h1, #wordContent h2, #wordContent h3,
-#wordContent h4, #wordContent h5, #wordContent h6 {
-  font-family: "Arial", "黑体", "SimHei", sans-serif;
-  font-weight: bold;
-  margin: 12pt 0 6pt 0;
-  color: #000;
-}
-#wordContent h1 { font-size: 18pt; }
-#wordContent h2 { font-size: 16pt; }
-#wordContent h3 { font-size: 14pt; }
-#wordContent h4 { font-size: 12pt; }
-#wordContent ul, #wordContent ol {
-  margin: 0 0 8pt 24pt;
-  padding-left: 0;
-}
-#wordContent li { margin: 2pt 0; }
-#wordContent table {
-  border-collapse: collapse;
-  width: auto;
-  max-width: 100%;
-  margin: 8pt 0;
-  font-size: 11pt;
-}
-#wordContent table td, #wordContent table th {
-  border: 1px solid #000;
-  padding: 4pt 6pt;
-  vertical-align: top;
-}
-#wordContent table th {
-  background: #f0f0f0;
-  font-weight: bold;
-}
-#wordContent img {
-  max-width: 100%;
-  height: auto;
-}
-#wordContent a {
-  color: #0563c1;
-  text-decoration: underline;
-}
-#wordContent strong, #wordContent b { font-weight: bold; }
-#wordContent em, #wordContent i { font-style: italic; }
-#wordContent hr {
-  border: none;
-  border-top: 1px solid #999;
-  margin: 12pt 0;
-}
-#wordContent blockquote {
-  border-left: 3px solid #ccc;
-  margin: 8pt 0;
-  padding: 4pt 12pt;
-  color: #555;
-}
-</style>
-<script>
-  fetch('/resumes/{{ resume.id }}/file')
-    .then(r => {
-      if (!r.ok) throw new Error('文件加载失败 (HTTP ' + r.status + ')');
-      return r.arrayBuffer();
-    })
-    .then(buf => mammoth.convertToHtml({ arrayBuffer: buf }))
-    .then(result => {
-      const html = result.value || '<p class="text-secondary">（文档内容为空）</p>';
-      document.getElementById('wordContent').innerHTML = html;
-    })
-    .catch(err => {
-      document.getElementById('wordContent').innerHTML =
-        '<div class="alert alert-danger m-3"><i class="bi bi-x-circle me-1"></i>预览失败：' +
-        err.message + '<br>可尝试<a href="/resumes/{{ resume.id }}/download">下载</a>查看。</div>';
-    });
-</script>
-{% endif %}
 {% endblock %}
