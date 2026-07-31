@@ -71,8 +71,9 @@ flowchart TB
 |---|---|---|---|
 | 应用工厂 | 初始化 Flask、注册 blueprint、注入全局模板变量 | Flask 3.0 | `app.py` |
 | 配置中心 | 路径、密钥、分页、AI 参数，全部支持环境变量覆盖 | 标准库 | `config.py` |
-| ORM 模型 | 6 张表的定义与关系 | SQLAlchemy 2.0 | `models.py` |
-| 路由层 | HTTP 入口，页面渲染 + 表单处理 | Flask Blueprint | `routes/` ×9 |
+| ORM 模型 | 8 张表的定义与关系 | SQLAlchemy 2.0 | `models.py` |
+| 路由层 | HTTP 入口，页面渲染 + 表单处理 + Agent API | Flask Blueprint | `routes/` ×10 |
+| MCP 服务 | Agent-Native 接口，暴露 MCP 资源与工具 | FastMCP / mcp SDK | `mcp_server.py` |
 | 业务服务 | 归档节流、用户设置持久化 | 标准库 | `services/` |
 | 工具函数 | 日期/薪资校验、Markdown 表格解析、安全文件名 | 标准库 | `utils.py` |
 | 业务常量 | 状态机、行业/城市枚举、优先级规则 | 标准库 | `constants.py` |
@@ -152,13 +153,14 @@ flowchart LR
 ```
 career-tracker/
 ├── app.py                  # 应用工厂与启动入口
+├── mcp_server.py           # MCP (Model Context Protocol) 服务入口
 ├── config.py               # 集中配置（环境变量可覆盖）
 ├── constants.py            # 业务常量与优先级/行业推断规则
 ├── extensions.py           # db / migrate 实例（独立于 app）
-├── models.py               # 6 张表 ORM 定义
+├── models.py               # 8 张表 ORM 定义（含 AgentTask / AgentEvent）
 ├── utils.py                # 工具函数
-├── routes/                 # 9 个 blueprint
-│   ├── dashboard.py        #   看板（漏斗/分布/紧急截止）
+├── routes/                 # 10 个 blueprint
+│   ├── dashboard.py        #   看板（漏斗/分布/紧急截止/SSE 推送）
 │   ├── company.py          #   公司库
 │   ├── application.py      #   投递跟踪 + 归档
 │   ├── note.py             #   笔记
@@ -166,7 +168,8 @@ career-tracker/
 │   ├── import_data.py      #   公司清单导入/重同步
 │   ├── backup.py           #   备份导出/恢复
 │   ├── resume.py           #   简历版本管理
-│   └── profile.py          #   候选人画像
+│   ├── profile.py          #   候选人画像
+│   └── agent_api.py        #   Agent API 端点 & Agent Trace 轨迹
 ├── services/               # 业务逻辑
 │   ├── settings.py         #   用户设置（settings.json）
 │   └── archive.py          #   投递归档（每日节流）

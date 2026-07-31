@@ -18,7 +18,7 @@ _JHTracker 的全部 HTTP 端点，按 blueprint 组织。所有端点定义在 
 
 | Blueprint | 前缀 | 端点数 | 说明 |
 |---|---|---|---|
-| dashboard | `/`, `/dashboard` | 1 | 看板 |
+| dashboard | `/`, `/dashboard` | 3 | 看板（含 SSE `/api/stream` 与 `/api/notify`） |
 | company | `/companies` | 5 | 公司库 + 搜索 JSON API |
 | application | `/applications` | 11 | 投递跟踪、归档、面试反馈 |
 | note | `/notes` | 3 | 笔记 CRUD |
@@ -27,6 +27,62 @@ _JHTracker 的全部 HTTP 端点，按 blueprint 组织。所有端点定义在 
 | backup | `/backup` | 3 | 备份导出/恢复 |
 | resume | `/resumes` | 8 | 简历版本管理 |
 | profile | `/profile` | 2 | 候选人画像 |
+| agent_api | `/api/v1` | 4 | Agent REST API (公司搜索、评分更新、画像、Trace 追踪) |
+
+---
+
+## 🤖 Agent API 端点 (`routes/agent_api.py`)
+
+| 方法 | 路径 | 说明 |
+|---|---|---|
+| GET | `/api/v1/companies/search` | 按关键词 `q` 搜索公司，返回 JSON |
+| POST | `/api/v1/companies` | 批量自动去重写入公司记录 |
+| POST | `/api/v1/companies/<id>/score` | 更新公司 AI 评分与评分理由 |
+| POST | `/api/v1/applications` | 自动创建 `待投递` (pending) 状态的岗位申请记录 (支持 `match_score`, `agent_reason`, `agent_task_id`, `source_url`) |
+| POST | `/api/v1/applications/<id>/review` | 人在回路审核接口 (`action="approve"` 设为 `to_apply` / `"reject"` 设为 `rejected` 并生成 Memory) |
+| GET | `/api/v1/profile` | 获取候选人画像与目标配置 JSON |
+| GET | `/api/v1/profile/preferences` | 获取候选人画像、负向规则黑名单与历史拒绝反哺 Memory |
+| POST | `/api/v1/traces` | 提交 Agent 任务执行轨迹 (`task_id`, `agent_name`, `event_type`, `payload`) |
+| GET | `/traces` | Agent 执行轨迹 UI 审计页面 |
+
+---
+
+## 🔌 MCP Server (Model Context Protocol)
+
+MCP 服务定义在 `mcp_server.py`，支持 stdio / JSON-RPC 传输。
+
+### 暴露资源与工具
+- **Resource**: `jhtracker://profile` — 返回候选人 Profile 文本
+- **Tool**: `search_companies(query: str)` — 模糊搜索数据库公司库
+- **Tool**: `update_company_score(company_id: int, score: int, reason: str)` — 更新公司评分与理由
+- **Tool**: `create_company(name: str, industry: str, city: str, ...)` — 创建公司并自动去重
+- **Tool**: `create_application(company_id: int, position: str, ...)` — 创建待投递记录 (支持推荐理由、匹配分、Task ID 与来源 URL)
+- **Tool**: `get_user_preferences()` — 读取候选人画像、黑名单排斥规则与历史拒绝反哺 Memory
+
+### 客户端接入配置 (`mcp.json`)
+
+在 Claude Desktop / Cursor / Hermes 的 MCP 配置文件中添加：
+
+```json
+{
+  "mcpServers": {
+    "jhtracker": {
+      "command": "python",
+      "args": [
+        "D:\\DJTU\\HermesWorkspace\\career-tracker\\mcp_server.py"
+      ]
+    }
+  }
+}
+```
+
+### 可视化调试 (MCP Inspector)
+
+运行以下命令可在浏览器中交互式测试工具：
+
+```bash
+npx @modelcontextprotocol/inspector python mcp_server.py
+```
 
 ---
 

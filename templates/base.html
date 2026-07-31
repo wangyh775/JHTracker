@@ -130,6 +130,42 @@ a:hover { color: #8ab4ff; }
   padding: 0.75rem 1rem;
   margin-bottom: 1rem;
 }
+/* 统一操作按钮栏 */
+.action-bar {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  vertical-align: middle !important;
+}
+.action-bar form {
+  display: inline-flex !important;
+  align-items: center !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+.action-bar .btn {
+  height: 30px !important;
+  line-height: 1 !important;
+  padding: 0 10px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 0.825rem !important;
+  box-sizing: border-box !important;
+  margin: 0 !important;
+  vertical-align: middle !important;
+  white-space: nowrap !important;
+}
+.action-bar .btn-icon-only {
+  width: 30px !important;
+  padding: 0 !important;
+}
+.action-bar .btn .bi {
+  font-size: 13px !important;
+  line-height: 1 !important;
+  display: inline-block !important;
+  vertical-align: middle !important;
+}
 </style>
 </head>
 <body>
@@ -164,7 +200,40 @@ a:hover { color: #8ab4ff; }
 </div>
 </div>
 
+<!-- SSE Toast Alert for Agent Data Updates -->
+<div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1080;">
+  <div id="agentDataToast" class="toast align-items-center text-bg-info border-0" role="alert" aria-live="assertive" aria-atomic="true">
+    <div class="d-flex">
+      <div class="toast-body">
+        <i class="bi bi-robot me-2"></i>智能体已在后台更新了数据，点击 <a href="javascript:location.reload()" class="text-white fw-bold text-decoration-underline">刷新页面</a> 查看最新内容。
+      </div>
+      <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+    </div>
+  </div>
+</div>
+
 <script src="{{ url_for('static', filename='vendor/js/bootstrap.bundle.min.js') }}"></script>
+<script>
+if (!!window.EventSource) {
+  const source = new EventSource('/api/stream');
+  let firstConnect = true;
+  source.onmessage = function(e) {
+    try {
+      const msg = JSON.parse(e.data);
+      if (msg.type === 'db_updated') {
+        if (!firstConnect) {
+          const toastEl = document.getElementById('agentDataToast');
+          if (toastEl) {
+            const toast = new bootstrap.Toast(toastEl, { delay: 10000 });
+            toast.show();
+          }
+        }
+      }
+    } catch(err){}
+    firstConnect = false;
+  };
+}
+</script>
 {% block scripts %}{% endblock %}
 </body>
 </html>

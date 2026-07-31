@@ -16,6 +16,16 @@ def create_app():
     db.init_app(app)
     migrate.init_app(app, db)
 
+    # 启用 SQLite WAL 模式与 busy_timeout，防止多线程/多进程与智能体并发写入锁库
+    with app.app_context():
+        from sqlalchemy import event
+        @event.listens_for(db.engine, "connect")
+        def set_sqlite_pragma(dbapi_connection, connection_record):
+            cursor = dbapi_connection.cursor()
+            cursor.execute("PRAGMA journal_mode=WAL;")
+            cursor.execute("PRAGMA busy_timeout=5000;")
+            cursor.close()
+
     # 注册所有 blueprint
     from routes import ALL_BLUEPRINTS
     for bp in ALL_BLUEPRINTS:
@@ -47,6 +57,21 @@ if __name__ == '__main__':
     os.makedirs(os.path.join(os.path.dirname(__file__), 'data', 'resumes'), exist_ok=True)
     with app.app_context():
         db.create_all()
+        # 针对现有 SQLite 数据库自动轻量补全缺失的新列（免全量迁移冲突）
+        from sqlalchemy import inspect, text
+        inspector = inspect(db.engine)
+        if 'applications' in inspector.get_table_names():
+            columns = [c['name'] for c in inspector.get_columns('applications')]
+            app_alter_cols = {
+                'match_score': 'INTEGER',
+                'agent_reason': 'TEXT',
+                'agent_task_id': 'VARCHAR(100)',
+                'source_url': 'VARCHAR(500)'
+            }
+            for col_name, col_type in app_alter_cols.items():
+                if col_name not in columns:
+                    db.session.execute(text(f"ALTER TABLE applications ADD COLUMN {col_name} {col_type}"))
+            db.session.commit()
     # DEBUG 由 SelectedConfig 决定；FLASK_DEBUG=1 仍可强制开启（向后兼容）
     debug = app.config.get('DEBUG', False) or os.environ.get('FLASK_DEBUG', '0') == '1'
     app.run(debug=debug, host='127.0.0.1', port=5000)

@@ -14,6 +14,8 @@ _JHTracker 的数据模型：6 张表、字段说明、实体关系与迁移管�
 | `timeline` | `Timeline` | 甘特图时间线节点 | 无外键 |
 | `interview_feedbacks` | `InterviewFeedback` | 面试复盘 | N:1 application |
 | `resumes` | `Resume` | 简历版本 | 无外键 |
+| `agent_tasks` | `AgentTask` | Agent 任务日志与状态 | 1:N agent_events |
+| `agent_events` | `AgentEvent` | Agent 推理与执行步骤事件 | N:1 agent_task |
 
 ---
 
@@ -24,6 +26,22 @@ erDiagram
     companies ||--o{ applications : "被投递"
     companies ||--o{ notes : "被记录"
     applications ||--o{ interview_feedbacks : "包含"
+    agent_tasks ||--o{ agent_events : "包含"
+    agent_tasks {
+        int id PK
+        string task_id UK "任务 UUID"
+        string agent_name "Agent 名称"
+        string status "running/completed/failed"
+        datetime created_at
+        datetime updated_at
+    }
+    agent_events {
+        int id PK
+        int task_id FK "关联 agent_tasks.id"
+        string event_type "thought/tool_call/observation"
+        text payload_json "JSON 结构体数据"
+        datetime created_at
+    }
     companies {
         int id PK
         string name UK "公司名，唯一"

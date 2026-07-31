@@ -44,6 +44,10 @@ class Application(db.Model):
     url = db.Column(db.String(500))
     feedback = db.Column(db.Text)
     offer_status = db.Column(db.String(20))  # pending/accepted/rejected，仅 status=Offer 时有意义
+    match_score = db.Column(db.Integer)  # AI 匹配得分 0-100
+    agent_reason = db.Column(db.Text)  # AI 推荐理由
+    agent_task_id = db.Column(db.String(100))  # 关联抓取任务 ID
+    source_url = db.Column(db.String(500))  # 原始岗位链接
     is_archived = db.Column(db.Boolean, default=False, index=True)
     archived_at = db.Column(db.DateTime)
     created_at = db.Column(db.DateTime, default=datetime.now)
@@ -51,6 +55,18 @@ class Application(db.Model):
 
     feedbacks = db.relationship('InterviewFeedback', backref='application',
                                 cascade='all,delete-orphan', lazy='dynamic')
+    memories = db.relationship('Memory', backref='application', cascade='all,delete-orphan', lazy='dynamic')
+
+
+class Memory(db.Model):
+    __tablename__ = 'memories'
+    id = db.Column(db.Integer, primary_key=True)
+    application_id = db.Column(db.Integer, db.ForeignKey('applications.id'), nullable=True)
+    category = db.Column(db.String(50), nullable=False)  # exclude_tech, exclude_company, salary_too_low, general
+    rule_value = db.Column(db.String(200))  # 结构化值 (如 Java, 外包)
+    raw_feedback = db.Column(db.Text)  # 人类原始拒绝评语
+    created_at = db.Column(db.DateTime, default=datetime.now)
+
 
 
 class Note(db.Model):
@@ -101,3 +117,25 @@ class Resume(db.Model):
     is_default = db.Column(db.Boolean, default=False)
     pdf_path = db.Column(db.String(500))  # LibreOffice 转换的 PDF 预览路径（DOCX 才有）
     created_at = db.Column(db.DateTime, default=datetime.now)
+
+
+class AgentTask(db.Model):
+    __tablename__ = 'agent_tasks'
+    id = db.Column(db.Integer, primary_key=True)
+    task_id = db.Column(db.String(100), nullable=False, unique=True, index=True)
+    agent_name = db.Column(db.String(100), nullable=False)
+    status = db.Column(db.String(50), default='running')
+    created_at = db.Column(db.DateTime, default=datetime.now)
+    updated_at = db.Column(db.DateTime, default=datetime.now, onupdate=datetime.now)
+
+    events = db.relationship('AgentEvent', backref='task', lazy='dynamic', cascade='all,delete-orphan')
+
+
+class AgentEvent(db.Model):
+    __tablename__ = 'agent_events'
+    id = db.Column(db.Integer, primary_key=True)
+    task_id = db.Column(db.Integer, db.ForeignKey('agent_tasks.id'), nullable=False)
+    event_type = db.Column(db.String(50), nullable=False)
+    payload_json = db.Column(db.Text)
+    created_at = db.Column(db.DateTime, default=datetime.now)
+

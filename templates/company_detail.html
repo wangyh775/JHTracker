@@ -6,12 +6,12 @@
     <span class="fs-4 fw-bold me-2">{{ company.name }}</span>
     <span class="badge badge-priority-{{ company.priority }}">{{ company.priority }}</span>
   </div>
-  <div>
-    <button class="btn btn-outline-info btn-sm me-2" data-bs-toggle="modal" data-bs-target="#editModal"><i class="bi bi-pencil"></i> 编辑</button>
-    <form method="post" action="/companies/{{ company.id }}/delete" class="d-inline me-2" onsubmit="return confirm('确定删除「{{ company.name }}」及其所有投递记录？此操作不可恢复。')">
-      <button class="btn btn-outline-danger btn-sm"><i class="bi bi-trash"></i> 删除</button>
+  <div class="action-bar">
+    <button class="btn btn-sm btn-outline-info" data-bs-toggle="modal" data-bs-target="#editModal"><i class="bi bi-pencil me-1"></i>编辑</button>
+    <form method="post" action="/companies/{{ company.id }}/delete" onsubmit="return confirm('确定删除「{{ company.name }}」及其所有投递记录？此操作不可恢复。')">
+      <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash me-1"></i>删除</button>
     </form>
-    <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addAppModal"><i class="bi bi-plus-lg me-1"></i>添加投递</button>
+    <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#addAppModal"><i class="bi bi-plus-lg me-1"></i>添加投递</button>
   </div>
 </div>
 
@@ -88,7 +88,7 @@
           <strong class="text-info">反馈/进度:</strong><br> {{ a.feedback }}
         </div>
         {% endif %}
-        <div class="d-flex gap-2">
+        <div class="d-flex gap-2 align-items-center">
           <form method="post" action="/applications/{{ a.id }}/status" class="d-flex gap-2 w-100">
             <select class="form-select form-select-sm w-auto" name="status">
               {% for s in status_list %}<option {% if a.status==s %}selected{% endif %}>{{ s }}</option>{% endfor %}
@@ -96,9 +96,11 @@
             <input type="text" class="form-control form-control-sm" name="feedback" placeholder="更新反馈/进度..." value="{{ a.feedback or '' }}">
             <button class="btn btn-sm btn-primary">更新</button>
           </form>
-          <form method="post" action="/applications/{{ a.id }}/delete" onsubmit="return confirm('确定删除？')">
-            <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
-          </form>
+          <div class="action-bar">
+            <form method="post" action="/applications/{{ a.id }}/delete" onsubmit="return confirm('确定删除？')">
+              <button class="btn btn-sm btn-outline-danger" title="删除"><i class="bi bi-trash me-1"></i>删除</button>
+            </form>
+          </div>
         </div>
         {% include '_feedback_form.html' with context %}
       </div>

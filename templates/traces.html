@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h3 class="dashboard-title mb-0"><i class="bi bi-cpu me-2 text-primary"></i>Agent 执行轨迹 (Traces)</h3>
+    <div class="text-secondary small mt-1">查看智能体后台推理思考轨迹、工具调用及实时任务状态</div>
+  </div>
+  <a href="javascript:location.reload()" class="btn btn-sm btn-outline-secondary">
+    <i class="bi bi-arrow-clockwise me-1"></i>刷新
+  </a>
+</div>
+
+{% if not tasks %}
+<div class="card p-5 text-center text-secondary">
+  <i class="bi bi-robot fs-1 mb-2 text-muted"></i>
+  <h5>暂无 Agent 任务记录</h5>
+  <p class="small mb-0">当 Hermes / OpenCode / Claude Desktop 智能体通过 Agent API 或 MCP 调用系统时，相关轨迹将呈现在此处。</p>
+</div>
+{% else %}
+<div class="accordion" id="tracesAccordion">
+  {% for task in tasks %}
+  <div class="card mb-3">
+    <div class="card-header bg-dark d-flex justify-content-between align-items-center" id="heading-{{ task.id }}">
+      <div>
+        <span class="badge {% if task.status == 'completed' %}bg-success{% elif task.status == 'failed' %}bg-danger{% else %}bg-warning text-dark{% endif %} me-2">
+          {{ task.status }}
+        </span>
+        <strong class="text-light me-2"><i class="bi bi-robot me-1"></i>{{ task.agent_name }}</strong>
+        <span class="text-secondary small">Task ID: {{ task.task_id }}</span>
+      </div>
+      <div>
+        <span class="text-secondary small me-3"><i class="bi bi-clock me-1"></i>{{ task.created_at.strftime('%Y-%m-%d %H:%M:%S') if task.created_at else '' }}</span>
+        <button class="btn btn-sm btn-outline-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-{{ task.id }}" aria-expanded="true">
+          查看事件轨迹
+        </button>
+      </div>
+    </div>
+
+    <div id="collapse-{{ task.id }}" class="collapse show" aria-labelledby="heading-{{ task.id }}" data-bs-parent="#tracesAccordion">
+      <div class="card-body p-0">
+        <ul class="list-group list-group-flush bg-transparent">
+          {% for event in task.events %}
+          <li class="list-group-item bg-transparent text-light border-secondary p-3">
+            <div class="d-flex justify-content-between mb-1">
+              <span class="badge bg-secondary"><i class="bi bi-activity me-1"></i>{{ event.event_type }}</span>
+              <small class="text-secondary">{{ event.created_at.strftime('%H:%M:%S') if event.created_at else '' }}</small>
+            </div>
+            <pre class="bg-dark p-2 rounded text-info small mb-0 mt-2" style="white-space: pre-wrap; word-break: break-all;">{{ event.payload_json }}</pre>
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+{% endblock %}

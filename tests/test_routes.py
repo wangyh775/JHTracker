@@ -122,3 +122,12 @@ class TestTimelineRoutes:
         assert r.status_code == 302
         with app.app_context():
             assert db.session.get(Timeline, tid).done is True
+
+
+class TestSSERoutes:
+    def test_api_notify(self, client):
+        r = client.post('/api/notify')
+        assert r.status_code == 200
+        data = r.get_json()
+        assert data['status'] == 'ok'
+        assert 'version' in data

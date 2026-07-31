@@ -1,12 +1,44 @@
 """看板路由。"""
-from flask import Blueprint, render_template, redirect, url_for
+from flask import Blueprint, render_template, redirect, url_for, Response, json, request, jsonify
 from sqlalchemy import func
 from extensions import db
 from models import Company, Application, Timeline
 from constants import STATUS_LIST
 from sqlalchemy.orm import joinedload
+import time
 
 bp = Blueprint('dashboard', __name__)
+
+# 全局 DB 变动版本号
+_db_version = 0
+
+def notify_db_changed():
+    global _db_version
+    _db_version += 1
+
+
+@bp.route('/api/notify', methods=['POST'])
+def api_notify():
+    """供外部 Agent 脚本在更新数据库后主动通知 UI 刷新。"""
+    notify_db_changed()
+    return jsonify({'status': 'ok', 'version': _db_version})
+
+
+@bp.route('/api/stream')
+def api_stream():
+    """SSE 实时数据变动推送接口。"""
+    def event_stream():
+        last_version = _db_version
+        while True:
+            time.sleep(3)
+            if _db_version != last_version:
+                last_version = _db_version
+                data = json.dumps({'type': 'db_updated', 'version': _db_version})
+                yield f"data: {data}\n\n"
+            else:
+                yield "data: {\"type\": \"ping\"}\n\n"
+
+    return Response(event_stream(), mimetype="text/event-stream")
 
 
 def _top_n_with_other(counts, n):
@@ -64,6 +96,19 @@ def dashboard():
         func.coalesce(Company.priority, '无'), func.count(Company.id)
     ).group_by(Company.priority).all()
 
+    # AI 匹配度 vs 参考最高薪资散点数据
+    score_salary_query = Company.query.filter(
+        Company.score != None, Company.score > 0
+    ).limit(100).all()
+    score_salary_data = [
+        {
+            'name': c.name,
+            'x': c.score,
+            'y': c.salary_max or c.salary_min or 0,
+            'priority': c.priority or 'C'
+        } for c in score_salary_query
+    ]
+
     # timeline upcoming
     upcoming = Timeline.query.filter(Timeline.done == False).order_by(Timeline.event_date).limit(5).all()
 
@@ -102,4 +147,5 @@ def dashboard():
                            city_counts=city_counts, ind_counts=ind_counts,
                            pri_counts=pri_counts, upcoming=upcoming, recent=recent,
                            urgent_deadlines=urgent_deadlines,
-                           pending_feedbacks=pending_feedbacks)
+                           pending_feedbacks=pending_feedbacks,
+                           score_salary_data=score_salary_data)

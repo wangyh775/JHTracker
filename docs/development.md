@@ -53,8 +53,9 @@ python app.py
 | 文件 | 覆盖内容 |
 |---|---|
 | `test_utils.py` | 日期解析、薪资校验、Markdown 表格解析等工具函数 |
-| `test_models.py` | ORM 模型与关系 |
+| `test_models.py` | ORM 模型与关系（含 AgentTask / AgentEvent） |
 | `test_routes.py` | 各 blueprint 路由（页面渲染、表单提交、404、状态流转） |
+| `test_agent_api.py` | Agent REST API (/api/v1/) 与 Agent Trace 轨迹端点 |
 | `conftest.py` | 测试夹具：内存 SQLite、测试客户端 |
 
 ```bash
@@ -62,10 +63,24 @@ python app.py
 python -m pytest tests/
 
 # 运行单个文件
-python -m pytest tests/test_routes.py -v
+python -m pytest tests/test_agent_api.py -v
 
 # 只看失败详情
 python -m pytest tests/ -q
+```
+
+---
+
+## 🔌 MCP Server 本地调试
+
+测试 Model Context Protocol (MCP) 服务 `mcp_server.py`：
+
+```bash
+# 1. 验证工具注册
+python -c "import mcp_server; print([t.name for t in mcp_server.mcp._tool_manager.list_tools()])"
+
+# 2. 官方 Inspector 浏览器可视化调试
+npx @modelcontextprotocol/inspector python mcp_server.py
 ```
 
 **约定：**

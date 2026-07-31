@@ -178,10 +178,12 @@ document.addEventListener('DOMContentLoaded', function() {
             {% endif %}
           </td>
           <td class="col-actions">
-            <a href="/companies/{{ c.id }}" class="btn btn-sm btn-outline-info py-0 px-2" title="详情"><i class="bi bi-chevron-right"></i></a>
-            <form method="post" action="/companies/{{ c.id }}/delete" class="d-inline" onsubmit="return confirm('确定删除「{{ c.name }}」及其所有投递记录？')">
-              <button class="btn btn-sm btn-outline-danger py-0 px-2"><i class="bi bi-trash"></i></button>
-            </form>
+            <div class="action-bar">
+              <a href="/companies/{{ c.id }}" class="btn btn-sm btn-outline-info btn-icon-only" title="详情"><i class="bi bi-eye"></i></a>
+              <form method="post" action="/companies/{{ c.id }}/delete" onsubmit="return confirm('确定删除「{{ c.name }}」及其所有投递记录？')">
+                <button class="btn btn-sm btn-outline-danger btn-icon-only" title="删除"><i class="bi bi-trash"></i></button>
+              </form>
+            </div>
           </td>
         </tr>
         {% else %}

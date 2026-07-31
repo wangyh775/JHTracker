@@ -9,6 +9,8 @@
 ## 特性
 
 - **公司库管理**：500+ 公司清单，按行业/城市/优先级/AI 匹配分多维筛选
+- **Agent-Native 原生接口与 MCP**：提供标准 API (`/api/v1/`) 与 Model Context Protocol (MCP) 原生支持，供 Claude Desktop、Cursor、Hermes 等智能体无缝对接
+- **Agent Trace 实时轨迹**：内置 `/traces` 页面与 SSE 广播，可视化追踪智能体的推理思考与操作日志
 - **AI 智能体驱动**：用 AI 智能体深度检索网络生成公司库；AI 评分引擎对每家公司做匹配度打分
 - **投递全流程跟踪**：待投递 → 已投递 → 简历筛选 → 笔试 → 面试 → Offer/拒绝，状态流转 + 面试评价
 - **数据看板**：投递漏斗、转化率、城市分布、行业分布、优先级分布
@@ -54,6 +56,39 @@ source venv/bin/activate
 pip install -r requirements.txt
 python app.py
 ```
+
+## Agent-Native & MCP Server 接入指南
+
+JHTracker 现已原生支持 **Model Context Protocol (MCP)** 和标准 **Agent REST API**，使任意 AI 智能体（Hermes, Claude Desktop, Cursor, OpenCode 等）可以直接读写求职数据。
+
+### 1. MCP 协议接入 (Hermes / Claude Desktop / Cursor)
+
+在智能体的 MCP 配置文件中（如 `~/.hermes/mcp.json` 或 `claude_desktop_config.json`）添加：
+
+```json
+{
+  "mcpServers": {
+    "jhtracker": {
+      "command": "python",
+      "args": [
+        "D:\\DJTU\\HermesWorkspace\\career-tracker\\mcp_server.py"
+      ]
+    }
+  }
+}
+```
+
+暴露给 Agent 的能力：
+- **资源** `jhtracker://profile`：智能体直接获取你的求职画像
+- **工具** `search_companies`：模糊检索匹配公司库
+- **工具** `update_company_score`：智能体自动回写评估评分与分析理由
+
+### 2. Agent REST API 与 Trace 轨迹
+
+- **REST 接口**：`/api/v1/companies/search`、`/api/v1/companies/<id>/score`、`/api/v1/profile`、`/api/v1/traces`
+- **Trace 界面**：访问 `http://127.0.0.1:5000/traces` 即可实时审查后台智能体的推理轨迹与事件日志。
+
+---
 
 ## 投递记录归档
 

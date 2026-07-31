@@ -8,9 +8,10 @@ _JHTracker（Job Hunt Tracker）——AI 驱动的求职全流程管理工具。
 
 | 文档 | 说明 | 适合读者 |
 |---|---|---|
+| [getting-started.md](getting-started.md) | 快速开始：5 分钟上手指南、MCP 智能体配置与基础用法 | 初学者、使用者 |
 | [architecture.md](architecture.md) | 系统架构：技术栈、模块划分、请求生命周期、设计决策 | 开发者、架构评审 |
-| [database.md](database.md) | 数据库设计：6 张表的字段说明、关系、迁移管理 | 开发者、运维 |
-| [api.md](api.md) | 路由/API 参考：全部 9 个 blueprint 的端点清单 | 前端、集成方 |
+| [database.md](database.md) | 数据库设计：8 张表的字段说明、关系、迁移管理 | 开发者、运维 |
+| [api.md](api.md) | 路由/API 参考：端点清单与 MCP 协议配置说明 | 前端、集成方 |
 | [ai-scoring.md](ai-scoring.md) | AI 评分引擎：两阶段评分、省 token 策略、调用方式 | 使用者、开发者 |
 | [development.md](development.md) | 开发指南：环境搭建、测试、迁移、代码规范 | 贡献者 |
 

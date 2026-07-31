@@ -121,9 +121,9 @@
 </div>
 
 <div class="row g-3">
-  <!-- Priority breakdown -->
+  <!-- Priority breakdown & Scatter Chart -->
   <div class="col-md-4">
-    <div class="card">
+    <div class="card h-100">
       <div class="card-body">
         <h6 class="card-title mb-3"><i class="bi bi-flag me-2"></i>优先级分布</h6>
         {% for p, c in pri_counts %}
@@ -132,6 +132,23 @@
           <span class="text-secondary">{{ c }}家</span>
         </div>
         {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-8">
+    <div class="card h-100">
+      <div class="card-body">
+        <h6 class="card-title mb-3"><i class="bi bi-graph-up-arrow me-2"></i>AI 匹配得分 vs 薪资分布 (k/月)</h6>
+        {% if score_salary_data %}
+        <div style="height: 180px; position: relative;">
+          <canvas id="scoreSalaryChart"></canvas>
+        </div>
+        {% else %}
+        <div class="text-center text-secondary py-4">
+          <i class="bi bi-graph-up fs-1"></i><br>暂无 AI 评分与薪资数据
+        </div>
+        {% endif %}
       </div>
     </div>
   </div>
@@ -283,6 +300,63 @@ new Chart(document.getElementById('industryChart'), {
     }]
   },
   options: doughnutOpts
+});
+{% endif %}
+
+{% if score_salary_data %}
+const rawScatter = {{ score_salary_data | tojson }};
+const scatterDataset = rawScatter.map(item => ({
+  x: item.x,
+  y: item.y,
+  name: item.name,
+  priority: item.priority
+}));
+
+new Chart(document.getElementById('scoreSalaryChart'), {
+  type: 'scatter',
+  data: {
+    datasets: [{
+      label: '公司匹配度',
+      data: scatterDataset,
+      backgroundColor: function(ctx) {
+        const item = ctx.raw;
+        if (!item) return '#0d6efd';
+        if (item.priority === 'S') return '#dc3545';
+        if (item.priority === 'A') return '#fd7e14';
+        if (item.priority === 'B') return '#0dcaf0';
+        return '#6c757d';
+      },
+      pointRadius: 6,
+      pointHoverRadius: 9
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    scales: {
+      x: {
+        title: { display: true, text: 'AI 匹配度 (0-100)', color: '#888' },
+        ticks: { color: '#aaa' },
+        grid: { color: 'rgba(255,255,255,0.05)' }
+      },
+      y: {
+        title: { display: true, text: '薪资 (k/月)', color: '#888' },
+        ticks: { color: '#aaa' },
+        grid: { color: 'rgba(255,255,255,0.05)' }
+      }
+    },
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          label: function(ctx) {
+            const raw = ctx.raw;
+            return ` ${raw.name} [${raw.priority}级]: 匹配分 ${raw.x}, 薪资 ${raw.y}k`;
+          }
+        }
+      }
+    }
+  }
 });
 {% endif %}
 </script>

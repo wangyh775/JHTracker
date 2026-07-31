@@ -1,5 +1,5 @@
 """Blueprint 聚合：所有路由 blueprint 在此导入，供 app 工厂注册。"""
-from . import dashboard, company, application, note, timeline, import_data, backup, resume, profile
+from . import dashboard, company, application, note, timeline, import_data, backup, resume, profile, agent_api
 
 ALL_BLUEPRINTS = [
     dashboard.bp,
@@ -11,4 +11,5 @@ ALL_BLUEPRINTS = [
     backup.bp,
     resume.bp,
     profile.bp,
+    agent_api.bp,
 ]

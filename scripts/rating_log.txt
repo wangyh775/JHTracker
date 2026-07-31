@@ -1,0 +1,171 @@
+API Key: sk-c4cfb...3319
+已加载画像: 1038 字符
+待评分公司总数: 114
+预筛淘汰: 0
+需要 LLM 评分: 114
+已写入淘汰记录: 0
+
+--- 批次 1/23 (公司 ID: [2, 216, 313, 314, 315]) ---
+  Prompt 长度: 2644 字符
+  API 调用错误: Extra data: line 1 column 2408 (char 2407)
+  等待 1s 后重试...
+  API 调用错误: Extra data: line 1 column 1489 (char 1488)
+  等待 2s 后重试...
+  API 调用错误: Expecting value: line 1 column 1 (char 0)
+  ⚠️ 批次 1 API 调用失败，跳过此批
+
+--- 批次 2/23 (公司 ID: [529, 531, 562, 563, 567]) ---
+  Prompt 长度: 2534 字符
+  API 调用错误: Expecting value: line 1 column 1 (char 0)
+  等待 1s 后重试...
+  API 调用错误: Extra data: line 1 column 1234 (char 1233)
+  等待 2s 后重试...
+  API 调用错误: Expecting value: line 1 column 1 (char 0)
+  ⚠️ 批次 2 API 调用失败，跳过此批
+
+--- 批次 3/23 (公司 ID: [568, 569, 591, 592, 593]) ---
+  Prompt 长度: 2498 字符
+  API 调用错误: Expecting value: line 1 column 1 (char 0)
+  等待 1s 后重试...
+  API 调用错误: Expecting value: line 1 column 1 (char 0)
+  等待 2s 后重试...
+  API 调用错误: Expecting value: line 1 column 1 (char 0)
+  ⚠️ 批次 3 API 调用失败，跳过此批
+
+--- 批次 4/23 (公司 ID: [594, 595, 596, 597, 598]) ---
+  Prompt 长度: 2484 字符
+  API 调用错误: Expecting value: line 1 column 1 (char 0)
+  等待 1s 后重试...
+  API 调用错误: Extra data: line 1 column 575 (char 574)
+  等待 2s 后重试...
+  API 调用错误: Expecting value: line 1 column 1 (char 0)
+  ⚠️ 批次 4 API 调用失败，跳过此批
+
+--- 批次 5/23 (公司 ID: [602, 605, 606, 607, 609]) ---
+  Prompt 长度: 2734 字符
+  API 调用错误: Expecting value: line 1 column 1 (char 0)
+  等待 1s 后重试...
+  API 调用错误: Expecting value: line 1 column 1 (char 0)
+  等待 2s 后重试...
+  API 调用错误: Expecting value: line 1 column 1 (char 0)
+  ⚠️ 批次 5 API 调用失败，跳过此批
+
+--- 批次 6/23 (公司 ID: [610, 611, 613, 614, 615]) ---
+  Prompt 长度: 2716 字符
+  API 调用错误: Expecting value: line 1 column 1 (char 0)
+  等待 1s 后重试...
+  API 调用错误: timed out
+  等待 2s 后重试...
+  API 调用错误: Expecting value: line 1 column 1 (char 0)
+  ⚠️ 批次 6 API 调用失败，跳过此批
+
+--- 批次 7/23 (公司 ID: [617, 618, 620, 621, 623]) ---
+  Prompt 长度: 2705 字符
+  API 调用错误: timed out
+  等待 1s 后重试...
+  API 调用错误: Extra data: line 1 column 1499 (char 1498)
+  等待 2s 后重试...
+  API 调用错误: Expecting value: line 1 column 1 (char 0)
+  ⚠️ 批次 7 API 调用失败，跳过此批
+
+--- 批次 8/23 (公司 ID: [624, 625, 627, 628, 629]) ---
+  Prompt 长度: 2694 字符
+  API 调用错误: Expecting value: line 1 column 1 (char 0)
+  等待 1s 后重试...
+  API 调用错误: Extra data: line 1 column 2972 (char 2971)
+  等待 2s 后重试...
+  API 调用错误: Expecting value: line 1 column 1 (char 0)
+  ⚠️ 批次 8 API 调用失败，跳过此批
+
+--- 批次 9/23 (公司 ID: [630, 631, 632, 633, 635]) ---
+  Prompt 长度: 2703 字符
+  API 调用错误: Expecting value: line 1 column 1 (char 0)
+  等待 1s 后重试...
+  API 调用错误: Expecting value: line 1 column 1 (char 0)
+  等待 2s 后重试...
+  API 调用错误: Expecting value: line 1 column 1 (char 0)
+  ⚠️ 批次 9 API 调用失败，跳过此批
+
+--- 批次 10/23 (公司 ID: [636, 638, 639, 640, 642]) ---
+  Prompt 长度: 2701 字符
+  API 调用错误: Expecting value: line 1 column 1 (char 0)
+  等待 1s 后重试...
+  API 调用错误: timed out
+  等待 2s 后重试...
+  API 调用错误: Expecting value: line 1 column 1 (char 0)
+  ⚠️ 批次 10 API 调用失败，跳过此批
+
+--- 批次 11/23 (公司 ID: [643, 645, 646, 647, 649]) ---
+  Prompt 长度: 2693 字符
+  API 调用错误: Expecting value: line 1 column 1 (char 0)
+  等待 1s 后重试...
+  API 调用错误: Extra data: line 1 column 1480 (char 1479)
+  等待 2s 后重试...
+  API 调用错误: Expecting value: line 1 column 1 (char 0)
+  ⚠️ 批次 11 API 调用失败，跳过此批
+
+--- 批次 12/23 (公司 ID: [650, 651, 652, 653, 657]) ---
+  Prompt 长度: 2688 字符
+  API 调用错误: Expecting value: line 1 column 1 (char 0)
+  等待 1s 后重试...
+  API 调用错误: Expecting value: line 1 column 1 (char 0)
+  等待 2s 后重试...
+  API 调用错误: Expecting value: line 1 column 1 (char 0)
+  ⚠️ 批次 12 API 调用失败，跳过此批
+
+--- 批次 13/23 (公司 ID: [658, 659, 660, 662, 663]) ---
+  Prompt 长度: 2682 字符
+  API 调用错误: timed out
+  等待 1s 后重试...
+  API 调用错误: Expecting value: line 1 column 1 (char 0)
+  等待 2s 后重试...
+  API 调用错误: Extra data: line 1 column 2829 (char 2828)
+  ⚠️ 批次 13 API 调用失败，跳过此批
+
+--- 批次 14/23 (公司 ID: [665, 666, 667, 668, 673]) ---
+  Prompt 长度: 2691 字符
+  API 调用错误: Expecting value: line 1 column 1 (char 0)
+  等待 1s 后重试...
+  API 调用错误: Expecting value: line 1 column 1 (char 0)
+  等待 2s 后重试...
+  API 调用错误: Expecting value: line 1 column 1 (char 0)
+  ⚠️ 批次 14 API 调用失败，跳过此批
+
+--- 批次 15/23 (公司 ID: [674, 676, 677, 678, 679]) ---
+  Prompt 长度: 2669 字符
+  API 调用错误: Expecting value: line 1 column 1 (char 0)
+  等待 1s 后重试...
+  API 调用错误: Extra data: line 1 column 1294 (char 1293)
+  等待 2s 后重试...
+  API 调用错误: Expecting value: line 1 column 1 (char 0)
+  ⚠️ 批次 15 API 调用失败，跳过此批
+
+--- 批次 16/23 (公司 ID: [682, 683, 687, 690, 691]) ---
+  Prompt 长度: 2669 字符
+  API 调用错误: timed out
+  等待 1s 后重试...
+  API 调用错误: Expecting value: line 1 column 1 (char 0)
+  等待 2s 后重试...
+  API 调用错误: Expecting value: line 1 column 1 (char 0)
+  ⚠️ 批次 16 API 调用失败，跳过此批
+
+--- 批次 17/23 (公司 ID: [699, 700, 706, 707, 708]) ---
+  Prompt 长度: 2698 字符
+  API 调用错误: Expecting value: line 1 column 1 (char 0)
+  等待 1s 后重试...
+  API 调用错误: Expecting value: line 1 column 1 (char 0)
+  等待 2s 后重试...
+  API 调用错误: Expecting value: line 1 column 1 (char 0)
+  ⚠️ 批次 17 API 调用失败，跳过此批
+
+--- 批次 18/23 (公司 ID: [709, 710, 711, 712, 713]) ---
+  Prompt 长度: 2683 字符
+  API 调用错误: Extra data: line 301 column 5419 (char 7068)
+  等待 1s 后重试...
+  API 调用错误: Expecting value: line 1 column 1 (char 0)
+  等待 2s 后重试...
+  API 调用错误: Extra data: line 1 column 940 (char 939)
+  ⚠️ 批次 18 API 调用失败，跳过此批
+
+--- 批次 19/23 (公司 ID: [723, 312, 523, 539, 540]) ---
+  Prompt 长度: 2617 字符
