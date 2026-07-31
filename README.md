@@ -9,7 +9,8 @@
 ## 特性
 
 - **公司库管理**：500+ 公司清单，按行业/城市/优先级/AI 匹配分多维筛选
-- **Agent-Native 原生接口与 MCP**：提供标准 API (`/api/v1/`) 与 Model Context Protocol (MCP) 原生支持，供 Claude Desktop、Cursor、Hermes 等智能体无缝对接
+- **Agent-Native 原生接口与 MCP**：36 个 MCP 工具覆盖全部 11 个数据域，供 Claude Desktop、Cursor、Hermes 等智能体无缝对接；REST API 作为 fallback 备用
+- **HITL 人机协同闭环**：Agent 推荐岗位 → 人在 Decision Inbox 审批 → 拒绝反馈自动反哺到下次评估，形成持续校准的推荐闭环
 - **Agent Trace 实时轨迹**：内置 `/traces` 页面与 SSE 广播，可视化追踪智能体的推理思考与操作日志
 - **AI 智能体驱动**：用 AI 智能体深度检索网络生成公司库；AI 评分引擎对每家公司做匹配度打分
 - **投递全流程跟踪**：待投递 → 已投递 → 简历筛选 → 笔试 → 面试 → Offer/拒绝，状态流转 + 面试评价
@@ -57,6 +58,56 @@ pip install -r requirements.txt
 python app.py
 ```
 
+## Agent-Native & Career OS 架构一览
+
+```mermaid
+flowchart TB
+    accTitle: JHTracker Agent-Native Architecture
+    accDescr: Client and external host agents interact through MCP Server and Unified Tool Layer with Memory Engine, Agent Task & Trace Feed, and SQLite Storage
+
+    subgraph hosts ["🤖 外部 Host Agents / Orchestrator"]
+        agents["Hermes / Claude Desktop / Cursor / OpenCode / Web Client"]
+    end
+
+    subgraph mcp ["⚡ MCP Server & Unified Tool Layer (mcp_server.py)"]
+        tools["MCP Tools & Resources (36 tools):<br/>• evaluate_jd / batch_evaluate_jds<br/>• search_companies / get_company<br/>• create_company / update_company<br/>• create_application / list_applications<br/>• get_pending_approvals / handle_decision<br/>• get_statistics / record_agent_trace<br/>• create_note / create_timeline_event<br/>• ... 覆盖 11 个数据域"]
+    end
+
+    subgraph engine ["🧠 Memory Engine & Core State"]
+        profile["Candidate Profile (data/profile.md)"]
+        memories["Negative Rules & Feedback Memories"]
+        resume_bind["Resume Binding (resumes.id <-> applications.resume_id)"]
+    end
+
+    subgraph trace ["📊 Agent Task Center & Activity Feed"]
+        task_feed["Agent Tasks & Event Trace Feed<br/>(/api/agent/tasks & /traces)"]
+    end
+
+    subgraph storage ["💾 SQLite Database & Local Files"]
+        db[("tracker.db<br/>(companies, applications, memories, agent_tasks, agent_events)")]
+    end
+
+    agents -->|MCP Protocol / REST API| tools
+    tools --> engine
+    tools --> trace
+    engine --> storage
+    trace --> storage
+
+    classDef host fill:#e0f2fe,stroke:#0284c7,stroke-width:2px,color:#0369a1
+    classDef mcp fill:#fae8ff,stroke:#c084fc,stroke-width:2px,color:#6b21a8
+    classDef engine fill:#dcfce7,stroke:#22c55e,stroke-width:2px,color:#15803d
+    classDef trace fill:#fef3c7,stroke:#f59e0b,stroke-width:2px,color:#b45309
+    classDef storage fill:#f1f5f9,stroke:#64748b,stroke-width:2px,color:#334155
+
+    class agents host
+    class tools mcp
+    class profile,memories,resume_bind engine
+    class task_feed trace
+    class db storage
+```
+
+---
+
 ## Agent-Native & MCP Server 接入指南
 
 JHTracker 现已原生支持 **Model Context Protocol (MCP)** 和标准 **Agent REST API**，使任意 AI 智能体（Hermes, Claude Desktop, Cursor, OpenCode 等）可以直接读写求职数据。
@@ -78,15 +129,93 @@ JHTracker 现已原生支持 **Model Context Protocol (MCP)** 和标准 **Agent 
 }
 ```
 
-暴露给 Agent 的能力：
-- **资源** `jhtracker://profile`：智能体直接获取你的求职画像
-- **工具** `search_companies`：模糊检索匹配公司库
-- **工具** `update_company_score`：智能体自动回写评估评分与分析理由
+暴露给 Agent 的能力（36 个 MCP 工具，覆盖 11 个数据域）：
 
-### 2. Agent REST API 与 Trace 轨迹
+**👤 画像 & 偏好**
+- `get_candidate_profile()` / `update_candidate_profile(content)` — 读写求职画像
+- `get_user_preferences()` — 获取画像、正向规则（`positive_rules`）、负向规则（`negative_rules`）、拒绝反馈
+- `add_memory_rule(category, rule_value, raw_feedback, polarity)` — 写入双向规则。`polarity='positive'` → `prefer_*` 类别；`polarity='negative'` → `exclude_*` 类别；留空则按 `category` 原样写入（向后兼容）。按 `(category, rule_value)` 去重
+- `delete_memory_rule(memory_id, confirm)` — 删除记忆规则（`confirm=True` 才生效），覆盖正向/负向所有类别
 
-- **REST 接口**：`/api/v1/companies/search`、`/api/v1/companies/<id>/score`、`/api/v1/profile`、`/api/v1/traces`
-- **Trace 界面**：访问 `http://127.0.0.1:5000/traces` 即可实时审查后台智能体的推理轨迹与事件日志。
+**🏢 公司**
+- `search_companies(query)` — 模糊搜索公司库
+- `get_company(company_id)` — 获取公司完整详情
+- `create_company(...)` / `update_company(...)` / `delete_company(company_id, confirm)` — 公司 CRUD
+- `update_company_score(company_id, score, reason)` — 更新 AI 评分
+
+**📮 投递**
+- `create_application(...)` — 创建待审批投递
+- `get_application(application_id)` / `list_applications(...)` — 查询投递
+- `update_application_status(application_id, status)` — 更新状态
+- `get_pending_approvals()` / `handle_decision(application_id, action, ...)` — HITL 审批
+- `archive_application(application_id, archive)` — 归档/恢复
+
+**🎙️ 面试反馈**
+- `create_interview_feedback(...)` / `list_interview_feedbacks(application_id)` — 管理复盘
+
+**📝 笔记**
+- `create_note(...)` / `list_notes(company_id)` / `update_note(...)` / `delete_note(note_id, confirm)` — 笔记 CRUD
+
+**📅 时间线**
+- `create_timeline_event(...)` / `list_timeline_events()` / `toggle_timeline_event(event_id)` — 管理节点
+
+**📄 简历**
+- `list_resumes()` / `get_default_resume()` — 查询简历版本
+
+**📊 统计**
+- `get_statistics()` — 获取 Dashboard 核心指标
+
+**🔍 评估**
+- `evaluate_jd(jd_text, company_name, task_id)` — 单 JD 评估
+- `batch_evaluate_jds(jds)` — 批量评估多个 JD
+
+**🔄 轨迹 & 任务**
+- `record_agent_trace(...)` — 记录任务轨迹
+- `list_agent_tasks(status, limit)` / `get_agent_task(task_id)` — 查询任务
+- `clear_agent_traces(confirm)` — 清空轨迹
+
+**🔔 系统**
+- `notify_db_changed()` — 通知 UI 刷新
+
+### 2. Agent REST API 与 Task/Trace 轨迹
+
+- **REST 接口**：`/api/v1/companies/search`、`/api/v1/companies/<id>/score`、`/api/v1/profile`、`/api/agent/tasks`、`/api/v1/traces`
+- **Agent Task Center & Trace 界面**：访问 `http://127.0.0.1:5000/traces` 实时审查后台智能体的任务状态、思考推演与事件日志。
+
+---
+
+## 🎯 设计哲学
+
+JHTracker 围绕三个核心原则构建，指导所有功能设计和开发决策：
+
+### Agent-First（智能体优先）
+
+MCP 是系统的主要编程接口，REST API 是 fallback。所有操作优先通过 MCP 工具暴露给 Agent，让智能体能完成一切能做的事。Skill 是 Agent 的操作手册，告诉 Agent 在什么场景下用什么工具、按什么顺序调用。
+
+| 体现 | 说明 |
+|---|---|
+| 36 个 MCP 工具 | 覆盖全部 11 个数据域，Agent 无需 HTTP 即可操作全部功能 |
+| MCP 是主通道 | Agent 通过 MCP 协议通信，REST API 仅在 MCP 不可用时作为备用 |
+| Skill 驱动 | 4 个核心 Skill 指导 Agent 何时调用哪些工具，实现复杂工作流 |
+
+### Human-in-the-Loop（人在回路）
+
+AI Agent 负责所有能做的操作，但人在关键决策点保留最终控制权。删除操作需要显式确认，投递决策必须经过审批。
+
+| 操作类型 | 权限 |
+|---|---|
+| 读操作（查询公司、投递、笔记等） | Agent 自主执行 |
+| 创建/更新操作（创建公司、写笔记、更新状态等） | Agent 自主执行 |
+| 删除操作（删除公司、笔记、记忆规则等） | 需传 `confirm=True` |
+| 投递决策（批准/拒绝推荐岗位） | Agent 推荐 → 人在 Decision Inbox 审批 |
+
+### Data Sovereignty（数据主权）
+
+100% 本地存储，数据不离开用户电脑，零云依赖。所有数据可备份、可恢复、可迁移。
+
+- SQLite 数据库 + 本地文件系统
+- 备份导出 ZIP 包（JSON + 简历文件）
+- 支持跨机器完整恢复
 
 ---
 
@@ -178,6 +307,28 @@ python scripts/ai_scorer.py --dry-run
 ```
 
 未配置 API Key 时，系统自动降级为关键词预筛评分，功能不受影响。
+
+### 批量归纳正向偏好规则
+
+`scripts/induce_positive_rules.py` 从历史 `approve` 记录离线 LLM 归纳 `prefer_*` 正向偏好规则，反哺 `evaluate_jd` 的正向加分。复用 `ai_scorer.py` 的「裸 sqlite3 + 批量 LLM + profile 指纹缓存」骨架，省 token、质量优先：
+
+```bash
+# 增量归纳（approve 列表 + profile 未变则跳过 LLM）
+python scripts/induce_positive_rules.py
+
+# 强制重新归纳（忽略指纹缓存）
+python scripts/induce_positive_rules.py --force
+
+# 自定义批量大小（一次 prompt 处理 N 条 approve，默认 15）
+python scripts/induce_positive_rules.py --batch-size 20
+
+# 仅预览归纳结果，不写库
+python scripts/induce_positive_rules.py --dry-run
+```
+
+指纹缓存文件 `data/.positive_induction_fingerprint`，无新 approve 时自动跳过 LLM 调用。归纳结果通过 `_upsert_memory_rule` 按 `(category, rule_value)` 去重写入 `memories` 表。未配置 API Key 时降级跳过并 log warning，不影响主流程。
+
+> 也可通过 MCP `add_memory_rule(polarity='positive', ...)` 或 REST 端点手动增删正向规则，修正归纳偏差。
 
 ## Company Finder Skill（智能体自动检索入库）
 
@@ -462,15 +613,6 @@ python -m pytest tests/
 ```
 
 贡献指南见 [CONTRIBUTING.md](CONTRIBUTING.md)。
-
-## ⚠️ 免责声明
-
-本项目为 **100% Vibe Coding** 产物——所有代码均由 AI 编写，**尚未经过完整人工审核**。
-
-- 可能存在逻辑缺陷、安全漏洞或边界场景未覆盖
-- 单元测试虽通过，但不保证生产环境可靠性
-- 建议在本地环境使用，**不要直接用于关键业务或部署到公网**
-- 使用前请自行审查代码，欢迎提 Issue 或 PR 协助改进
 
 ## License
 

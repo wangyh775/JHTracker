@@ -53,6 +53,40 @@ COMPANY_TYPES = ['民企', '央企', '国企', '合资', '外企-美国', '外�
 SCALE_CHOICES = ['少于50人', '50-200人', '200-1000人', '1000-5000人', '5000人以上']
 FINANCING_STAGE_CHOICES = ['未融资', '天使轮', 'A轮', 'B轮', 'C轮', 'D轮及以上', '已上市', '国企', '外企']
 
+# ============================================================
+# Memory Engine：双向偏好规则
+# ============================================================
+# 正向（approve 产生）：用户偏好/期望
+MEMORY_CATEGORIES_POSITIVE = [
+    'prefer_tech',       # 偏好技术栈，如 ROS、C++、Python
+    'prefer_domain',     # 偏好领域，如 robotics、3d打印
+    'prefer_company',    # 偏好公司
+    'salary_expected',   # 期望薪资下限
+    'culture_fit',       # 文化契合偏好
+]
+# 负向（reject 产生）：排除规则
+MEMORY_CATEGORIES_NEGATIVE = [
+    'exclude_tech',      # 排除技术栈
+    'exclude_company',   # 排除公司
+    'salary_too_low',    # 薪资过低
+    'general',           # 通用负向
+]
+MEMORY_CATEGORIES = MEMORY_CATEGORIES_POSITIVE + MEMORY_CATEGORIES_NEGATIVE
+MEMORY_POSITIVE_PREFIX = 'prefer_'
+
+
+def memory_polarity(category):
+    """根据 category 判断极性。返回 'positive' / 'negative'。
+
+    正向规则以 'prefer_' 前缀开头，其余视为负向。
+    """
+    if category and category.startswith(MEMORY_POSITIVE_PREFIX):
+        return 'positive'
+    # salary_expected 是正向例外（不以 prefer_ 开头）
+    if category == 'salary_expected':
+        return 'positive'
+    return 'negative'
+
 def infer_priority(name):
     """根据公司名推断优先级，默认 B。"""
     for p, keywords in PRIORITY_RULES.items():

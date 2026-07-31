@@ -33,6 +33,7 @@ class Application(db.Model):
     __tablename__ = 'applications'
     id = db.Column(db.Integer, primary_key=True)
     company_id = db.Column(db.Integer, db.ForeignKey('companies.id'), nullable=False)
+    resume_id = db.Column(db.Integer, db.ForeignKey('resumes.id'), nullable=True)  # 关联投递使用的特定简历版本
     position = db.Column(db.String(200))
     channel = db.Column(db.String(50))
     status = db.Column(db.String(50), default='待投递')
@@ -55,16 +56,23 @@ class Application(db.Model):
 
     feedbacks = db.relationship('InterviewFeedback', backref='application',
                                 cascade='all,delete-orphan', lazy='dynamic')
+    decision_feedbacks = db.relationship('DecisionFeedback', backref='application',
+                                         cascade='all,delete-orphan', lazy='dynamic')
     memories = db.relationship('Memory', backref='application', cascade='all,delete-orphan', lazy='dynamic')
+    resume = db.relationship('Resume', backref='applications', lazy='select')
 
 
 class Memory(db.Model):
     __tablename__ = 'memories'
     id = db.Column(db.Integer, primary_key=True)
     application_id = db.Column(db.Integer, db.ForeignKey('applications.id'), nullable=True)
-    category = db.Column(db.String(50), nullable=False)  # exclude_tech, exclude_company, salary_too_low, general
-    rule_value = db.Column(db.String(200))  # 结构化值 (如 Java, 外包)
-    raw_feedback = db.Column(db.Text)  # 人类原始拒绝评语
+    # 双向偏好规则：正向 prefer_* / salary_expected（approve 产生），负向 exclude_* / salary_too_low / general（reject 产生）
+    # 详见 constants.MEMORY_CATEGORIES 与 constants.memory_polarity()
+    category = db.Column(db.String(50), nullable=False)
+    # 结构化值（如 ROS、外包、15000）；可为空，由批量归纳脚本补齐；不应存长文本反馈
+    rule_value = db.Column(db.String(200))
+    # 人类原始评语（approve/reject 均可），自由文本
+    raw_feedback = db.Column(db.Text)
     created_at = db.Column(db.DateTime, default=datetime.now)
 
 
@@ -138,4 +146,15 @@ class AgentEvent(db.Model):
     event_type = db.Column(db.String(50), nullable=False)
     payload_json = db.Column(db.Text)
     created_at = db.Column(db.DateTime, default=datetime.now)
+
+
+class DecisionFeedback(db.Model):
+    __tablename__ = 'decision_feedbacks'
+    id = db.Column(db.Integer, primary_key=True)
+    application_id = db.Column(db.Integer, db.ForeignKey('applications.id'), nullable=False)
+    action = db.Column(db.String(50), nullable=False)  # approve, reject, edit
+    reason_category = db.Column(db.String(50))  # tech_mismatch, salary_low, company_reputation, location, general
+    raw_feedback = db.Column(db.Text)
+    created_at = db.Column(db.DateTime, default=datetime.now)
+
 
