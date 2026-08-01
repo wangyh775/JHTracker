@@ -18,6 +18,10 @@ class TestPublicPages:
         r = client.get('/applications')
         assert r.status_code == 200
 
+    def test_to_apply_list_ok(self, client):
+        r = client.get('/to-apply')
+        assert r.status_code == 200
+
     def test_notes_list_ok(self, client):
         r = client.get('/notes')
         assert r.status_code == 200
@@ -83,6 +87,29 @@ class TestCompanyRoutes:
 
 
 class TestApplicationRoutes:
+    def test_application_add_with_resume_id(self, client, app):
+        from models import Resume
+        with app.app_context():
+            c = Company(name='ResumeBindingCo', priority='A')
+            r = Resume(name='Embedded Resume v1', file_path='data/resumes/embedded.pdf')
+            db.session.add_all([c, r])
+            db.session.commit()
+            c_id = c.id
+            r_id = r.id
+
+        res = client.post('/applications/add', data={
+            'company_id': c_id,
+            'position': '嵌入式算法工程师',
+            'resume_id': r_id,
+            'status': '待投递'
+        }, follow_redirects=False)
+        assert res.status_code == 302
+        with app.app_context():
+            app_obj = Application.query.filter_by(company_id=c_id).first()
+            assert app_obj is not None
+            assert app_obj.resume_id == r_id
+            assert app_obj.resume.name == 'Embedded Resume v1'
+
     def test_application_status_update(self, client, app):
         with app.app_context():
             c = Company(name='投递测试公司', priority='B')

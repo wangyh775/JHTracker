@@ -10,57 +10,54 @@ JHTracker 是一个**本地优先**的单体 Flask 应用：浏览器直接访�
 
 ```mermaid
 flowchart TB
-    accTitle: Layered Architecture
-    accDescr: Client to presentation to business services to data layer, with AI skills as external optional integration
+    accTitle: JHTracker Agent-Native Career OS Architecture
+    accDescr: Client and external host agents interact through MCP Server and Unified Tool Layer with Memory Engine, Agent Task & Trace Feed, and SQLite Storage
 
-    subgraph client ["🖥️ 客户端"]
-        browser["浏览器<br/>Bootstrap 5 + Chart.js + 原生 JS"]
+    subgraph hosts ["🤖 外部 Host Agents / 客户端"]
+        browser["🖥️ 浏览器 (Bootstrap 5 + Chart.js)"]
+        external_agents["🤖 外部 Host Agents<br/>(Hermes / Claude Desktop / Cursor / OpenCode)"]
     end
 
-    subgraph flask ["🌐 Flask 应用层"]
-        factory["app.py<br/>create_app 工厂"]
-        bp["routes/ ×9 blueprint<br/>页面渲染 + 表单处理"]
-        ctx["context_processor<br/>全局模板变量"]
+    subgraph mcp ["⚡ MCP Server & Unified Tool Layer"]
+        mcp_tools["mcp_server.py (FastMCP)<br/>• evaluate_jd / search_companies<br/>• create_application / record_agent_trace"]
     end
 
-    subgraph biz ["⚙️ 业务逻辑层"]
-        services["services/<br/>settings.py / archive.py"]
-        utils["utils.py<br/>日期/薪资/表格解析"]
+    subgraph app ["🌐 Flask 应用与 API 层"]
+        factory["app.py 工厂"]
+        bp["routes/ ×10 Blueprints"]
+        agent_api["routes/agent_api.py<br/>/api/agent/tasks & /api/v1/traces"]
     end
 
-    subgraph data ["💾 数据层"]
-        db[("SQLite<br/>data/tracker.db")]
-        files["data/<br/>resumes/ backups/ profile.md settings.json"]
-        career["career_data/<br/>企业清单_*.md"]
+    subgraph engine ["🧠 Memory Engine & Core State"]
+        profile["Profile 画像 (data/profile.md)"]
+        memories["Negative Rules & Human Feedback"]
+        resume_bind["Resume Binding (resumes.id <-> applications.resume_id)"]
     end
 
-    subgraph ai ["🤖 AI 能力（可选）"]
-        scorer["scripts/ai_scorer.py<br/>两阶段评分引擎"]
-        skills["skills/ ×8<br/>智能体 Skill 工作流"]
-        llm["LLM API<br/>Anthropic / OpenAI 兼容"]
+    subgraph storage ["💾 数据层"]
+        db[("SQLite (data/tracker.db)<br/>companies, applications, memories, agent_tasks, agent_events")]
+        files["data/<br/>resumes/ backups/ settings.json"]
     end
 
     browser --> factory
+    external_agents -->|MCP Protocol| mcp_tools
+    mcp_tools --> engine
+    mcp_tools --> agent_api
     factory --> bp
-    bp --> services
-    bp --> utils
+    bp --> engine
     bp --> db
-    bp --> files
-    services --> db
-    utils --> career
-    scorer --> db
-    skills --> scorer
-    scorer --> llm
+    agent_api --> db
+    engine --> storage
 
     classDef app fill:#dbeafe,stroke:#2563eb,stroke-width:2px,color:#1e3a5f
-    classDef biz fill:#fef3c7,stroke:#d97706,stroke-width:2px,color:#78350f
-    classDef data fill:#dcfce7,stroke:#16a34a,stroke-width:2px,color:#14532d
-    classDef ai fill:#fae8ff,stroke:#9333ea,stroke-width:2px,color:#581c87
+    classDef mcp fill:#fae8ff,stroke:#c084fc,stroke-width:2px,color:#6b21a8
+    classDef engine fill:#dcfce7,stroke:#22c55e,stroke-width:2px,color:#15803d
+    classDef storage fill:#f1f5f9,stroke:#64748b,stroke-width:2px,color:#334155
 
-    class factory,bp,ctx app
-    class services,utils biz
-    class db,files,career data
-    class scorer,skills,llm ai
+    class factory,bp,agent_api app
+    class mcp_tools mcp
+    class profile,memories,resume_bind engine
+    class db,files storage
 ```
 
 ---
@@ -204,6 +201,9 @@ career-tracker/
 | **设置存 JSON** | `data/settings.json` + 环境变量默认值 | 用户可改设置但无需动代码；`services/settings.py` 统一读写 |
 | **归档节流** | `data/.archive_last_run` 每日一次 | 自动归档不打扰，规则见 `services/archive.py:80` |
 | **前端零构建** | Bootstrap 5 + 原生 JS，vendor 本地化 | 双击 `start.bat` 即可用，无 npm 依赖 |
+| **MCP 覆盖全部 REST API 能力** | MCP 工具从 9 扩至 36 个，覆盖 11 个数据域 | Agent 通过 MCP 协议即可完成全部操作，无需 HTTP fallback |
+| **Agent 自主执行 / 删除需审批** | 读/创建/更新操作 Agent 自主执行；删除操作需传 `confirm=True` | 在自动化效率和数据安全之间取得平衡 |
+| **三原则设计哲学** | Agent-First + Human-in-the-Loop + Data Sovereignty | 统一指导所有功能设计和开发决策 |
 
 ---
 

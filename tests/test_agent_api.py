@@ -1,5 +1,6 @@
 """Unit tests for Agent API endpoints (/api/v1/)."""
 import json
+import sqlite3
 import pytest
 from extensions import db
 from models import Company, Application, Memory, AgentTask, AgentEvent, DecisionFeedback
@@ -114,7 +115,7 @@ class TestAgentAPI:
         data = res.get_json()
         assert data['status'] == 'success'
         assert data['application']['company_id'] == c_id
-        assert data['application']['status'] == '待投递'
+        assert data['application']['status'] == 'Pending Approval'
         assert data['application']['match_score'] == 95
         assert data['application']['agent_reason'] == 'High stack match'
 
@@ -203,6 +204,29 @@ class TestMCPToolsDirectly:
         res = json.loads(res_raw)
         assert res['status'] == 'success'
         assert profile_file.read_text(encoding='utf-8') == "## Education\n- BS CS"
+
+    def test_agent_mutation_active_record_mcp_rejected(self, tmp_path, monkeypatch):
+        import mcp_server
+        db_file = tmp_path / "tracker.db"
+        monkeypatch.setattr(mcp_server, "DB_PATH", str(db_file))
+
+        # Setup schema
+        conn = sqlite3.connect(str(db_file))
+        conn.execute("""
+            CREATE TABLE companies (id INTEGER PRIMARY KEY, name TEXT);
+        """)
+        conn.execute("""
+            CREATE TABLE applications (id INTEGER PRIMARY KEY, company_id INTEGER, position TEXT, status TEXT, updated_at DATETIME);
+        """)
+        conn.execute("INSERT INTO companies (id, name) VALUES (1, 'Test Co')")
+        conn.execute("INSERT INTO applications (id, company_id, position, status) VALUES (10, 1, 'Dev', '已投递')")
+        conn.commit()
+        conn.close()
+
+        res_raw = mcp_server.update_application_status(10, 'Offer')
+        res = json.loads(res_raw)
+        assert res['status'] == 'error'
+        assert 'POST_APPLY_STATUS_LIST' in res['message']
 
     def test_record_agent_trace_mcp(self, tmp_path, monkeypatch):
         import mcp_server
@@ -351,8 +375,8 @@ class TestDecisionInboxAPI:
         with app.app_context():
             a1 = db.session.get(Application, id1)
             a2 = db.session.get(Application, id2)
-            assert a1.status == 'Applied'
-            assert a2.status == 'Rejected'
+            assert a1.status == '待投递'
+            assert a2.status == '已拒'
             fb = DecisionFeedback.query.filter_by(application_id=id2).first()
             assert fb is not None
             assert fb.action == 'reject'

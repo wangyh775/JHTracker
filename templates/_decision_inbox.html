@@ -1,0 +1,42 @@
+{% if not proposals or proposals|length == 0 %}
+<div class="text-secondary small text-center py-3">
+  <i class="bi bi-check-circle me-1 text-success"></i>当前没有需要您人工审批的岗位推荐
+</div>
+{% else %}
+<div class="d-flex flex-column gap-2">
+  {% for p in proposals %}
+  <div class="p-2 rounded border border-secondary" style="background:#18181b; border-color:#27272a !important;">
+    <div class="d-flex justify-content-between align-items-start mb-1">
+      <div>
+        <span class="badge bg-warning text-dark me-1" style="font-size: 0.7rem;">{{ p.match_score ~ '分' if p.match_score else '待评' }}</span>
+        <strong class="text-light small">{{ p.company_name or '未知公司' }}</strong>
+      </div>
+      <div class="btn-group btn-group-sm">
+        <button class="btn btn-sm btn-success py-0 px-2" style="font-size:0.75rem;" onclick="approveProposal({{ p.application_id }})">
+          <i class="bi bi-check-lg"></i>批准
+        </button>
+        <button class="btn btn-sm btn-outline-danger py-0 px-2" style="font-size:0.75rem;" onclick="openRejectModal({{ p.application_id }})">
+          <i class="bi bi-x-lg"></i>拒绝
+        </button>
+      </div>
+    </div>
+    <div class="text-info fw-medium small mb-1" style="font-size:0.8rem;">{{ p.position }}</div>
+
+    {% if p.agent_reason %}
+    <div class="small text-secondary p-1 rounded mb-1 border border-secondary" style="background:#09090b; font-size:0.75rem; line-height:1.3;">
+      <i class="bi bi-robot text-primary me-1"></i>{{ p.agent_reason }}
+    </div>
+    {% endif %}
+
+    <div class="d-flex justify-content-between align-items-center text-secondary" style="font-size:0.7rem;">
+      <span>{{ p.created_at or '' }}</span>
+      {% if p.source_url %}
+        <a href="{{ p.source_url }}" target="_blank" class="text-decoration-none text-info">
+          原始 JD <i class="bi bi-box-arrow-up-right ms-1"></i>
+        </a>
+      {% endif %}
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}

@@ -1,6 +1,6 @@
 # 数据库设计
 
-_JHTracker 的数据模型：6 张表、字段说明、实体关系与迁移管理。定义见 `models.py`，迁移脚本位于 `migrations/versions/`。_
+_JHTracker 的数据模型：10 张表、字段说明、实体关系与迁移管理。定义见 `models.py`，迁移脚本位于 `migrations/versions/`。_
 
 ---
 
@@ -16,6 +16,8 @@ _JHTracker 的数据模型：6 张表、字段说明、实体关系与迁移管�
 | `resumes` | `Resume` | 简历版本 | 无外键 |
 | `agent_tasks` | `AgentTask` | Agent 任务日志与状态 | 1:N agent_events |
 | `agent_events` | `AgentEvent` | Agent 推理与执行步骤事件 | N:1 agent_task |
+| `decision_feedbacks` | `DecisionFeedback` | 人类决策反馈（HITL 审核记录） | N:1 application |
+| `memories` | `Memory` | 负向规则记忆（排除技术栈/公司/薪资） | N:1 application |
 
 ---
 
@@ -27,6 +29,8 @@ erDiagram
     companies ||--o{ notes : "被记录"
     applications ||--o{ interview_feedbacks : "包含"
     agent_tasks ||--o{ agent_events : "包含"
+    applications ||--o{ decision_feedbacks : "记录决策反馈"
+    applications ||--o{ memories : "记录负向记忆"
     agent_tasks {
         int id PK
         string task_id UK "任务 UUID"
@@ -66,6 +70,7 @@ erDiagram
     applications {
         int id PK
         int company_id FK
+        int resume_id FK "关联简历版本，可空"
         string position "岗位名称"
         string channel "投递渠道"
         string status "状态机"
@@ -77,6 +82,10 @@ erDiagram
         string url "投递链接"
         text feedback "备注反馈"
         string offer_status "pending/accepted/rejected"
+        int match_score "AI 匹配得分 0-100"
+        text agent_reason "AI 推荐理由"
+        string agent_task_id "关联抓取任务 ID"
+        string source_url "原始岗位链接"
         boolean is_archived "是否归档"
         datetime archived_at "归档时间"
         datetime created_at
@@ -122,6 +131,22 @@ erDiagram
         text note "备注"
         boolean is_default "是否默认"
         string pdf_path "DOCX 转出的 PDF 预览路径"
+        datetime created_at
+    }
+    decision_feedbacks {
+        int id PK
+        int application_id FK "关联 applications.id"
+        string action "approve/reject/edit"
+        string reason_category "tech_mismatch/salary_low/company_reputation/location/general"
+        text raw_feedback "人类原始拒绝评语"
+        datetime created_at
+    }
+    memories {
+        int id PK
+        int application_id FK "关联 applications.id，可空"
+        string category "exclude_tech/exclude_company/salary_too_low/general"
+        string rule_value "结构化值（如 Java、外包）"
+        text raw_feedback "人类原始拒绝评语"
         datetime created_at
     }
 ```
@@ -211,6 +236,7 @@ flowchart LR
 | `8f5f295b6215` | 初始：company salary / application offer 等基础字段 |
 | `a1b2c3d4e5f6` | 投递记录新增归档字段 `is_archived` / `archived_at` |
 | `3ccaa5ea3b4a` | 简历表新增 DOCX→PDF 预览路径 `pdf_path` |
+| `c3d4e5f6a7b8` | 新增 `decision_feedbacks` 表（HITL 决策反馈） |
 
 **新增字段的标准流程**（详见 [development.md](development.md#数据库迁移)）：
 

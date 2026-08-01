@@ -3,7 +3,7 @@ from datetime import date, datetime
 import pytest
 
 from extensions import db
-from models import Company, Application, Note, Resume, Timeline, InterviewFeedback
+from models import Company, Application, Note, Resume, Timeline, InterviewFeedback, DecisionFeedback
 
 
 class TestCompany:
@@ -111,3 +111,27 @@ class TestInterviewFeedback:
             db.session.delete(a)
             db.session.commit()
             assert InterviewFeedback.query.count() == 0
+
+
+class TestDecisionFeedback:
+    def test_decision_feedback_relationship(self, app):
+        with app.app_context():
+            c = Company(name='Decision Co 2', priority='A')
+            db.session.add(c)
+            db.session.commit()
+            a = Application(company_id=c.id, position='Robotics Eng', status='Pending Approval')
+            db.session.add(a)
+            db.session.commit()
+
+            df = DecisionFeedback(application_id=a.id, action='reject', reason_category='salary_low', raw_feedback='Salary below target')
+            db.session.add(df)
+            db.session.commit()
+
+            assert a.decision_feedbacks.count() == 1
+            assert a.decision_feedbacks.first().action == 'reject'
+            assert a.decision_feedbacks.first().raw_feedback == 'Salary below target'
+
+            db.session.delete(a)
+            db.session.commit()
+            assert DecisionFeedback.query.count() == 0
+

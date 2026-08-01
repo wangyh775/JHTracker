@@ -1,8 +1,8 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-  <div class="dashboard-title"><i class="bi bi-speedometer2 me-2 text-primary"></i>工作看板</div>
-  <span class="text-secondary">{{ now().strftime('%Y-%m-%d %H:%M') }}</span>
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <div class="dashboard-title"><i class="bi bi-speedometer2 me-2 text-primary"></i>求职工作台</div>
+  <span class="text-secondary small"><i class="bi bi-clock me-1"></i>{{ now().strftime('%Y-%m-%d %H:%M') }}</span>
 </div>
 
 {% if urgent_deadlines %}
@@ -24,140 +24,229 @@
 </div>
 {% endif %}
 
-<!-- Stats Row -->
-<div class="row g-3 mb-4">
-  <div class="col-md-2">
-    <div class="stat-card text-center">
-      <div class="num text-white">{{ total }}</div>
-      <div class="small text-secondary">目标公司</div>
-    </div>
+{% if ai_briefing %}
+<!-- AI Daily Briefing Card -->
+<div class="card mb-4 border-primary" style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(24, 24, 27, 0.95) 100%);">
+  <div class="card-header border-0 d-flex justify-content-between align-items-center bg-transparent pt-3 px-3 pb-0">
+    <span class="fw-bold text-light fs-6"><i class="bi bi-lightbulb-fill text-warning me-2"></i>AI Daily Briefing (每日智能简报)</span>
+    <span class="badge text-white px-2 py-1" style="background: var(--accent);">AI Agent Assistant</span>
   </div>
-  <div class="col-md-2">
-    <div class="stat-card text-center">
-      <div class="num text-info">{{ applied }}</div>
-      <div class="small text-secondary">已投递</div>
-    </div>
-  </div>
-  <div class="col-md-2">
-    <div class="stat-card text-center">
-      <div class="num text-warning">{{ interviews }}</div>
-      <div class="small text-secondary">面试中</div>
-    </div>
-  </div>
-  <div class="col-md-2">
-    <div class="stat-card text-center">
-      <div class="num text-success">{{ offers }}</div>
-      <div class="small text-secondary">Offer</div>
-    </div>
-  </div>
-  <div class="col-md-2">
-    <div class="stat-card text-center">
-      <div class="num text-secondary">{{ rejected }}</div>
-      <div class="small text-secondary">已拒/不合适</div>
-    </div>
-  </div>
-  <div class="col-md-2">
-    <div class="stat-card text-center">
-      <div class="num text-primary">{{ "%.0f"|format(offers/applied*100 if applied else 0) }}%</div>
-      <div class="small text-secondary">转化率</div>
+  <div class="card-body p-3">
+    <div class="row g-3">
+      {% if ai_briefing.stale_unanswered %}
+      <div class="col-md-6">
+        <div class="p-3 rounded bg-zinc-900 border border-zinc-800" style="background:#18181b; border:1px solid #27272a;">
+          <div class="fw-bold text-warning small mb-2"><i class="bi bi-clock-history me-1"></i>需要 Follow-up 的投递 (超过 7 天无响应)</div>
+          <ul class="list-unstyled mb-0 small">
+            {% for a in ai_briefing.stale_unanswered %}
+            <li class="d-flex justify-content-between align-items-center py-1">
+              <span><a href="/companies/{{ a.company_id }}" class="text-decoration-none text-light fw-medium">{{ a.company.name if a.company else '未知公司' }}</a> — {{ a.position }}</span>
+              <span class="badge bg-secondary">{{ a.status }}</span>
+            </li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+      {% endif %}
+
+      {% if ai_briefing.high_match_pending %}
+      <div class="col-md-6">
+        <div class="p-3 rounded bg-zinc-900 border border-zinc-800" style="background:#18181b; border:1px solid #27272a;">
+          <div class="fw-bold text-success small mb-2"><i class="bi bi-stars me-1"></i>高匹配度待审批推荐 (≥80分)</div>
+          <ul class="list-unstyled mb-0 small">
+            {% for a in ai_briefing.high_match_pending %}
+            <li class="d-flex justify-content-between align-items-center py-1">
+              <span><strong class="text-light">{{ a.company.name if a.company else '未知公司' }}</strong> — {{ a.position }}</span>
+              <span class="badge bg-success">{{ a.match_score }}分匹配</span>
+            </li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+      {% endif %}
+
+      {% if not ai_briefing.stale_unanswered and not ai_briefing.high_match_pending %}
+      <div class="col-12 text-center text-secondary small py-2">
+        <i class="bi bi-check-all text-success me-1 fs-5"></i>目前求职进展顺利，没有需要紧急 Follow-up 的投递。
+      </div>
+      {% endif %}
     </div>
   </div>
 </div>
+{% endif %}
 
-<div class="row g-3 mb-4">
-  <!-- Funnel -->
-  <div class="col-md-5">
-    <div class="card">
-      <div class="card-body">
-        <h6 class="card-title mb-3"><i class="bi bi-funnel me-2"></i>投递漏斗</h6>
-        {% for s in ['待投递','已投递','简历筛选','笔试','一面','二面','终面','Offer','已拒'] %}
-        <div class="funnel-row">
-          <div class="funnel-label text-secondary">{{ s }}</div>
-          <div class="funnel-bar-wrap">
-            <div class="funnel-bar-fill bg-{{ status_badge[s] }}"
-                 style="width: {{ (funnel[s]/max_funnel * 100) if max_funnel else 0 }}%;
-                        background: {% if s=='Offer' %}#198754{% elif s=='已拒'%}#dc3545{% elif s=='待投递'%}#6c757d{% elif s in ['一面','二面','终面']%}#ffc107{% elif s=='笔试'%}#0d6efd{% else %}#0dcaf0{% endif %};"></div>
-          </div>
-          <div class="funnel-count text-secondary">{{ funnel[s] }}</div>
-        </div>
-        {% endfor %}
-      </div>
-    </div>
-  </div>
-
-  <!-- Charts -->
-  <div class="col-md-3">
-    <div class="card h-100">
-      <div class="card-body">
-        <h6 class="card-title mb-3"><i class="bi bi-geo-alt me-2"></i>城市分布</h6>
-        {% if city_counts %}
-        <div style="height: 240px; position: relative;">
-          <canvas id="cityChart"></canvas>
-        </div>
-        {% else %}
-        <div class="text-center text-secondary py-5">
-          <i class="bi bi-geo-alt fs-1"></i><br>暂无城市数据
-        </div>
-        {% endif %}
-      </div>
-    </div>
-  </div>
-  <div class="col-md-4">
-    <div class="card h-100">
-      <div class="card-body">
-        <h6 class="card-title mb-3"><i class="bi bi-pie-chart me-2"></i>行业分布</h6>
-        {% if ind_counts %}
-        <div style="height: 240px; position: relative;">
-          <canvas id="industryChart"></canvas>
-        </div>
-        {% else %}
-        <div class="text-center text-secondary py-5">
-          <i class="bi bi-pie-chart fs-1"></i><br>暂无行业数据
-        </div>
-        {% endif %}
-      </div>
-    </div>
-  </div>
-</div>
-
+<!-- Split Main Grid: Left Analytics (col-lg-8) + Right Agent Panel (col-lg-4) -->
 <div class="row g-3">
-  <!-- Priority breakdown & Scatter Chart -->
-  <div class="col-md-4">
-    <div class="card h-100">
-      <div class="card-body">
-        <h6 class="card-title mb-3"><i class="bi bi-flag me-2"></i>优先级分布</h6>
-        {% for p, c in pri_counts %}
-        <div class="d-flex justify-content-between align-items-center mb-2">
-          <span><span class="badge badge-priority-{{ p }}">{{ p }}</span></span>
-          <span class="text-secondary">{{ c }}家</span>
+
+  <!-- Left Main Analytics Area -->
+  <div class="col-lg-8 d-flex flex-column gap-3">
+
+    <!-- Stats Row -->
+    <div class="row g-2">
+      <div class="col-md-2 col-4">
+        <div class="stat-card text-center p-2">
+          <div class="num text-white fs-4">{{ total }}</div>
+          <div class="small text-secondary" style="font-size:0.75rem;">目标公司</div>
         </div>
-        {% endfor %}
+      </div>
+      <div class="col-md-2 col-4">
+        <div class="stat-card text-center p-2">
+          <div class="num text-info fs-4">{{ applied }}</div>
+          <div class="small text-secondary" style="font-size:0.75rem;">已投递</div>
+        </div>
+      </div>
+      <div class="col-md-2 col-4">
+        <div class="stat-card text-center p-2">
+          <div class="num text-warning fs-4">{{ interviews }}</div>
+          <div class="small text-secondary" style="font-size:0.75rem;">面试中</div>
+        </div>
+      </div>
+      <div class="col-md-2 col-4">
+        <div class="stat-card text-center p-2">
+          <div class="num text-success fs-4">{{ offers }}</div>
+          <div class="small text-secondary" style="font-size:0.75rem;">Offer</div>
+        </div>
+      </div>
+      <div class="col-md-2 col-4">
+        <div class="stat-card text-center p-2">
+          <div class="num text-secondary fs-4">{{ rejected }}</div>
+          <div class="small text-secondary" style="font-size:0.75rem;">已拒/不合适</div>
+        </div>
+      </div>
+      <div class="col-md-2 col-4">
+        <div class="stat-card text-center p-2">
+          <div class="num text-primary fs-4">{{ "%.0f"|format(offers/applied*100 if applied else 0) }}%</div>
+          <div class="small text-secondary" style="font-size:0.75rem;">转化率</div>
+        </div>
       </div>
     </div>
-  </div>
 
-  <div class="col-md-8">
-    <div class="card h-100">
-      <div class="card-body">
-        <h6 class="card-title mb-3"><i class="bi bi-graph-up-arrow me-2"></i>AI 匹配得分 vs 薪资分布 (k/月)</h6>
-        {% if score_salary_data %}
-        <div style="height: 180px; position: relative;">
-          <canvas id="scoreSalaryChart"></canvas>
+    <!-- Funnel + Charts Row -->
+    <div class="row g-3">
+      <!-- Funnel -->
+      <div class="col-md-6">
+        <div class="card h-100">
+          <div class="card-body p-3">
+            <h6 class="card-title mb-2 small fw-bold"><i class="bi bi-funnel me-2 text-primary"></i>投递漏斗</h6>
+            {% for s in ['待投递','已投递','简历筛选','笔试','一面','二面','终面','Offer','已拒'] %}
+            <div class="funnel-row">
+              <div class="funnel-label text-secondary" style="font-size:0.75rem;">{{ s }}</div>
+              <div class="funnel-bar-wrap">
+                <div class="funnel-bar-fill bg-{{ status_badge[s] }}"
+                     style="width: {{ (funnel[s]/max_funnel * 100) if max_funnel else 0 }}%;
+                            background: {% if s=='Offer' %}#198754{% elif s=='已拒'%}#dc3545{% elif s=='待投递'%}#6c757d{% elif s in ['一面','二面','终面']%}#ffc107{% elif s=='笔试'%}#0d6efd{% else %}#0dcaf0{% endif %};"></div>
+              </div>
+              <div class="funnel-count text-secondary" style="font-size:0.75rem;">{{ funnel[s] }}</div>
+            </div>
+            {% endfor %}
+          </div>
         </div>
-        {% else %}
-        <div class="text-center text-secondary py-4">
-          <i class="bi bi-graph-up fs-1"></i><br>暂无 AI 评分与薪资数据
+      </div>
+
+      <!-- Charts -->
+      <div class="col-md-3 col-6">
+        <div class="card h-100">
+          <div class="card-body p-3">
+            <h6 class="card-title mb-2 small fw-bold"><i class="bi bi-geo-alt me-2 text-info"></i>城市分布</h6>
+            {% if city_counts %}
+            <div style="height: 200px; position: relative;">
+              <canvas id="cityChart"></canvas>
+            </div>
+            {% else %}
+            <div class="text-center text-secondary py-4 small">
+              <i class="bi bi-geo-alt fs-2 opacity-50"></i><br>暂无城市数据
+            </div>
+            {% endif %}
+          </div>
         </div>
-        {% endif %}
+      </div>
+      <div class="col-md-3 col-6">
+        <div class="card h-100">
+          <div class="card-body p-3">
+            <h6 class="card-title mb-2 small fw-bold"><i class="bi bi-pie-chart me-2 text-warning"></i>行业分布</h6>
+            {% if ind_counts %}
+            <div style="height: 200px; position: relative;">
+              <canvas id="industryChart"></canvas>
+            </div>
+            {% else %}
+            <div class="text-center text-secondary py-4 small">
+              <i class="bi bi-pie-chart fs-2 opacity-50"></i><br>暂无行业数据
+            </div>
+            {% endif %}
+          </div>
+        </div>
       </div>
     </div>
+
+    <!-- Priority breakdown & Scatter Chart -->
+    <div class="row g-3">
+      <div class="col-md-4">
+        <div class="card h-100">
+          <div class="card-body p-3">
+            <h6 class="card-title mb-2 small fw-bold"><i class="bi bi-flag me-2 text-danger"></i>优先级分布</h6>
+            {% for p, c in pri_counts %}
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <span><span class="badge badge-priority-{{ p }}">{{ p }}</span></span>
+              <span class="text-secondary small">{{ c }}家</span>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-8">
+        <div class="card h-100">
+          <div class="card-body p-3">
+            <h6 class="card-title mb-2 small fw-bold"><i class="bi bi-graph-up-arrow me-2 text-success"></i>AI 匹配得分 vs 薪资分布 (k/月)</h6>
+            {% if score_salary_data %}
+            <div style="height: 160px; position: relative;">
+              <canvas id="scoreSalaryChart"></canvas>
+            </div>
+            {% else %}
+            <div class="text-center text-secondary py-4 small">
+              <i class="bi bi-graph-up fs-2 opacity-50"></i><br>暂无 AI 评分与薪资数据
+            </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+
   </div>
 
-  <!-- Upcoming timeline -->
-  <div class="col-md-4">
+  <!-- Right Agent Co-Pilot Panel -->
+  <div class="col-lg-4 d-flex flex-column gap-3">
+
+    <!-- Decision Inbox (HITL Pending Proposals) -->
+    <div class="card border-warning">
+      <div class="card-header border-warning d-flex justify-content-between align-items-center py-2 px-3">
+        <span class="fw-bold text-light small"><i class="bi bi-inbox me-2 text-warning"></i>Decision Inbox (待审批推荐)</span>
+        <button class="btn btn-sm btn-outline-warning py-0 px-2" style="font-size:0.75rem;" hx-get="/api/agent/decisions/pending-html" hx-target="#decisionInboxFeed"><i class="bi bi-arrow-clockwise"></i></button>
+      </div>
+      <div class="card-body p-2" style="max-height: 380px; overflow-y: auto;">
+        <div id="decisionInboxFeed" hx-get="/api/agent/decisions/pending-html" hx-trigger="load, every 15s" hx-swap="innerHTML">
+          <div class="text-secondary small text-center py-3">加载待审批推荐中...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Agent Task Center & Activity Feed -->
+    <div class="card border-secondary">
+      <div class="card-header border-secondary d-flex justify-content-between align-items-center py-2 px-3">
+        <span class="fw-bold text-light small"><i class="bi bi-cpu me-2 text-primary"></i>Agent Task Center</span>
+        <button class="btn btn-sm btn-outline-primary py-0 px-2" style="font-size:0.75rem;" hx-get="/api/agent/tasks-html" hx-target="#agentTasksFeed"><i class="bi bi-arrow-clockwise"></i></button>
+      </div>
+      <div class="card-body p-2" style="max-height: 260px; overflow-y: auto;">
+        <div id="agentTasksFeed" hx-get="/api/agent/tasks-html" hx-trigger="load, every 15s" hx-swap="innerHTML">
+          <div class="text-secondary small text-center py-3">加载 Agent 任务中...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Upcoming timeline & Recent activity -->
     <div class="card">
-      <div class="card-body">
-        <h6 class="card-title mb-3"><i class="bi bi-bell me-2"></i>待办节点</h6>
+      <div class="card-body p-3">
+        <h6 class="card-title mb-2 small fw-bold"><i class="bi bi-bell me-2 text-warning"></i>待办节点</h6>
         {% for t in upcoming %}
         <div class="d-flex align-items-start mb-2">
           <a href="/timeline#item-{{ t.id }}" class="text-decoration-none text-white d-flex align-items-start w-100">
@@ -173,19 +262,16 @@
         {% endfor %}
       </div>
     </div>
-  </div>
 
-  <!-- Recent activity -->
-  <div class="col-md-4">
     <div class="card">
-      <div class="card-body">
-        <h6 class="card-title mb-3"><i class="bi bi-clock-history me-2"></i>最近动态</h6>
+      <div class="card-body p-3">
+        <h6 class="card-title mb-2 small fw-bold"><i class="bi bi-clock-history me-2 text-info"></i>最近动态</h6>
         {% for a in recent %}
-        <div class="d-flex align-items-center mb-3">
+        <div class="d-flex align-items-center mb-2">
           <span class="status-dot bg-{{ status_badge[a.status] }}"></span>
-          <div class="small" style="line-height:1.8;">
+          <div class="small" style="line-height:1.5;">
             <a href="/companies/{{ a.company_id }}" class="text-decoration-none text-white fw-bold">{{ a.company.name }}</a>
-            <span class="badge bg-{{ status_badge[a.status] }} ms-1">{{ a.status }}</span>
+            <span class="badge bg-{{ status_badge[a.status] }} ms-1" style="font-size:0.7rem;">{{ a.status }}</span>
             {% if a.position %}
             <span class="text-secondary"> — {{ a.position }}</span>
             {% endif %}
@@ -196,14 +282,11 @@
         {% endfor %}
       </div>
     </div>
-  </div>
-</div>
-{% if pending_feedbacks %}
-<div class="row g-3 mt-1">
-  <div class="col-12">
+
+    {% if pending_feedbacks %}
     <div class="card border-warning">
-      <div class="card-body">
-        <h6 class="card-title mb-3"><i class="bi bi-clipboard-check me-2 text-warning"></i>面试复盘待写</h6>
+      <div class="card-body p-3">
+        <h6 class="card-title mb-2 small fw-bold"><i class="bi bi-clipboard-check me-2 text-warning"></i>面试复盘待写</h6>
         <div class="d-flex flex-wrap gap-2">
           {% for a in pending_feedbacks %}
           <a href="/companies/{{ a.company_id }}" class="badge bg-warning text-dark text-decoration-none">
@@ -213,9 +296,43 @@
         </div>
       </div>
     </div>
+    {% endif %}
+
   </div>
 </div>
-{% endif %}
+
+<!-- Reject Reason Modal -->
+<div class="modal fade" id="rejectReasonModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content text-light border-secondary">
+      <div class="modal-header border-secondary">
+        <h5 class="modal-title"><i class="bi bi-x-circle text-danger me-2"></i>拒绝推荐理由</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="rejectAppId">
+        <div class="mb-3">
+          <label class="form-label text-secondary small">反馈分类</label>
+          <select id="rejectCategory" class="form-select text-light border-secondary">
+            <option value="tech_mismatch">技术栈偏离/不匹配</option>
+            <option value="salary_low">薪资不达预期</option>
+            <option value="company_reputation">公司/行业风评问题</option>
+            <option value="location">工作地点不符合</option>
+            <option value="general">其他原因</option>
+          </select>
+        </div>
+        <div class="mb-3">
+          <label class="form-label text-secondary small">具体原因 (将用于 Agent 记忆反馈优化):</label>
+          <textarea id="rejectRawFeedback" class="form-control text-light border-secondary" rows="3" placeholder="如: 岗位偏纯前端开发，期望偏向机器人/嵌入式控制领域"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer border-secondary">
+        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">取消</button>
+        <button type="button" class="btn btn-danger btn-sm" onclick="submitRejectDecision()">提交拒绝并反哺 Agent</button>
+      </div>
+    </div>
+  </div>
+</div>
 {% endblock %}
 
 {% block scripts %}
@@ -253,15 +370,15 @@ const doughnutOpts = {
   animation: { animateRotate: true, animateScale: true, easing: 'easeOutQuart', duration: 800 },
   plugins: {
     legend: {
-      position: 'right',
+      position: 'bottom',
       labels: {
         color: '#bbb',
         usePointStyle: true,
         pointStyle: 'circle',
-        boxWidth: 10,
-        boxHeight: 10,
-        padding: 8,
-        font: { size: 11 }
+        boxWidth: 8,
+        boxHeight: 8,
+        padding: 6,
+        font: { size: 10 }
       }
     },
     tooltip: tooltipStyle
@@ -302,7 +419,71 @@ new Chart(document.getElementById('industryChart'), {
   options: doughnutOpts
 });
 {% endif %}
+</script>
 
+<script>
+function approveProposal(appId) {
+  fetch(`/api/agent/decisions/${appId}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'approve' })
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.status === 'success') {
+      if (window.htmx) {
+        htmx.trigger('#decisionInboxFeed', 'load');
+        htmx.trigger('#agentTasksFeed', 'load');
+      } else {
+        location.reload();
+      }
+    } else {
+      alert(data.message || '操作失败');
+    }
+  });
+}
+
+function openRejectModal(appId) {
+  document.getElementById('rejectAppId').value = appId;
+  document.getElementById('rejectRawFeedback').value = '';
+  const modal = new bootstrap.Modal(document.getElementById('rejectReasonModal'));
+  modal.show();
+}
+
+function submitRejectDecision() {
+  const appId = document.getElementById('rejectAppId').value;
+  const category = document.getElementById('rejectCategory').value;
+  const rawFeedback = document.getElementById('rejectRawFeedback').value;
+
+  fetch(`/api/agent/decisions/${appId}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      action: 'reject',
+      reason_category: category,
+      raw_feedback: rawFeedback
+    })
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.status === 'success') {
+      const modalEl = document.getElementById('rejectReasonModal');
+      const modal = bootstrap.Modal.getInstance(modalEl);
+      if (modal) modal.hide();
+      if (window.htmx) {
+        htmx.trigger('#decisionInboxFeed', 'load');
+        htmx.trigger('#agentTasksFeed', 'load');
+      } else {
+        location.reload();
+      }
+    } else {
+      alert(data.message || '操作失败');
+    }
+  });
+}
+</script>
+
+<script>
 {% if score_salary_data %}
 const rawScatter = {{ score_salary_data | tojson }};
 const scatterDataset = rawScatter.map(item => ({

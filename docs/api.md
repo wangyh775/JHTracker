@@ -10,7 +10,7 @@ _JHTracker 的全部 HTTP 端点，按 blueprint 组织。所有端点定义在 
 - **鉴权**：无。应用仅监听 `127.0.0.1`（见 `app.py:52`），不面向公网
 - **写操作**：一律 `POST` 表单 + 302 重定向（PRG 模式）
 - **错误处理**：表单校验失败（`ValueError`）静默回退并刷新页面；资源不存在返回 404 页面
-- **JSON 接口**：仅 1 个（`GET /api/companies/search`），返回 `application/json`
+- **JSON 接口**：Agent API 全部返回 JSON（`/api/` 前缀），常规页面路由返回 HTML
 
 ---
 
@@ -18,7 +18,7 @@ _JHTracker 的全部 HTTP 端点，按 blueprint 组织。所有端点定义在 
 
 | Blueprint | 前缀 | 端点数 | 说明 |
 |---|---|---|---|
-| dashboard | `/`, `/dashboard` | 3 | 看板（含 SSE `/api/stream` 与 `/api/notify`） |
+| dashboard | `/`, `/dashboard` | 5 | 看板（含 SSE `/api/stream` 与 `/api/notify`） |
 | company | `/companies` | 5 | 公司库 + 搜索 JSON API |
 | application | `/applications` | 11 | 投递跟踪、归档、面试反馈 |
 | note | `/notes` | 3 | 笔记 CRUD |
@@ -27,7 +27,7 @@ _JHTracker 的全部 HTTP 端点，按 blueprint 组织。所有端点定义在 
 | backup | `/backup` | 3 | 备份导出/恢复 |
 | resume | `/resumes` | 8 | 简历版本管理 |
 | profile | `/profile` | 2 | 候选人画像 |
-| agent_api | `/api/v1` | 4 | Agent REST API (公司搜索、评分更新、画像、Trace 追踪) |
+| agent_api | `/api/v1`, `/api/agent`, `/traces` | 15 | Agent REST API (公司搜索/创建、评分更新、画像、Trace 追踪、HITL 决策审核、Agent 任务中心) |
 
 ---
 
@@ -38,26 +38,96 @@ _JHTracker 的全部 HTTP 端点，按 blueprint 组织。所有端点定义在 
 | GET | `/api/v1/companies/search` | 按关键词 `q` 搜索公司，返回 JSON |
 | POST | `/api/v1/companies` | 批量自动去重写入公司记录 |
 | POST | `/api/v1/companies/<id>/score` | 更新公司 AI 评分与评分理由 |
-| POST | `/api/v1/applications` | 自动创建 `待投递` (pending) 状态的岗位申请记录 (支持 `match_score`, `agent_reason`, `agent_task_id`, `source_url`) |
+| POST | `/api/v1/applications` | 自动创建 `Pending Approval` 状态的岗位申请记录 (支持 `match_score`, `agent_reason`, `agent_task_id`, `source_url`, `resume_id`) |
 | POST | `/api/v1/applications/<id>/review` | 人在回路审核接口 (`action="approve"` 设为 `to_apply` / `"reject"` 设为 `rejected` 并生成 Memory) |
 | GET | `/api/v1/profile` | 获取候选人画像与目标配置 JSON |
 | GET | `/api/v1/profile/preferences` | 获取候选人画像、负向规则黑名单与历史拒绝反哺 Memory |
 | POST | `/api/v1/traces` | 提交 Agent 任务执行轨迹 (`task_id`, `agent_name`, `event_type`, `payload`) |
-| GET | `/traces` | Agent 执行轨迹 UI 审计页面 |
+| GET | `/api/v1/traces` | 获取 Agent 任务轨迹列表 JSON |
+| GET | `/api/agent/tasks` | 查询 Agent 任务列表，含 `pending_approvals_count` 聚合 |
+| GET | `/api/agent/tasks/<task_id>` | 查询单个 Agent 任务详情及完整事件 Trace 日志 |
+| GET | `/api/agent/decisions/pending` | 列出所有待审批的岗位推荐提案（HITL 队列） |
+| POST | `/api/agent/decisions/<id>` | 人类决策：`approve` → `Applied` / `reject` → `Rejected` + 写入 DecisionFeedback + Memory / `edit` → 更新字段 |
+| GET | `/traces` | Agent 执行轨迹 UI 审计页面（HTML） |
+
+### 🧑‍⚖️ HITL Decision Endpoints (`/api/agent/`)
+
+| 方法 | 路径 | 说明 |
+|---|---|---|
+| GET | `/api/agent/decisions/pending` | 列出所有待审批的岗位推荐提案，含 `company_name`, `position`, `match_score`, `agent_reason`, `resume_name`, `source_url`, `created_at` |
+| POST | `/api/agent/decisions/<id>` | 三动作决策：`approve`（状态 → `Applied`，记录 `DecisionFeedback`）/ `reject`（状态 → `Rejected`，写入 `DecisionFeedback` + `Memory`）/ `edit`（更新字段 + 记录 `DecisionFeedback`） |
+| GET | `/api/agent/tasks` | 查询 Agent 任务列表，含 `pending_approvals_count` 聚合 |
+| GET | `/api/agent/tasks/<task_id>` | 查询单个 Agent 任务详情及完整事件 Trace 日志 |
 
 ---
 
 ## 🔌 MCP Server (Model Context Protocol)
 
-MCP 服务定义在 `mcp_server.py`，支持 stdio / JSON-RPC 传输。
+MCP 服务定义在 `mcp_server.py`，支持 stdio / JSON-RPC 传输。当前共 **36 个工具**，覆盖 11 个数据域。
 
 ### 暴露资源与工具
-- **Resource**: `jhtracker://profile` — 返回候选人 Profile 文本
-- **Tool**: `search_companies(query: str)` — 模糊搜索数据库公司库
-- **Tool**: `update_company_score(company_id: int, score: int, reason: str)` — 更新公司评分与理由
-- **Tool**: `create_company(name: str, industry: str, city: str, ...)` — 创建公司并自动去重
-- **Tool**: `create_application(company_id: int, position: str, ...)` — 创建待投递记录 (支持推荐理由、匹配分、Task ID 与来源 URL)
-- **Tool**: `get_user_preferences()` — 读取候选人画像、黑名单排斥规则与历史拒绝反哺 Memory
+
+**Resource**
+- `jhtracker://profile` — 返回候选人 Profile 文本
+
+**👤 画像 & 偏好**
+- `get_candidate_profile()` — 读取候选人画像
+- `update_candidate_profile(content)` — 更新候选人画像
+- `get_user_preferences()` — 获取偏好设置、负向规则、拒绝反馈
+- `add_memory_rule(category, rule_value)` — 添加排除规则
+- `delete_memory_rule(memory_id, confirm)` — 删除记忆规则
+
+**🏢 公司**
+- `search_companies(query)` — 模糊搜索公司
+- `get_company(company_id)` — 获取公司完整详情（含投递数、笔记数）
+- `create_company(...)` — 创建公司（自动去重）
+- `update_company(company_id, ...)` — 更新公司字段
+- `update_company_score(company_id, score, reason)` — 更新评分
+- `delete_company(company_id, confirm)` — 删除公司（级联）
+
+**📮 投递**
+- `create_application(...)` — 创建投递（Pending Approval）
+- `get_application(application_id)` — 获取投递详情
+- `list_applications(status, company_id, channel)` — 筛选投递列表
+- `update_application_status(application_id, status)` — 更新状态
+- `get_pending_approvals()` — 获取待审批提案
+- `handle_decision(application_id, action, ...)` — 审批/拒绝/编辑
+- `archive_application(application_id, archive)` — 归档/恢复
+
+**🎙️ 面试反馈**
+- `create_interview_feedback(application_id, ...)` — 添加面试复盘
+- `list_interview_feedbacks(application_id)` — 查询面试反馈
+
+**📝 笔记**
+- `create_note(company_id, title, content)` — 写笔记
+- `list_notes(company_id)` — 查询笔记
+- `update_note(note_id, ...)` — 编辑笔记
+- `delete_note(note_id, confirm)` — 删除笔记
+
+**📅 时间线**
+- `create_timeline_event(event_date, title, ...)` — 创建时间线节点
+- `list_timeline_events()` — 查询时间线
+- `toggle_timeline_event(event_id)` — 切换完成状态
+
+**📄 简历**
+- `list_resumes()` — 查询简历版本列表
+- `get_default_resume()` — 获取默认简历
+
+**📊 统计**
+- `get_statistics()` — 获取 Dashboard 核心指标
+
+**🔍 评估**
+- `evaluate_jd(jd_text, company_name, task_id)` — 评估 JD 文本
+- `batch_evaluate_jds(jds)` — 批量评估多个 JD
+
+**🔄 轨迹 & 任务**
+- `record_agent_trace(task_id, agent_name, ...)` — 记录任务轨迹
+- `list_agent_tasks(status, limit)` — 查询任务列表
+- `get_agent_task(task_id)` — 查询任务详情 + 事件日志
+- `clear_agent_traces(confirm)` — 清空全部轨迹
+
+**🔔 系统**
+- `notify_db_changed()` — 通知 UI 刷新（SSE）
 
 ### 客户端接入配置 (`mcp.json`)
 

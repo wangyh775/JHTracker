@@ -1,6 +1,19 @@
 ---
 name: "tracker-ops"
 description: "Handles database operations, company deduplication, batch data import, application archiving, and system maintenance. Alias: career-tracker-ops, career-tracker-import."
+allowed-tools:
+  - JHTracker:create_note
+  - JHTracker:list_notes
+  - JHTracker:update_note
+  - JHTracker:delete_note
+  - JHTracker:create_timeline_event
+  - JHTracker:list_timeline_events
+  - JHTracker:toggle_timeline_event
+  - JHTracker:list_agent_tasks
+  - JHTracker:get_agent_task
+  - JHTracker:clear_agent_traces
+  - JHTracker:notify_db_changed
+  - JHTracker:get_statistics
 ---
 
 # Tracker Operations Skill

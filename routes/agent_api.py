@@ -4,6 +4,7 @@ import json
 from flask import Blueprint, jsonify, request, render_template
 from extensions import db
 from models import Company, Application, AgentTask, AgentEvent, Memory, DecisionFeedback
+from constants import POST_APPLY_STATUS_LIST, STAGED_STATUS_LIST
 from config import DATA_DIR
 from services.cleanup import run_auto_cleanup, clear_all_traces
 
@@ -89,7 +90,7 @@ def get_agent_tasks():
     tasks = query.order_by(AgentTask.id.desc()).limit(limit).all()
 
     pending_approvals_count = Application.query.filter(
-        Application.status.in_(['Pending Approval', '待审批', '待投递'])
+        Application.status.in_(['Pending Approval', '待审批'])
     ).count()
 
     results = []
@@ -222,12 +223,16 @@ def create_application():
     if not company:
         return jsonify({'status': 'error', 'message': 'Company not found'}), 404
 
+    status = data.get('status', 'Pending Approval')
+    if not status or status in POST_APPLY_STATUS_LIST:
+        status = 'Pending Approval'
+
     application = Application(
         company_id=company_id,
         resume_id=data.get('resume_id'),
         position=data.get('position', '待定岗位'),
         channel=data.get('channel', 'Agent 自动推送'),
-        status=data.get('status', '待投递'),
+        status=status,
         job_desc=data.get('job_desc'),
         url=data.get('url'),
         salary_min=data.get('salary_min'),
@@ -274,7 +279,8 @@ def review_application(app_id):
     rule_value = data.get('rule_value') or ''
 
     if action == 'approve':
-        application.status = 'to_apply'
+        app_status_before = application.status
+        application.status = '待投递'
         # 写正向记忆 + feedback
         feedback_entry = DecisionFeedback(
             application_id=application.id,
@@ -295,7 +301,7 @@ def review_application(app_id):
             }
         })
     else:
-        application.status = 'rejected'
+        application.status = '已拒'
         feedback_entry = DecisionFeedback(
             application_id=application.id,
             action='reject',
@@ -324,7 +330,7 @@ def review_application(app_id):
 def get_pending_decisions():
     """API Endpoint to list all staged proposals pending human approval."""
     pending_apps = Application.query.filter(
-        Application.status.in_(['Pending Approval', '待审批', '待投递'])
+        Application.status.in_(['Pending Approval', '待审批'])
     ).order_by(Application.id.desc()).all()
 
     results = []
@@ -352,7 +358,7 @@ def get_pending_decisions():
 def get_pending_decisions_html():
     """Returns rendered Jinja2 partial _decision_inbox.html for HTMX."""
     pending_apps = Application.query.filter(
-        Application.status.in_(['Pending Approval', '待审批', '待投递'])
+        Application.status.in_(['Pending Approval', '待审批'])
     ).order_by(Application.id.desc()).all()
 
     proposals = []
@@ -417,7 +423,7 @@ def handle_decision_action(application_id):
     raw_feedback = data.get('raw_feedback') or data.get('reason')
 
     if action == 'approve':
-        app.status = 'Applied'  # or 已投递
+        app.status = '待投递'
         feedback_entry = DecisionFeedback(
             application_id=app.id,
             action='approve',
@@ -442,7 +448,7 @@ def handle_decision_action(application_id):
         })
 
     elif action == 'reject':
-        app.status = 'Rejected'  # or 已拒
+        app.status = '已拒'
         feedback_entry = DecisionFeedback(
             application_id=app.id,
             action='reject',

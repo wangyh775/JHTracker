@@ -118,7 +118,7 @@ def dashboard():
     ).order_by(Application.updated_at.desc()).limit(5).all()
 
     # 紧急截止：未来 7 天内 deadline
-    from datetime import date, timedelta
+    from datetime import date, datetime, timedelta
     today = date.today()
     week_later = today + timedelta(days=7)
     urgent_deadlines = Application.query.options(
@@ -138,6 +138,26 @@ def dashboard():
     ).all()
     pending_feedbacks = [a for a in pending_feedbacks if a.feedbacks.count() == 0]
 
+    # AI Daily Briefing 建议数据
+    seven_days_ago = datetime.now() - timedelta(days=7)
+    stale_unanswered = Application.query.options(joinedload(Application.company)).filter(
+        Application.status.in_(['已投递', '简历筛选']),
+        Application.updated_at < seven_days_ago,
+        Application.is_archived.is_(False)
+    ).limit(3).all()
+
+    high_match_pending = Application.query.options(joinedload(Application.company)).filter(
+        Application.status.in_(['Pending Approval', '待审批']),
+        Application.match_score >= 80
+    ).limit(3).all()
+
+    ai_briefing = {
+        'stale_unanswered': stale_unanswered,
+        'high_match_pending': high_match_pending,
+        'urgent_count': len(urgent_deadlines),
+        'pending_feedback_count': len(pending_feedbacks)
+    }
+
     max_funnel = max(funnel.values()) if funnel.values() else 1
 
     return render_template('dashboard.html',
@@ -148,4 +168,5 @@ def dashboard():
                            pri_counts=pri_counts, upcoming=upcoming, recent=recent,
                            urgent_deadlines=urgent_deadlines,
                            pending_feedbacks=pending_feedbacks,
-                           score_salary_data=score_salary_data)
+                           score_salary_data=score_salary_data,
+                           ai_briefing=ai_briefing)

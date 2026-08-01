@@ -7,6 +7,8 @@ from constants import (
     memory_polarity,
     MEMORY_CATEGORIES_POSITIVE,
     MEMORY_CATEGORIES_NEGATIVE,
+    POST_APPLY_STATUS_LIST,
+    STAGED_STATUS_LIST,
 )
 
 # Initialize FastMCP Server
@@ -34,9 +36,78 @@ def get_candidate_profile() -> str:
     return "No candidate profile found."
 
 
+@mcp.resource("jhtracker://statistics")
+def get_statistics_resource() -> str:
+    """Read dashboard-level aggregate statistics as JSON."""
+    conn = get_db_connection()
+    try:
+        cursor = conn.cursor()
+        cursor.execute("SELECT COUNT(*) AS cnt FROM companies")
+        total_companies = cursor.fetchone()['cnt']
+        cursor.execute("SELECT COUNT(*) AS cnt FROM companies WHERE priority = 'S'")
+        s_count = cursor.fetchone()['cnt']
+        cursor.execute("SELECT COUNT(*) AS cnt FROM applications WHERE status IN ('已投递','简历筛选','笔试','一面','二面','终面','Offer')")
+        applied = cursor.fetchone()['cnt']
+        cursor.execute("SELECT COUNT(*) AS cnt FROM applications WHERE status IN ('一面','二面','终面')")
+        interviews = cursor.fetchone()['cnt']
+        cursor.execute("SELECT COUNT(*) AS cnt FROM applications WHERE status = 'Offer'")
+        offers = cursor.fetchone()['cnt']
+        cursor.execute("SELECT COUNT(*) AS cnt FROM applications WHERE status = '已拒'")
+        rejected = cursor.fetchone()['cnt']
+        cursor.execute("SELECT COUNT(*) AS cnt FROM applications WHERE status IN ('Pending Approval','待审批')")
+        pending_approvals = cursor.fetchone()['cnt']
+        cursor.execute("SELECT COUNT(*) AS cnt FROM applications WHERE status = '待投递'")
+        to_apply_count = cursor.fetchone()['cnt']
+        cursor.execute("SELECT COUNT(*) AS cnt FROM applications WHERE is_archived = 0")
+        active_applications = cursor.fetchone()['cnt']
+        cursor.execute("SELECT COUNT(*) AS cnt FROM applications WHERE is_archived = 1")
+        archived_applications = cursor.fetchone()['cnt']
+        return json.dumps({
+            'total_companies': total_companies,
+            's_priority_companies': s_count,
+            'applied': applied,
+            'interviews': interviews,
+            'offers': offers,
+            'rejected': rejected,
+            'pending_approvals': pending_approvals,
+            'to_apply_count': to_apply_count,
+            'active_applications': active_applications,
+            'archived_applications': archived_applications
+        }, ensure_ascii=False)
+    finally:
+        conn.close()
+
+
+@mcp.resource("jhtracker://memories")
+def get_memories_resource() -> str:
+    """Read all positive and negative memory rules as JSON."""
+    conn = get_db_connection()
+    try:
+        cursor = conn.cursor()
+        cursor.execute("SELECT category, rule_value, raw_feedback FROM memories ORDER BY id DESC LIMIT 100")
+        rows = cursor.fetchall()
+        positive_rules = []
+        negative_rules = []
+        for row in rows:
+            polarity = memory_polarity(row['category'])
+            entry = {'category': row['category'], 'rule_value': row['rule_value'], 'raw_feedback': row['raw_feedback']}
+            if polarity == 'positive':
+                positive_rules.append(entry)
+            else:
+                negative_rules.append(entry)
+        return json.dumps({
+            'positive_rules': positive_rules,
+            'negative_rules': negative_rules
+        }, ensure_ascii=False)
+    finally:
+        conn.close()
+
+
 @mcp.tool()
 def search_companies(query: str = "") -> str:
-    """Search target companies by name, industry, or match reason."""
+    """Search target companies by name, industry, or match reason.
+    Returns up to 20 records sorted by score DESC, then id DESC.
+    Fields returned: id, name, city, industry, priority, score, score_reason."""
     conn = get_db_connection()
     try:
         cursor = conn.cursor()
@@ -92,7 +163,9 @@ def create_company(
     score: int = None,
     score_reason: str = None
 ) -> str:
-    """Create a new company record with automatic deduplication. If company name already exists, returns existing company details."""
+    """Create a new company record with automatic deduplication.
+    AUTHENTICITY CONSTRAINT: Must provide a real, validated company website (website) and job listing URL (source_url) sourced from web search. Use search tools (Firecrawl/Exa/Tavily) first if URL is unknown. Fabrication or hallucination of company data is STRICTLY PROHIBITED.
+    If company name already exists, returns existing company details."""
     conn = get_db_connection()
     try:
         cursor = conn.cursor()
@@ -131,9 +204,11 @@ def create_application(
     agent_reason: str = None,
     agent_task_id: str = None,
     source_url: str = None,
-    resume_id: int = None
+    resume_id: int = None,
+    status: str = "Pending Approval"
 ) -> str:
-    """Create a new job application record under specified company with default 'Pending Approval' status, resume version binding, and HITL recommendation metadata."""
+    """Create a new job application proposal record under specified company with default 'Pending Approval' status, resume version binding, and HITL recommendation metadata.
+    AUTHENTICITY CONSTRAINT: A real, verifiable source_url (job listing URL from web search) is REQUIRED. The system will reject applications without a valid source_url. Fabrication or hallucination of job data is STRICTLY PROHIBITED."""
     conn = get_db_connection()
     try:
         cursor = conn.cursor()
@@ -142,10 +217,14 @@ def create_application(
         if not comp:
             return json.dumps({'status': 'error', 'message': 'Company not found'}, ensure_ascii=False)
 
+        # Force status to Pending Approval if agent attempts to set a post-apply status directly
+        if not status or status in POST_APPLY_STATUS_LIST:
+            status = 'Pending Approval'
+
         cursor.execute("""
             INSERT INTO applications (company_id, position, status, channel, job_desc, url, match_score, agent_reason, agent_task_id, source_url, resume_id, created_at, updated_at)
-            VALUES (?, ?, 'Pending Approval', ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
-        """, (company_id, position, channel, job_desc, url, match_score, agent_reason, agent_task_id, source_url, resume_id))
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
+        """, (company_id, position, status, channel, job_desc, url, match_score, agent_reason, agent_task_id, source_url, resume_id))
         conn.commit()
         app_id = cursor.lastrowid
         return json.dumps({
@@ -155,7 +234,7 @@ def create_application(
                 'company_id': company_id,
                 'company_name': comp['name'],
                 'position': position,
-                'status': 'Pending Approval',
+                'status': status,
                 'url': url,
                 'match_score': match_score,
                 'agent_reason': agent_reason,
@@ -406,7 +485,8 @@ if __name__ == '__main__':
 
 @mcp.tool()
 def get_company(company_id: int) -> str:
-    """Get full company details with application count and note count."""
+    """Get full company details with application count and note count.
+    Returns all company fields plus application_count and note_count."""
     conn = get_db_connection()
     try:
         cursor = conn.cursor()
@@ -556,14 +636,24 @@ def list_applications(status: str = None, company_id: int = None, channel: str =
 
 @mcp.tool()
 def update_application_status(application_id: int, status: str) -> str:
-    """Update application status (e.g., 已投递, 简历筛选, 笔试, 一面, 二面, 终面, Offer, 已拒)."""
+    """Update application status. Agent CANNOT set statuses in POST_APPLY_STATUS_LIST (已投递, 简历筛选, 笔试, 一面, 二面, 终面, Offer, 已拒) on records already in post-apply phase. Agent may only update records in STAGED_STATUS_LIST (Pending Approval, 待审批, 待投递)."""
     conn = get_db_connection()
     try:
         cursor = conn.cursor()
+        cursor.execute("SELECT id, status FROM applications WHERE id = ?", (application_id,))
+        row = cursor.fetchone()
+        if not row:
+            return json.dumps({'status': 'error', 'message': 'Application not found'}, ensure_ascii=False)
+
+        current_status = row['status']
+        if current_status in POST_APPLY_STATUS_LIST:
+            return json.dumps({
+                'status': 'error',
+                'message': 'Cannot modify active application record. Active records in POST_APPLY_STATUS_LIST are reserved for human edit only.'
+            }, ensure_ascii=False)
+
         cursor.execute("UPDATE applications SET status = ?, updated_at = datetime('now') WHERE id = ?", (status, application_id))
         conn.commit()
-        if cursor.rowcount == 0:
-            return json.dumps({'status': 'error', 'message': 'Application not found'}, ensure_ascii=False)
         return json.dumps({'status': 'success', 'application_id': application_id, 'status': status}, ensure_ascii=False)
     finally:
         conn.close()
@@ -571,7 +661,7 @@ def update_application_status(application_id: int, status: str) -> str:
 
 @mcp.tool()
 def get_pending_approvals() -> str:
-    """Get all applications pending human approval."""
+    """Get all applications pending human approval. Returns only records with status 'Pending Approval' or '待审批'. Does NOT include '待投递' (already approved, waiting to be applied)."""
     conn = get_db_connection()
     try:
         cursor = conn.cursor()
@@ -580,7 +670,7 @@ def get_pending_approvals() -> str:
             FROM applications a
             LEFT JOIN companies c ON c.id = a.company_id
             LEFT JOIN resumes r ON r.id = a.resume_id
-            WHERE a.status IN ('Pending Approval', '待审批', '待投递')
+            WHERE a.status IN ('Pending Approval', '待审批')
             ORDER BY a.id DESC
         """)
         rows = cursor.fetchall()
@@ -615,7 +705,7 @@ def handle_decision(
             return json.dumps({'status': 'error', 'message': 'Application not found'}, ensure_ascii=False)
 
         if action == 'approve':
-            cursor.execute("UPDATE applications SET status = 'Applied', updated_at = datetime('now') WHERE id = ?", (application_id,))
+            cursor.execute("UPDATE applications SET status = '待投递', updated_at = datetime('now') WHERE id = ?", (application_id,))
             cursor.execute(
                 "INSERT INTO decision_feedbacks (application_id, action, reason_category, raw_feedback, created_at) VALUES (?, ?, ?, ?, datetime('now'))",
                 (application_id, action, reason_category, raw_feedback))
@@ -624,7 +714,7 @@ def handle_decision(
             for cat, val in positive_rules:
                 _upsert_memory_rule(conn, cat, val, raw_feedback, application_id=application_id)
         elif action == 'reject':
-            cursor.execute("UPDATE applications SET status = 'Rejected', updated_at = datetime('now') WHERE id = ?", (application_id,))
+            cursor.execute("UPDATE applications SET status = '已拒', updated_at = datetime('now') WHERE id = ?", (application_id,))
             cursor.execute(
                 "INSERT INTO decision_feedbacks (application_id, action, reason_category, raw_feedback, created_at) VALUES (?, ?, ?, ?, datetime('now'))",
                 (application_id, action, reason_category, raw_feedback))
@@ -1040,8 +1130,10 @@ def get_statistics() -> str:
         offers = cursor.fetchone()['cnt']
         cursor.execute("SELECT COUNT(*) AS cnt FROM applications WHERE status = '已拒'")
         rejected = cursor.fetchone()['cnt']
-        cursor.execute("SELECT COUNT(*) AS cnt FROM applications WHERE status IN ('Pending Approval','待审批','待投递')")
+        cursor.execute("SELECT COUNT(*) AS cnt FROM applications WHERE status IN ('Pending Approval','待审批')")
         pending_approvals = cursor.fetchone()['cnt']
+        cursor.execute("SELECT COUNT(*) AS cnt FROM applications WHERE status = '待投递'")
+        to_apply_count = cursor.fetchone()['cnt']
         cursor.execute("SELECT COUNT(*) AS cnt FROM applications WHERE is_archived = 0")
         active_applications = cursor.fetchone()['cnt']
         cursor.execute("SELECT COUNT(*) AS cnt FROM applications WHERE is_archived = 1")
@@ -1056,6 +1148,7 @@ def get_statistics() -> str:
                 'offers': offers,
                 'rejected': rejected,
                 'pending_approvals': pending_approvals,
+                'to_apply_count': to_apply_count,
                 'active_applications': active_applications,
                 'archived_applications': archived_applications
             }
@@ -1075,7 +1168,7 @@ def list_agent_tasks(status: str = None, limit: int = 50) -> str:
     conn = get_db_connection()
     try:
         cursor = conn.cursor()
-        cursor.execute("SELECT COUNT(*) AS cnt FROM applications WHERE status IN ('Pending Approval','待审批','待投递')")
+        cursor.execute("SELECT COUNT(*) AS cnt FROM applications WHERE status IN ('Pending Approval','待审批')")
         pending_count = cursor.fetchone()['cnt']
         if status:
             cursor.execute("""

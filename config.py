@@ -67,6 +67,9 @@ class Config:
     ARCHIVE_STALE_DAYS = int(os.environ.get('JH_ARCHIVE_STALE_DAYS', 15))
     ARCHIVE_AUTO_ENABLED = os.environ.get('JH_ARCHIVE_AUTO', '1') == '1'
 
+    # Agent 轨迹保留天数（环境变量可覆盖）
+    TRACES_RETENTION_DAYS = int(os.environ.get('JH_TRACES_RETENTION_DAYS', 30))
+
 
 class DevConfig(Config):
     """开发环境配置：开启调试，便于排查问题。"""

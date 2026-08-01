@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <div class="dashboard-title"><i class="bi bi-card-checklist me-2 text-warning"></i>待投递清单</div>
+  <div>
+    <span class="badge bg-warning text-dark me-2">共 {{ apps.total }} 个待投岗位</span>
+  </div>
+</div>
+
+<!-- 筛选栏 -->
+{% if channels %}
+<div class="card mb-4">
+  <div class="card-body py-2">
+    <form class="row g-2 align-items-center" method="get">
+      <div class="col-auto">
+        <select class="form-select form-select-sm" name="channel" onchange="this.form.submit()">
+          <option value="">全部渠道</option>
+          {% for ch,c in channels %}<option value="{{ ch }}" {% if request.args.get('channel')==ch %}selected{% endif %}>{{ ch }}({{ c }})</option>{% endfor %}
+        </select>
+      </div>
+    </form>
+  </div>
+</div>
+{% endif %}
+
+{% for a in apps.items %}
+<div class="card mb-3 border-warning">
+  <div class="card-body py-3">
+    <div class="d-flex justify-content-between align-items-start mb-2">
+      <div>
+        <a href="/companies/{{ a.company.id }}" class="text-decoration-none fw-bold fs-5 me-2">{{ a.company.name }}</a>
+        <span class="badge bg-secondary me-2">{{ a.company.industry or '行业未填' }}</span>
+        <span class="badge badge-priority-{{ a.company.priority }}">{{ a.company.priority }}</span>
+        <div class="text-light fw-medium mt-1 fs-6">
+          <i class="bi bi-briefcase me-1 text-warning"></i>{{ a.position or '待定岗位' }}
+        </div>
+      </div>
+      <div class="text-end">
+        <span class="badge bg-warning text-dark fs-6 mb-1">待投递</span>
+        {% if a.resume %}
+        <div class="small text-info" style="font-size:0.75rem;"><i class="bi bi-file-earmark-text me-1"></i>绑简历: {{ a.resume.name }}</div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- AI 评估理由与链接 -->
+    {% if a.match_score or a.agent_reason or a.url or a.source_url %}
+    <div class="p-2 rounded mb-3" style="background: var(--bg-primary); border: 1px solid var(--border);">
+      <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+        <div class="d-flex align-items-center gap-2">
+          {% if a.match_score %}
+            <span class="badge bg-success">{{ a.match_score }}分 AI 评估</span>
+          {% endif %}
+          {% if a.agent_reason %}
+            <span class="small text-secondary"><i class="bi bi-robot text-primary me-1"></i>{{ a.agent_reason }}</span>
+          {% endif %}
+        </div>
+        {% if a.url or a.source_url %}
+        <a href="{{ a.url or a.source_url }}" target="_blank" class="small text-info text-decoration-none">
+          <i class="bi bi-box-arrow-up-right me-1"></i>查看原始岗位 JD
+        </a>
+        {% endif %}
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- 确认投递表单与辅助栏 -->
+    <div class="pt-2 border-top border-secondary d-flex flex-wrap justify-content-between align-items-center gap-2">
+      <form method="post" action="/applications/{{ a.id }}/status" class="d-flex flex-wrap gap-2 align-items-center flex-grow-1">
+        <input type="hidden" name="status" value="已投递">
+        <input type="date" class="form-control form-control-sm" name="apply_date" value="{{ now().strftime('%Y-%m-%d') }}" style="width:130px" title="投递日期">
+        <select class="form-select form-select-sm" name="channel" style="width:120px">
+          <option value="{{ a.channel or '官网直投' }}" selected>{{ a.channel or '官网直投' }}</option>
+          <option value="官网直投">官网直投</option>
+          <option value="BOSS直聘">BOSS直聘</option>
+          <option value="猎聘">猎聘</option>
+          <option value="内推">内推</option>
+          <option value="邮箱">邮箱</option>
+        </select>
+        <input type="text" class="form-control form-control-sm" name="feedback" placeholder="投递备注/备忘..." value="{{ a.feedback or '' }}" style="width:200px">
+        <button class="btn btn-sm btn-success"><i class="bi bi-check2-circle me-1"></i>标记为已投递</button>
+      </form>
+      <div class="action-bar">
+        <form method="post" action="/applications/{{ a.id }}/delete" onsubmit="return confirm('确定从待投清单删除？')">
+          <button class="btn btn-sm btn-outline-danger" title="删除"><i class="bi bi-trash me-1"></i>删除</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% else %}
+<div class="card border-dashed">
+  <div class="card-body text-center py-5 text-secondary">
+    <i class="bi bi-inbox fs-1 mb-2 d-block opacity-50"></i>
+    <div class="fw-bold mb-1">当前没有待投递的岗位</div>
+    <div class="small">在 <a href="/" class="text-info">Dashboard AI 收件箱</a> 中批准 Agent 推荐的推荐岗位，将自动转入此清单</div>
+  </div>
+</div>
+{% endfor %}
+
+{% if apps.pages > 1 %}
+<nav class="mt-3"><ul class="pagination pagination-sm justify-content-center">
+  {% for p in range(1, apps.pages+1) %}
+  <li class="page-item {% if p==apps.page %}active{% endif %}"><a class="page-link" href="/to-apply?page={{ p }}&channel={{ request.args.get('channel','') }}">{{ p }}</a></li>
+  {% endfor %}
+</ul></nav>
+{% endif %}
+{% endblock %}

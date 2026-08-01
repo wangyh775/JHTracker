@@ -1,10 +1,55 @@
 {% extends "base.html" %}
 {% block content %}
+
+<!-- AI Score Hero -->
+{% if company.score is not none %}
+<div class="mb-3">
+  <div class="d-flex align-items-center gap-3 p-3 rounded bg-zinc-900 border border-zinc-800">
+    <div class="text-center" style="min-width: 80px;">
+      <div class="display-5 fw-bold {% if company.score >= 80 %}text-success{% elif company.score >= 50 %}text-warning{% else %}text-danger{% endif %}">
+        {{ company.score }}
+      </div>
+      <div class="text-secondary" style="font-size: 0.7rem;">AI 匹配分</div>
+    </div>
+    <div class="flex-grow-1">
+      {% if company.score_reason %}
+      <div class="small text-light">{{ company.score_reason }}</div>
+      {% endif %}
+      <div class="small text-secondary mt-1">评分时间: {{ company.created_at.strftime('%Y-%m-%d') if company.created_at else '—' }}</div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<!-- Match Analysis Tags -->
+<div class="d-flex flex-wrap gap-2 mb-3">
+  {% if company.score_reason %}
+    {% set highlights = [] %}
+    {% set risks = [] %}
+    {% for kw in ['ROS', 'C++', 'Python', 'SLAM', 'Linux', '嵌入式', '机器视觉', '运动控制', '激光', '路径规划', '导航', '控制算法', '机械设计', 'SolidWorks', 'CATIA', 'OpenCV', '深度学习', 'Pytorch', 'TensorFlow', '点云', '传感器', 'IMU', 'CAN', 'EtherCAT', 'Modbus', 'PLC', 'STM32', 'ARM', 'FPGA', 'DSP', 'MATLAB', 'Simulink', 'Git', 'Docker', 'Kubernetes', 'ROS2', 'micro-ROS', 'FreeRTOS', 'RTOS', 'Linux驱动', 'BSP', 'uboot', 'Vue', 'React', 'Flask', 'Django', 'Spring', 'MyBatis', 'MySQL', 'Redis', 'Kafka', 'RESTful', '微服务', '分布式', '高并发', '多线程', '性能优化', '敏捷开发', 'Scrum', 'JIRA', 'TDD', 'CI/CD', 'Jenkins', 'Github Actions', 'Ansible', 'Terraform', 'AWS', 'Azure', 'GCP', '阿里云', '腾讯云'] %}
+      {% if kw in company.score_reason %}
+        {% if highlights.append(kw) %}{% endif %}
+      {% endif %}
+    {% endfor %}
+    {% for kw in ['外包', '外派', '劳务', '派遣', '驻场', '996', '大小周', '单休', '加班多', '创业公司', '初创', '融资中', '已上市', '传统行业', '转型', '外包公司', '人力外包', '项目外包'] %}
+      {% if kw in company.score_reason %}
+        {% if risks.append(kw) %}{% endif %}
+      {% endif %}
+    {% endfor %}
+    {% for h in highlights[:5] %}
+    <span class="badge bg-success d-flex align-items-center gap-1"><span>{{ h }}</span><span style="font-size:0.6rem;">✓</span></span>
+    {% endfor %}
+    {% for r in risks[:3] %}
+    <span class="badge bg-danger d-flex align-items-center gap-1"><span>{{ r }}</span><span style="font-size:0.6rem;">✗</span></span>
+    {% endfor %}
+  {% endif %}
+  <span class="badge badge-priority-{{ company.priority }}">{{ company.priority }}</span>
+</div>
+
 <div class="d-flex justify-content-between align-items-center mb-3">
   <div>
     <a href="/companies" class="text-decoration-none text-secondary me-2"><i class="bi bi-arrow-left"></i>返回</a>
     <span class="fs-4 fw-bold me-2">{{ company.name }}</span>
-    <span class="badge badge-priority-{{ company.priority }}">{{ company.priority }}</span>
   </div>
   <div class="action-bar">
     <button class="btn btn-sm btn-outline-info" data-bs-toggle="modal" data-bs-target="#editModal"><i class="bi bi-pencil me-1"></i>编辑</button>
@@ -19,36 +64,47 @@
   <div class="col-md-4">
     <div class="card mb-4">
       <div class="card-body">
-        <h6 class="text-secondary small mb-3">公司档案</h6>
-        <div class="mb-2"><span class="text-secondary me-2">行业:</span> <span class="badge bg-secondary">{{ company.industry }}</span></div>
-        <div class="mb-2"><span class="text-secondary me-2">地点:</span> {{ company.city }} {{ company.sub_city }}</div>
-        <div class="mb-2"><span class="text-secondary me-2">目标:</span> {{ company.job_type }}</div>
-        <div class="mb-2">
-          <span class="text-secondary small">参考薪资：</span>
-          {% if company.salary_min or company.salary_max %}
-          <strong>{{ company.salary_min or '?' }}-{{ company.salary_max or '?' }}k/月</strong>
-          {% else %}<span class="text-secondary">未填写</span>{% endif %}
+        <h6 class="text-secondary small mb-3"><i class="bi bi-building me-1"></i>公司档案</h6>
+        <div class="mb-2 d-flex justify-content-between">
+          <span class="text-secondary">行业</span>
+          <span class="badge bg-secondary">{{ company.industry or '未填写' }}</span>
         </div>
-        {% if company.scale %}<div class="mb-2"><span class="text-secondary me-2">规模:</span> {{ company.scale }}</div>{% endif %}
-        {% if company.financing_stage %}<div class="mb-2"><span class="text-secondary me-2">融资:</span> <span class="badge bg-info">{{ company.financing_stage }}</span></div>{% endif %}
-        {% if company.website %}<div class="mb-2"><span class="text-secondary me-2">官网:</span> <a href="{{ company.website }}" target="_blank">{{ company.website }}</a></div>{% endif %}
+        <div class="mb-2 d-flex justify-content-between">
+          <span class="text-secondary">地点</span>
+          <span>{{ company.city or '' }}{{ ' ' + company.sub_city if company.sub_city else '' }}</span>
+        </div>
+        <div class="mb-2 d-flex justify-content-between">
+          <span class="text-secondary">目标</span>
+          <span>{{ company.job_type or '未填写' }}</span>
+        </div>
+        <div class="mb-2 d-flex justify-content-between">
+          <span class="text-secondary">参考薪资</span>
+          <strong>{% if company.salary_min or company.salary_max %}{{ company.salary_min or '?' }}-{{ company.salary_max or '?' }}k/月{% else %}<span class="text-secondary">未填写</span>{% endif %}</strong>
+        </div>
+        {% if company.scale %}<div class="mb-2 d-flex justify-content-between"><span class="text-secondary">规模</span><span>{{ company.scale }}</span></div>{% endif %}
+        {% if company.financing_stage %}<div class="mb-2 d-flex justify-content-between"><span class="text-secondary">融资</span><span class="badge bg-info">{{ company.financing_stage }}</span></div>{% endif %}
+        {% if company.website %}<div class="mb-2"><span class="text-secondary me-2">官网</span> <a href="{{ company.website }}" target="_blank" class="small text-info text-break">{{ company.website }}</a></div>{% endif %}
         {% if company.tags %}
         <div class="mb-2">
-          <span class="text-secondary me-2">标签:</span>
+          <span class="text-secondary me-2">标签</span>
+          <div class="mt-1 d-flex flex-wrap gap-1">
           {% for tag in company.tags.split(',') %}
           <span class="badge bg-success me-1">{{ tag.strip() }}</span>
           {% endfor %}
+          </div>
         </div>
         {% endif %}
+        {% if company.match_reason %}
         <hr class="text-secondary">
         <div class="small text-secondary mb-1">匹配理由</div>
-        <div class="small bg-dark p-2 rounded border border-secondary">{{ company.match_reason or '无' }}</div>
+        <div class="small bg-dark p-2 rounded border border-secondary">{{ company.match_reason }}</div>
+        {% endif %}
       </div>
     </div>
     
     <div class="card">
       <div class="card-header bg-dark d-flex justify-content-between align-items-center">
-        <span class="small fw-bold">公司笔记</span>
+        <span class="small fw-bold"><i class="bi bi-journal-text me-1"></i>公司笔记</span>
         <button class="btn btn-sm btn-outline-secondary py-0" data-bs-toggle="modal" data-bs-target="#addNoteModal"><i class="bi bi-plus"></i></button>
       </div>
       <div class="card-body p-0">
@@ -70,13 +126,18 @@
   </div>
 
   <div class="col-md-8">
-    <h5 class="mb-3">投递记录</h5>
+    <h5 class="mb-3"><i class="bi bi-send me-1"></i>投递记录</h5>
     {% for a in apps %}
     <div class="card mb-3 border-{{ status_badge[a.status] }}">
       <div class="card-body">
         <div class="d-flex justify-content-between align-items-center mb-2">
           <h6 class="mb-0 fw-bold">{{ a.position or '未指定岗位' }} <span class="badge bg-{{ status_badge[a.status] }} ms-2">{{ a.status }}</span></h6>
-          <span class="small text-secondary">投递: {{ a.apply_date.strftime('%Y-%m-%d') if a.apply_date else '未定' }}</span>
+          <div class="text-end">
+            <span class="small text-secondary d-block">投递: {{ a.apply_date.strftime('%Y-%m-%d') if a.apply_date else '未定' }}</span>
+            {% if a.resume %}
+            <span class="small text-info" style="font-size:0.65rem;"><i class="bi bi-file-earmark-text me-1"></i>简历: {{ a.resume.name }}</span>
+            {% endif %}
+          </div>
         </div>
         <div class="row small text-secondary mb-3">
           <div class="col-3"><i class="bi bi-box-arrow-in-right me-1"></i>{{ a.channel }}</div>

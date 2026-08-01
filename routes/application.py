@@ -5,7 +5,7 @@ from sqlalchemy.orm import joinedload
 from datetime import datetime
 from extensions import db
 from models import Application, Company, InterviewFeedback
-from constants import STATUS_LIST, OFFER_STATUS_CHOICES, OFFER_STATUS_LABEL, OFFER_STATUS_BADGE
+from constants import STATUS_LIST, OFFER_STATUS_CHOICES, OFFER_STATUS_LABEL, OFFER_STATUS_BADGE, POST_APPLY_STATUS_LIST, STAGED_STATUS_LIST
 from utils import parse_date, try_int, validate_salary, validate_dates
 from services.settings import load_settings, save_settings, is_archive_auto_enabled, get_archive_stale_days
 from services.archive import (
@@ -32,6 +32,23 @@ def _maybe_auto_archive():
         run_auto_archive(get_archive_stale_days())
 
 
+@bp.route('/to-apply')
+def to_apply_list():
+    page = request.args.get('page', 1, type=int)
+    ch = request.args.get('channel', '')
+    query = Application.query.options(joinedload(Application.company), joinedload(Application.resume)).filter(
+        Application.is_archived.is_(False),
+        Application.status == '待投递'
+    )
+    if ch:
+        query = query.filter_by(channel=ch)
+    apps = query.order_by(Application.updated_at.desc()).paginate(page=page, per_page=30)
+    channels = db.session.query(
+        Application.channel, db.func.count(Application.id)
+    ).filter(Application.is_archived.is_(False), Application.status == '待投递').group_by(Application.channel).all()
+    return render_template('to_apply.html', apps=apps, channels=channels)
+
+
 @bp.route('/applications')
 def app_list():
     _maybe_auto_archive()
@@ -39,11 +56,14 @@ def app_list():
     st = request.args.get('status', '')
     ch = request.args.get('channel', '')
     view = request.args.get('view', 'active')
-    query = Application.query.options(joinedload(Application.company))
+    query = Application.query.options(joinedload(Application.company), joinedload(Application.resume))
     if view == 'archived':
         query = query.filter_by(is_archived=True)
     else:
-        query = query.filter_by(is_archived=False)
+        query = query.filter(
+            Application.is_archived.is_(False),
+            ~Application.status.in_(STAGED_STATUS_LIST)
+        )
     if st:
         query = query.filter_by(status=st)
     if ch:
@@ -54,8 +74,9 @@ def app_list():
     ).filter_by(is_archived=(view == 'archived')).group_by(Application.channel).all()
     settings = load_settings()
     stale_count = len(query_stale_applications(settings['archive_stale_days']))
+    post_apply_statuses = ['已投递', '简历筛选', '笔试', '一面', '二面', '终面', 'Offer', '已拒']
     return render_template('applications.html', apps=apps, channels=channels,
-                           status_list=STATUS_LIST, view=view,
+                           status_list=post_apply_statuses, view=view,
                            archive_settings=settings, stale_count=stale_count)
 
 
@@ -101,6 +122,7 @@ def app_add():
         validate_dates(apply_date, deadline)
         a = Application(
             company_id=request.form['company_id'],
+            resume_id=try_int(request.form.get('resume_id')),
             position=request.form.get('position', '').strip(),
             channel=request.form.get('channel', '').strip(),
             status=request.form.get('status', '待投递'),

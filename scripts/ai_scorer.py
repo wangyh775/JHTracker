@@ -100,13 +100,38 @@ DEAL_BREAKERS = [
 ]
 
 
-def prefilter(job_type, match_reason, job_desc=''):
-    """Stage 1: 关键词预筛。返回 (pass: bool, reason: str)。"""
+def load_dynamic_negative_rules(conn):
+    """从数据库 memories 表读取人类在 Decision Inbox 累积的负向偏好规则。"""
+    c = conn.cursor()
+    try:
+        c.execute("""
+            SELECT category, content, rule_value 
+            FROM memories 
+            WHERE category LIKE 'exclude_%' OR category IN ('salary_too_low', 'general')
+        """)
+        rows = c.fetchall()
+        dynamic_rules = []
+        for r in rows:
+            rule_val = (r['rule_value'] or r['content'] or '').strip()
+            if rule_val and rule_val not in dynamic_rules:
+                dynamic_rules.append(rule_val)
+        return dynamic_rules
+    except sqlite3.OperationalError:
+        return []
+
+
+def prefilter(job_type, match_reason, job_desc='', dynamic_rules=None):
+    """Stage 1: 关键词预筛（结合静态 DEAL_BREAKERS + 动态人类拒绝记忆）。返回 (pass: bool, reason: str)。"""
     text = f"{job_type or ''} {match_reason or ''} {job_desc or ''}".lower()
 
     for breaker in DEAL_BREAKERS:
         if breaker.lower() in text:
             return False, f"排除词触发: {breaker}"
+
+    if dynamic_rules:
+        for rule in dynamic_rules:
+            if rule.lower() in text:
+                return False, f"触发拒绝记忆/排除词: {rule}"
 
     return True, "预筛通过"
 
@@ -257,7 +282,7 @@ def get_pending_companies(conn, force=False, company_id=None):
     return [dict(zip(columns, r)) for r in rows]
 
 
-def score_batch(companies, profile):
+def score_batch(companies, profile, dynamic_rules=None):
     """批量评分：一次 LLM 调用评 N 家公司。返回 {id: (score, reason)}。"""
     if not companies or not profile:
         return {}
@@ -266,7 +291,7 @@ def score_batch(companies, profile):
     to_llm = []
     prefiltered = {}
     for c in companies:
-        passed, reason = prefilter(c.get('job_type'), c.get('match_reason'))
+        passed, reason = prefilter(c.get('job_type'), c.get('match_reason'), dynamic_rules=dynamic_rules)
         if not passed:
             prefiltered[c['id']] = (0, reason)
         elif not c.get('job_type') and not c.get('match_reason'):
@@ -348,6 +373,11 @@ def main():
         skip_llm = True
 
     conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    dynamic_rules = load_dynamic_negative_rules(conn)
+    if dynamic_rules:
+        print(f"🧠 已加载 {len(dynamic_rules)} 条人类拒绝记忆规则用于动态预筛")
+
     companies = get_pending_companies(conn, force=args.force, company_id=args.company_id)
 
     if not companies:
@@ -385,14 +415,14 @@ def main():
             # 仅预筛，不调 LLM
             batch_scores = {}
             for c in batch:
-                passed, reason = prefilter(c.get('job_type'), c.get('match_reason'))
+                passed, reason = prefilter(c.get('job_type'), c.get('match_reason'), dynamic_rules=dynamic_rules)
                 if passed:
                     batch_scores[c['id']] = (50, "Profile 未变/未配置，保留预筛结果")
                 else:
                     batch_scores[c['id']] = (0, reason)
         else:
             # 批量 LLM 评分
-            batch_scores = score_batch(batch, profile)
+            batch_scores = score_batch(batch, profile, dynamic_rules=dynamic_rules)
 
         # 写入数据库
         cursor = conn.cursor()

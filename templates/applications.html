@@ -100,7 +100,7 @@
   <div class="card-body py-3">
     <div class="d-flex justify-content-between align-items-center">
       <div>
-        <a href="/companies/{{ a.company.id }}" class="text-decoration-none fw-bold">{{ a.company.name }}</a>
+        <a href="#" data-bs-toggle="modal" data-bs-target="#appDetailModal{{ a.id }}" class="text-decoration-none fw-bold">{{ a.company.name }}</a>
         <span class="text-secondary mx-2">|</span>
         <span>{{ a.position or '未指定' }}</span>
         <span class="badge bg-{{ status_badge[a.status] }} ms-2">{{ a.status }}</span>
@@ -125,6 +125,18 @@
         {% endif %}
       </div>
     </div>
+    {% if a.match_score or a.agent_reason %}
+    <div class="mt-2 p-2 rounded small" style="background: #18181b; border: 1px solid #27272a;">
+      <div class="d-flex align-items-center gap-2">
+        {% if a.match_score %}
+          <span class="badge bg-success me-1">{{ a.match_score }}分 AI 评估</span>
+        {% endif %}
+        {% if a.agent_reason %}
+          <span class="text-secondary"><i class="bi bi-robot text-primary me-1"></i><strong>Agent 分析:</strong> {{ a.agent_reason }}</span>
+        {% endif %}
+      </div>
+    </div>
+    {% endif %}
     <div class="d-flex justify-content-between align-items-center mt-2">
       <form method="post" action="/applications/{{ a.id }}/status" class="d-flex gap-2 align-items-center">
         <select class="form-select form-select-sm" name="status" style="width:150px">
@@ -146,6 +158,68 @@
         <form method="post" action="/applications/{{ a.id }}/delete" onsubmit="return confirm('确定删除？')">
           <button class="btn btn-sm btn-outline-danger" title="删除"><i class="bi bi-trash me-1"></i>删除</button>
         </form>
+</div>
+  </div>
+</div>
+
+<!-- Application Detail Modal -->
+<div class="modal fade" id="appDetailModal{{ a.id }}" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <a href="/companies/{{ a.company.id }}" class="text-decoration-none">{{ a.company.name }}</a>
+          <span class="text-secondary mx-2">|</span>
+          <span>{{ a.position or '未指定' }}</span>
+          <span class="badge bg-{{ status_badge[a.status] }} ms-2">{{ a.status }}</span>
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row small text-secondary mb-3">
+          <div class="col-4"><i class="bi bi-box-arrow-in-right me-1"></i>{{ a.channel or '未指定' }}</div>
+          <div class="col-4"><i class="bi bi-currency-yen me-1"></i>{{ a.salary_min or '?' }}-{{ a.salary_max or '?' }}k</div>
+          {% if a.deadline %}
+          <div class="col-4"><i class="bi bi-clock me-1"></i>截止: {{ a.deadline.strftime('%Y-%m-%d') }}</div>
+          {% endif %}
+        </div>
+        {% if a.url %}
+        <div class="mb-2"><a href="{{ a.url }}" target="_blank" class="small"><i class="bi bi-link-45deg me-1"></i>JD 链接</a></div>
+        {% endif %}
+        {% if a.match_score or a.agent_reason %}
+        <div class="p-2 rounded small mb-3" style="background: #18181b; border: 1px solid #27272a;">
+          <div class="d-flex align-items-center gap-2">
+            {% if a.match_score %}
+              <span class="badge bg-success me-1">{{ a.match_score }}分 AI 评估</span>
+            {% endif %}
+            {% if a.agent_reason %}
+              <span class="text-secondary"><i class="bi bi-robot text-primary me-1"></i><strong>Agent 分析:</strong> {{ a.agent_reason }}</span>
+            {% endif %}
+          </div>
+        </div>
+        {% endif %}
+        {% if a.resume %}
+        <div class="mb-2 small"><i class="bi bi-file-earmark-text me-1"></i>简历版本: <span class="text-info">{{ a.resume.name }}</span></div>
+        {% endif %}
+        {% if a.feedback %}
+        <div class="p-2 rounded small mb-3" style="background: #18181b; border: 1px solid #27272a;">
+          <strong class="text-info">反馈/进度:</strong><br> {{ a.feedback }}
+        </div>
+        {% endif %}
+        {% if a.status == 'Offer' %}
+        <div class="mb-3">
+          <form method="post" action="/applications/{{ a.id }}/offer_status" class="d-flex gap-2 align-items-center">
+            <span class="small text-secondary">Offer 状态:</span>
+            <select class="form-select form-select-sm w-auto" name="offer_status">
+              <option value="pending" {% if a.offer_status == 'pending' %}selected{% endif %}>待定</option>
+              <option value="accepted" {% if a.offer_status == 'accepted' %}selected{% endif %}>已接受</option>
+              <option value="rejected" {% if a.offer_status == 'rejected' %}selected{% endif %}>已拒绝</option>
+            </select>
+            <button class="btn btn-sm btn-primary">更新</button>
+          </form>
+        </div>
+        {% endif %}
+        {% include '_feedback_form.html' with context %}
       </div>
     </div>
   </div>
@@ -165,7 +239,7 @@
       {% if view == 'archived' %}
       <a href="/applications?view=active">返回活跃列表</a>
       {% else %}
-      去 <a href="/companies">公司库</a> 选公司，记录你的第一份投递
+      去 <a href="/to-apply" class="text-warning">待投递清单</a> 标记已投递，或去 <a href="/companies">公司库</a> 选公司
       {% endif %}
     </div>
   </div>

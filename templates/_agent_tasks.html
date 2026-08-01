@@ -1,0 +1,25 @@
+{% if not tasks or tasks|length == 0 %}
+<div class="text-secondary small text-center py-3">
+  <i class="bi bi-robot me-1"></i>暂无 Agent 运行任务
+</div>
+{% else %}
+<div class="d-flex flex-column gap-2" style="max-height: 300px; overflow-y: auto;">
+  {% for t in tasks %}
+  <div class="p-2 rounded bg-zinc-900 border border-zinc-800">
+    <div class="d-flex justify-content-between align-items-center mb-1">
+      <div>
+        <span class="badge {% if t.status == 'completed' %}bg-success{% elif t.status == 'failed' %}bg-danger{% else %}bg-warning text-dark{% endif %} me-2">
+          {{ t.status }}
+        </span>
+        <strong class="text-light small">{{ t.agent_name }}</strong>
+      </div>
+      <span class="badge bg-info text-dark" style="font-size: 0.65rem;">{{ t.event_count }} 事件</span>
+    </div>
+    <div class="d-flex justify-content-between align-items-center">
+      <span class="text-secondary" style="font-size: 0.7rem;">Task ID: {{ t.task_id }}</span>
+      <a href="/traces" class="btn btn-sm btn-outline-info py-0 px-2" style="font-size: 0.7rem;">查看 Trace Log</a>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}

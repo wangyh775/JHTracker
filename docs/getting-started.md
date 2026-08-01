@@ -108,6 +108,26 @@ JHTracker 内置原生 **Model Context Protocol (MCP)** 服务，让智能体可
 
 ---
 
+## ⏰ 6. 定时任务推荐（配合 Hermes 使用）
+
+部分脚本适合定时运行以保持数据新鲜，推荐使用 **Hermes** 的定时任务能力来触发：
+
+| 脚本 | 用途 | 推荐频率 |
+|---|---|---|
+| `scripts/daily_new_company_finder.py` | 每日自动发现并入库新公司 | 每日一次 |
+| `scripts/ai_scorer.py` | 为未评分的公司执行 AI 匹配评分 | 每日一次（或新公司入库后） |
+
+在 Hermes 中配置定时任务，定时执行以下命令即可：
+
+```bash
+python scripts/daily_new_company_finder.py
+python scripts/ai_scorer.py
+```
+
+> **提示**：确保在项目根目录和激活的虚拟环境中执行。AI 评分需要配置有效的 LLM API Key（见 `.env.example`）。
+
+---
+
 ## 🔗 下一步阅读
 
 - [系统架构文档](architecture.md) — 了解高并发 WAL 与 Blueprint 设计
