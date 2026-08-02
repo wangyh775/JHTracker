@@ -227,10 +227,37 @@ def create_application():
     if not status or status in POST_APPLY_STATUS_LIST:
         status = 'Pending Approval'
 
+    position_val = (data.get('position') or '待定岗位').strip()
+
+    # Deduplication check for company_id + position within STAGED_STATUS_LIST
+    existing_app = Application.query.filter(
+        Application.company_id == company_id,
+        db.func.lower(db.func.trim(Application.position)) == position_val.lower(),
+        Application.status.in_(STAGED_STATUS_LIST)
+    ).first()
+
+    if existing_app:
+        return jsonify({
+            'status': 'success',
+            'created': False,
+            'application': {
+                'id': existing_app.id,
+                'company_id': existing_app.company_id,
+                'company_name': company.name,
+                'position': existing_app.position,
+                'status': existing_app.status,
+                'url': existing_app.url,
+                'match_score': existing_app.match_score,
+                'agent_reason': existing_app.agent_reason,
+                'agent_task_id': existing_app.agent_task_id,
+                'source_url': existing_app.source_url
+            }
+        })
+
     application = Application(
         company_id=company_id,
         resume_id=data.get('resume_id'),
-        position=data.get('position', '待定岗位'),
+        position=position_val,
         channel=data.get('channel', 'Agent 自动推送'),
         status=status,
         job_desc=data.get('job_desc'),
@@ -247,6 +274,7 @@ def create_application():
 
     return jsonify({
         'status': 'success',
+        'created': True,
         'application': {
             'id': application.id,
             'company_id': application.company_id,

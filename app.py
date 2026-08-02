@@ -72,6 +72,16 @@ if __name__ == '__main__':
                 if col_name not in columns:
                     db.session.execute(text(f"ALTER TABLE applications ADD COLUMN {col_name} {col_type}"))
             db.session.commit()
+            # 创建部分唯一索引，防止同一公司+同一岗位在待审批/待投递阶段重复
+            try:
+                db.session.execute(text("""
+                    CREATE UNIQUE INDEX IF NOT EXISTS idx_applications_dedup
+                    ON applications(company_id, LOWER(position))
+                    WHERE status IN ('Pending Approval', '待审批', '待投递')
+                """))
+                db.session.commit()
+            except Exception:
+                db.session.rollback()
     # DEBUG 由 SelectedConfig 决定；FLASK_DEBUG=1 仍可强制开启（向后兼容）
     debug = app.config.get('DEBUG', False) or os.environ.get('FLASK_DEBUG', '0') == '1'
     app.run(debug=debug, host='127.0.0.1', port=5000)

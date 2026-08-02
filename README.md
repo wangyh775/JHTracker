@@ -2,18 +2,68 @@
 
 > 本地优先、AI 加持的求职管理工具。从公司筛选、投递跟踪到 Offer 决策，全流程覆盖。100% 本地数据，零云依赖。
 
-<p align="center">
-  <img src="docs/product-diagram.png" alt="JHTracker 产品总览图" width="800">
-</p>
-
 ## 特性
 
 - **公司库管理**：500+ 公司清单，按行业/城市/优先级/AI 匹配分多维筛选
 - **Agent-Native 原生接口与 MCP**：36 个 MCP 工具覆盖全部 11 个数据域，供 Claude Desktop、Cursor、Hermes 等智能体无缝对接；REST API 作为 fallback 备用
 - **HITL 人机协同闭环**：Agent 推荐岗位 → 人在 Decision Inbox 审批 → 拒绝反馈自动反哺到下次评估，形成持续校准的推荐闭环
+  ```mermaid
+  flowchart TB
+      Proposal["🤖 Agent 待审批提案<br/>(status='Pending Approval')"] --> Review["👤 人类在 Decision Inbox 审核"]
+      Review -->|Approve 批准| PosMemory["🟢 写入正向记忆<br/>(prefer_tech / prefer_domain)"]
+      Review -->|Reject 拒绝| NegMemory["🔴 写入负向记忆<br/>(exclude_tech / exclude_company)"]
+      NegMemory --> DBMem[("memories 数据库表")]
+      PosMemory --> DBMem
+      DBMem --> Prefilter["⚡ Stage 1: 静态词库 + 动态记忆 预筛"]
+      DBMem --> LLMScorer["🧠 Stage 2: LLM 批量深度评分"]
+      NewJob["新岗位评估"] --> Prefilter
+      Prefilter -->|触发负向记忆| Drop["0 分淘汰 (0 Token 开销)"]
+      Prefilter -->|通过| LLMScorer
+      LLMScorer -->|结合正向记忆加分| Proposal
+  ```
 - **Agent Trace 实时轨迹**：内置 `/traces` 页面与 SSE 广播，可视化追踪智能体的推理思考与操作日志
-- **AI 智能体驱动**：用 AI 智能体深度检索网络生成公司库；AI 评分引擎对每家公司做匹配度打分
-- **投递全流程跟踪**：待投递 → 已投递 → 简历筛选 → 笔试 → 面试 → Offer/拒绝，状态流转 + 面试评价
+- **AI 智能体驱动与分层检索**：使用 Agent 配合 5 层工具链与三步防伪校验门搜寻岗位，杜绝幻觉与假数据
+  ```mermaid
+  flowchart TB
+      Start["搜寻任务启动"] --> Profile["读取 profile.md (enterprise_preference)"]
+      Profile --> Routing{"平台智能路由"}
+      Routing -->|央国企| PlatformState["国聘 / 国资委 / 央企官网"]
+      Routing -->|外企| PlatformForeign["猎聘 / LinkedIn / 外企官网"]
+      Routing -->|民企| PlatformPrivate["BOSS直聘 / 拉勾 / 智联"]
+      Routing -->|不限| PlatformAll["全平台梯队检索"]
+
+      PlatformState & PlatformForeign & PlatformPrivate & PlatformAll --> L1["Layer 1: Firecrawl Scrape (Proxy)"]
+      L1 -->|失败/无结果| L2["Layer 2: CDP 网络拦截 (Playwright)"]
+      L2 -->|失败/无结果| L3["Layer 3: Exa 语义搜索"]
+      L3 -->|失败/无结果| L4["Layer 4: Tavily 网页搜索"]
+      L4 -->|失败/无结果| L5["Layer 5: WebFetch 兜底"]
+
+      L1 & L2 & L3 & L4 & L5 -->|候选结果| Gate{"三步真实性校验门"}
+      Gate -->|1. HTTP 200 可达| Gate2{"2. 标题与公司名一致"}
+      Gate2 -->|通过| Gate3{"3. 交叉来源验证"}
+      Gate3 -->|通过/单来源| Commit["写入 DB (Pending Approval + source_url)"]
+      L5 -->|全层失败| Refuse["拒不编造协议：输出报告并结束任务"]
+      Gate & Gate2 -->|未通过| Refuse
+  ```
+- **投递全流程跟踪与生命周期隔离**：前投递人机协同 + 后投递纯人工流水追踪（智能体只读保护）
+  ```mermaid
+  flowchart LR
+      subgraph PreApply ["前投递阶段 (Pre-Application) - 人机协作区"]
+          AgentSearch["Agent 搜网提案"] -->|status='Pending Approval'| Inbox["Decision Inbox 决策收件箱"]
+          Inbox -->|Approve 批准| ToApply["/to-apply 待投递清单<br/>(status='待投递')"]
+          Inbox -->|Reject 拒绝| RejectMem["记录负向偏好规则<br/>(status='已拒')"]
+      end
+
+      subgraph PostApply ["后投递阶段 (Post-Application) - 纯人工掌控区 🛡️ Agent只读"]
+          ToApply -->|人类手动投递| Applied["/applications 投递记录<br/>(status='已投递')"]
+          Applied --> Screening["简历筛选"]
+          Screening --> Interview["笔试 / 面试 (一/二/终)"]
+          Interview --> Offer["Offer / 已拒"]
+      end
+
+      classDef protected fill:#fee2e2,stroke:#ef4444,stroke-width:2px,color:#991b1b;
+      class PostApply protected;
+  ```
 - **数据看板**：投递漏斗、转化率、城市分布、行业分布、优先级分布
 - **甘特图时间线**：秋招/春招关键节点，支持近1月/近3月/秋招季/全部多视图切换；节点点击展开查看与编辑
 - **笔记管理**：按公司/分类组织，点击卡片展开查看与二次编辑
@@ -60,50 +110,55 @@ python app.py
 
 ## Agent-Native & Career OS 架构一览
 
+> **图 1：系统架构与接口拓扑图** — 展示外部 Host Agents、MCP 工具层、记忆引擎与本地 SQLite 存储之间的层级关系。
+
 ```mermaid
 flowchart TB
-    accTitle: JHTracker Agent-Native Architecture
-    accDescr: Client and external host agents interact through MCP Server and Unified Tool Layer with Memory Engine, Agent Task & Trace Feed, and SQLite Storage
-
-    subgraph hosts ["🤖 外部 Host Agents / Orchestrator"]
-        agents["Hermes / Claude Desktop / Cursor / OpenCode / Web Client"]
+    subgraph Hosts ["🤖 外部 Host Agents / 客户端"]
+        Browser["🖥️ 浏览器 (Bootstrap 5 + Alpine.js)"]
+        ExternalAgents["🤖 外部 Agent<br/>(Hermes / Claude / Cursor / OpenCode)"]
     end
 
-    subgraph mcp ["⚡ MCP Server & Unified Tool Layer (mcp_server.py)"]
-        tools["MCP Tools & Resources (36 tools):<br/>• evaluate_jd / batch_evaluate_jds<br/>• search_companies / get_company<br/>• create_company / update_company<br/>• create_application / list_applications<br/>• get_pending_approvals / handle_decision<br/>• get_statistics / record_agent_trace<br/>• create_note / create_timeline_event<br/>• ... 覆盖 11 个数据域"]
+    subgraph MCP ["⚡ MCP Server & 工具层 (mcp_server.py)"]
+        MCPTools["36 个 FastMCP Tools & Resources<br/>evaluate_jd / search_companies / create_application<br/>get_pending_approvals / handle_decision<br/>get_statistics / record_agent_trace<br/>jhtracker://profile / jhtracker://statistics"]
     end
 
-    subgraph engine ["🧠 Memory Engine & Core State"]
-        profile["Candidate Profile (data/profile.md)"]
-        memories["Negative Rules & Feedback Memories"]
-        resume_bind["Resume Binding (resumes.id <-> applications.resume_id)"]
+    subgraph App ["🌐 Flask 应用与路由层 (routes/)"]
+        Dashboard["决策收件箱 Decision Inbox"]
+        ToApply["/to-apply 待投递页面"]
+        AppsRoute["/applications 投递记录 (只读保护)"]
+        AgentAPI["Agent REST API (/api/agent/)"]
     end
 
-    subgraph trace ["📊 Agent Task Center & Activity Feed"]
-        task_feed["Agent Tasks & Event Trace Feed<br/>(/api/agent/tasks & /traces)"]
+    subgraph Engine ["🧠 记忆引擎 Memory Engine"]
+        Profile["候选人画像 (data/profile.md)"]
+        Memories["双向偏好规则 (memories 表)"]
     end
 
-    subgraph storage ["💾 SQLite Database & Local Files"]
-        db[("tracker.db<br/>(companies, applications, memories, agent_tasks, agent_events)")]
+    subgraph Storage ["💾 数据存储层"]
+        DB[("SQLite (data/tracker.db)<br/>companies / applications / memories / agent_tasks")]
+        Files["📁 本地文件<br/>data/resumes/ / data/backups/"]
     end
 
-    agents -->|MCP Protocol / REST API| tools
-    tools --> engine
-    tools --> trace
-    engine --> storage
-    trace --> storage
+    Browser --> App
+    ExternalAgents -->|MCP 协议| MCPTools
+    MCPTools --> Engine
+    MCPTools --> DB
+    App --> Engine
+    App --> DB
+    Engine --> Storage
 
     classDef host fill:#e0f2fe,stroke:#0284c7,stroke-width:2px,color:#0369a1
     classDef mcp fill:#fae8ff,stroke:#c084fc,stroke-width:2px,color:#6b21a8
+    classDef app fill:#dbeafe,stroke:#2563eb,stroke-width:2px,color:#1e3a5f
     classDef engine fill:#dcfce7,stroke:#22c55e,stroke-width:2px,color:#15803d
-    classDef trace fill:#fef3c7,stroke:#f59e0b,stroke-width:2px,color:#b45309
     classDef storage fill:#f1f5f9,stroke:#64748b,stroke-width:2px,color:#334155
 
-    class agents host
-    class tools mcp
-    class profile,memories,resume_bind engine
-    class task_feed trace
-    class db storage
+    class Browser,ExternalAgents host
+    class MCPTools mcp
+    class Dashboard,ToApply,AppsRoute,AgentAPI app
+    class Profile,Memories engine
+    class DB,Files storage
 ```
 
 ---

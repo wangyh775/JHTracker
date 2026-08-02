@@ -72,7 +72,7 @@ JHTracker 围绕三个核心原则构建：
 
 - 根目录 README：[../README.md](../README.md) — 快速开始、AI 工作流、Skills 安装
 - 贡献指南：[../CONTRIBUTING.md](../CONTRIBUTING.md)
-- 产品总览图：[product-diagram.png](product-diagram.png)
+- 系统 Mermaid 架构一览见上方「系统一览」章节
 - 依赖清单：[../requirements.txt](../requirements.txt)、[../requirements-ai.txt](../requirements-ai.txt)
 
 ---

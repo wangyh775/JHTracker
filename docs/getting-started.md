@@ -128,6 +128,42 @@ python scripts/ai_scorer.py
 
 ---
 
+## 🔄 7. MCP + Skill + 定时任务 三链路打通与防重配置指南
+
+当你在新环境中为智能体接入 JHTracker 时，需要打通 **MCP 工具**、**Skill SOP** 与 **定时任务** 三个关键链路，并配置防重契约，以确保 Agent 后台搜寻岗位时既自动化运行，又不会重复推送数据库中已有的岗位提案。
+
+### 7.1 三链路连通 Checklist
+
+1. **链路 1：MCP 服务连通**
+   - 验证 `mcp_server.py` 已挂载至 Host Agent（Hermes / Claude Desktop / Cursor / OpenCode）。
+   - 测试调用 `JHTracker:search_companies` 和 `jhtracker://profile` 正常响应。
+   - 检查外部检索 MCP（Exa / Firecrawl / Playwright / Tavily）已配置在 Host Agent 端。
+
+2. **链路 2：Skill SOP 装载**
+   - 确认 Host Agent 已加载 `skills/job-sourcing-and-scoring/SKILL.md`。
+   - 智能体会自动遵循【检索-验证闭环】与【真实性校验门】。
+
+3. **链路 3：定时任务与防重契约绑定**
+   - 在 Hermes Cron 或 Host Agent 的计划任务中创建定时 Auto-Sourcing 任务。
+
+### 7.2 智能体定时任务标准防重 Prompt 模板
+
+在配置 Host Agent 每日定时任务时，请直接使用以下 Prompt 模板：
+
+```markdown
+### 每日求职自动搜寻任务 (Daily Auto-Sourcing Cron Task)
+
+请加载并执行 `job-sourcing-and-scoring` 技能，帮我搜寻目标岗位。
+
+**防重契约 (Strict Anti-Duplication Protocol)**:
+1. **前置查重**：在开始搜网前，首先调用 `JHTracker:search_companies(query="")` 提取当前数据库中已有的全部公司名称。
+2. **定向排除**：在 Exa / Firecrawl / Tavily 中搜索岗位时，必须排除已有公司，重点寻找库内未记录的**新企业与新岗位**。
+3. **查重跳过门**：若搜寻到某公司已存在于数据库中（`create_company` 返回 `created: false`），必须先检查该公司是否已有处于 `Pending Approval` 或 `待投递` 状态的同名岗位提案；若已存在，**强制跳过 (SKIP)**，严禁再次调用 `create_application`！
+4. **轨迹记录**：搜寻结束后调用 `JHTracker:record_agent_trace` 汇报今日新增的新候选岗位数量与 URL Provenance。
+```
+
+---
+
 ## 🔗 下一步阅读
 
 - [系统架构文档](architecture.md) — 了解高并发 WAL 与 Blueprint 设计

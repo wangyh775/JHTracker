@@ -117,6 +117,15 @@ Every candidate record MUST pass the following checks before being committed to 
    - `industry`, `city`, `priority` based on verified data.
 3. Log provenance in trace: `payload={"source_url": "...", "source_platform": "...", "discovery_tool": "...", "verification_status": "verified|single_source"}`.
 
+### 3a. Application Deduplication Check (查重与跳过)
+
+**IMPORTANT: Before calling `create_application`, you MUST pass this deduplication gate.**
+
+1. If `create_company` returns `created: False` (company already exists), call `JHTracker:search_companies(query=name)` to get the company ID.
+2. Use the company ID to list existing applications for that company. Check if there is already an application with the same (or very similar) position in `Pending Approval` or `待投递` status.
+3. **If a duplicate is found**: SKIP this position entirely. Do NOT call `create_application`. Log the skip in the trace: `payload={"skipped": true, "reason": "duplicate_proposal", "company": "<name>", "position": "<position>"}`.
+4. **If no duplicate is found**: Proceed to Step 4 (AI Matching Evaluation).
+
 ### 4. AI Matching Evaluation (0 - 100)
 
 Score companies/jobs based on alignment with candidate skills, city, salary expectations, and negative rules:

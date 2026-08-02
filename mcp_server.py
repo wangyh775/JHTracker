@@ -221,19 +221,50 @@ def create_application(
         if not status or status in POST_APPLY_STATUS_LIST:
             status = 'Pending Approval'
 
+        # Deduplication check for company_id + LOWER(TRIM(position)) within STAGED_STATUS_LIST
+        norm_pos = (position or "待定岗位").strip()
+        placeholders = ','.join(['?'] * len(STAGED_STATUS_LIST))
+        sql = f"""
+            SELECT id, company_id, position, status, url, match_score, agent_reason, agent_task_id, source_url, resume_id
+            FROM applications
+            WHERE company_id = ? AND LOWER(TRIM(position)) = LOWER(?) AND status IN ({placeholders})
+            LIMIT 1
+        """
+        cursor.execute(sql, (company_id, norm_pos, *STAGED_STATUS_LIST))
+        existing = cursor.fetchone()
+        if existing:
+            return json.dumps({
+                'status': 'success',
+                'created': False,
+                'application': {
+                    'id': existing['id'],
+                    'company_id': existing['company_id'],
+                    'company_name': comp['name'],
+                    'position': existing['position'],
+                    'status': existing['status'],
+                    'url': existing['url'],
+                    'match_score': existing['match_score'],
+                    'agent_reason': existing['agent_reason'],
+                    'agent_task_id': existing['agent_task_id'],
+                    'source_url': existing['source_url'],
+                    'resume_id': existing['resume_id']
+                }
+            }, ensure_ascii=False)
+
         cursor.execute("""
             INSERT INTO applications (company_id, position, status, channel, job_desc, url, match_score, agent_reason, agent_task_id, source_url, resume_id, created_at, updated_at)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
-        """, (company_id, position, status, channel, job_desc, url, match_score, agent_reason, agent_task_id, source_url, resume_id))
+        """, (company_id, norm_pos, status, channel, job_desc, url, match_score, agent_reason, agent_task_id, source_url, resume_id))
         conn.commit()
         app_id = cursor.lastrowid
         return json.dumps({
             'status': 'success',
+            'created': True,
             'application': {
                 'id': app_id,
                 'company_id': company_id,
                 'company_name': comp['name'],
-                'position': position,
+                'position': norm_pos,
                 'status': status,
                 'url': url,
                 'match_score': match_score,

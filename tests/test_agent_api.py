@@ -114,10 +114,44 @@ class TestAgentAPI:
         assert res.status_code == 200
         data = res.get_json()
         assert data['status'] == 'success'
+        assert data['created'] is True
         assert data['application']['company_id'] == c_id
         assert data['application']['status'] == 'Pending Approval'
         assert data['application']['match_score'] == 95
         assert data['application']['agent_reason'] == 'High stack match'
+
+    def test_create_application_deduplication(self, client, app):
+        with app.app_context():
+            c = Company(name='Dedup Target Co')
+            db.session.add(c)
+            db.session.commit()
+            c_id = c.id
+
+        payload = {
+            'company_id': c_id,
+            'position': '  Robotics Engineer ',
+            'source_url': 'https://example.com/job/2'
+        }
+        # First creation -> created: True
+        res1 = client.post('/api/v1/applications', data=json.dumps(payload), content_type='application/json')
+        assert res1.status_code == 200
+        data1 = res1.get_json()
+        assert data1['status'] == 'success'
+        assert data1['created'] is True
+        app_id = data1['application']['id']
+
+        # Duplicate creation with whitespace & case difference -> created: False, returns existing app_id
+        payload_dup = {
+            'company_id': c_id,
+            'position': 'robotics engineer',
+            'source_url': 'https://example.com/job/2?ref=dup'
+        }
+        res2 = client.post('/api/v1/applications', data=json.dumps(payload_dup), content_type='application/json')
+        assert res2.status_code == 200
+        data2 = res2.get_json()
+        assert data2['status'] == 'success'
+        assert data2['created'] is False
+        assert data2['application']['id'] == app_id
 
     def test_review_application_and_preferences(self, client, app):
         with app.app_context():
