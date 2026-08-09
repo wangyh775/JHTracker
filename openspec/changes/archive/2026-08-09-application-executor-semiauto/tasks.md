@@ -1,35 +1,35 @@
-## Phase 1 MVP（无浏览器） — 闭环跑通
+## Phase 1 MVP（无浏览器） — 闭环跑通 ✓
 
 ### 1. 数据库迁移 + 模型
-- [ ] 1.1 在 `models.py` 新增 `AnswerBank`、`ExperienceBank`、`ApplicationSubmission` 3 个模型，字段完全对齐 proposal 的 schema。
-- [ ] 1.2 在 `constants.py` 新增：`PRE_APPLY_STATUS_LIST` 追加 `'待提交'`；`SENSITIVE_FIELD_PATTERNS`（正则+分类字典）；`SUBMISSION_STATUSES` 枚举。
-- [ ] 1.3 生成 Alembic 迁移脚本 `migrations/versions/<hash>_add_submission_tables.py` 并本地 `flask db upgrade` 验证。
+- [x] 1.1 在 `models.py` 新增 `AnswerBank`、`ExperienceBank`、`ApplicationSubmission` 3 个模型，字段完全对齐 proposal 的 schema。
+- [x] 1.2 在 `constants.py` 新增：`PRE_APPLY_STATUS_LIST` 追加 `'待提交'`；`SENSITIVE_FIELD_PATTERNS`（正则+分类字典）；`SUBMISSION_STATUSES` 枚举。
+- [x] 1.3 生成 Alembic 迁移脚本 `migrations/versions/<hash>_add_submission_tables.py` 并本地 `flask db upgrade` 验证。
 
 ### 2. 服务层基础
-- [ ] 2.1 新建 `services/safety_guard.py`：实现 `classify_field()`（5 类正则分类）、`is_submit_button()`（按钮安全检查）、`SafetyBlockedError` 异常。
-- [ ] 2.2 新建 `services/submission_executor.py`：先实现 `prefill_dry_run()`（不启 Playwright，只接收传入 fields 列表 + application_id，组装 prefilled_data JSON 并写 ApplicationSubmission + Application 状态 待投递→待提交）；`executor = ThreadPoolExecutor(max_workers=2)` 留好接口。
-- [ ] 2.3 在 `utils.py` 或新增函数：`role_family_normalize(text)`（去空格+统一斜杠+小写）。
+- [x] 2.1 新建 `services/safety_guard.py`：实现 `classify_field()`（5 类正则分类）、`is_submit_button()`（按钮安全检查）、`SafetyBlockedError` 异常。
+- [x] 2.2 新建 `services/submission_executor.py`：先实现 `prefill_dry_run()`（不启 Playwright，只接收传入 fields 列表 + application_id，组装 prefilled_data JSON 并写 ApplicationSubmission + Application 状态 待投递→待提交）；`executor = ThreadPoolExecutor(max_workers=2)` 留好接口。
+- [x] 2.3 在 `utils.py` 或新增函数：`role_family_normalize(text)`（去空格+统一斜杠+小写）。
 
 ### 3. MCP 工具（5/6 先上，prefill 先 dry_run 版）
-- [ ] 3.1 `get_answer_bank(role_family=None, question=None)`：正则匹配 question_pattern；先 role_family 精确后回退通用；命中 needs_review=1 打标；敏感字段分类命中时走 profile 解析（复用 `get_candidate_profile` 内部逻辑）。
-- [ ] 3.2 `upsert_answer_bank(question_pattern, answer, role_family=None, needs_review=False, source='manual')`：按 `(question_pattern_normalized, role_family_normalized)` 唯一约束 upsert。
-- [ ] 3.3 `delete_answer_bank(answer_id, confirm=False)`：需要 `confirm=True` 才生效。
-- [ ] 3.4 `prefill_application_form(application_id, form_url, fields_override=None, dry_run=True)`：MVP 强制 dry_run=True；走 submission_executor.prefill_dry_run；记录轨迹；改 application 状态。
-- [ ] 3.5 `record_submission_result(application_id, success, screenshot_path=None, failure_reason=None, extracted_answers=None)`：success=True→已投递+apply_date；False→回退待投递；写 ApplicationSubmission。**AnswerBank 自动沉淀先留 TODO 注释，Phase 3 实装**。
-- [ ] 3.6 `get_resume_for_role(role_family=None, jd_keywords=None)`：MVP 只返回默认简历（`get_default_resume()` 逻辑），ExperienceBank 匹配留 TODO，Phase 3 实装。
+- [x] 3.1 `get_answer_bank(role_family=None, question=None)`：正则匹配 question_pattern；先 role_family 精确后回退通用；命中 needs_review=1 打标；敏感字段分类命中时走 profile 解析（复用 `get_candidate_profile` 内部逻辑）。
+- [x] 3.2 `upsert_answer_bank(question_pattern, answer, role_family=None, needs_review=False, source='manual')`：按 `(question_pattern_normalized, role_family_normalized)` 唯一约束 upsert。
+- [x] 3.3 `delete_answer_bank(answer_id, confirm=False)`：需要 `confirm=True` 才生效。
+- [x] 3.4 `prefill_application_form(application_id, form_url, fields_override=None, dry_run=True)`：MVP 强制 dry_run=True；走 submission_executor.prefill_dry_run；记录轨迹；改 application 状态。
+- [x] 3.5 `record_submission_result(application_id, success, screenshot_path=None, failure_reason=None, extracted_answers=None)`：success=True→已投递+apply_date；False→回退待投递；写 ApplicationSubmission。**AnswerBank 自动沉淀先留 TODO 注释，Phase 3 实装**。
+- [x] 3.6 `get_resume_for_role(role_family=None, jd_keywords=None)`：MVP 只返回默认简历（`get_default_resume()` 逻辑），ExperienceBank 匹配留 TODO，Phase 3 实装。
 
 ### 4. Web 路由 & UI
-- [ ] 4.1 新建 `routes/submission.py`：
+- [x] 4.1 新建 `routes/submission.py`：
   - GET `/submissions`：列出 status=待提交/awaiting_human 的列表 + prefilled_data + 截图预览。
   - POST `/submissions/<submission_id>/mark-submitted` → 内部调 `record_submission_result(success=True)`。
   - POST `/submissions/<submission_id>/mark-failed` → 调 `record_submission_result(success=False, failure_reason=...)`。
   - POST `/submissions/<submission_id>/answer` → 人工补填缺失答案，写 ApplicationSubmission.prefilled_data（就地覆盖 field.filled=true, source=human_filled）。
-- [ ] 4.2 新建 `templates/submissions.html`：Bootstrap 5，Tab（待提交 / awaiting_human / 已完成 / 失败），每条卡片展示表单 URL跳转按钮、字段清单分色展示（绿色=bank命中；橙色=needs_review；紫色=profile取；红色=missing）、缺失字段下方 inline 输入框 + 保存按钮、「标记已提交 / 标记失败」按钮。
-- [ ] 4.3 修改 `templates/to_apply.html`：每条加「预填网申」按钮 → 带参数 POST 到 prefill_application_form（MVP 弹出 prompt 让用户手动填字段 JSON 或直接走 dry_run 空结构）。
-- [ ] 4.4 修改 `templates/base.html`：侧边栏加「待提交审核」链接。
+- [x] 4.2 新建 `templates/submissions.html`：Bootstrap 5，Tab（待提交 / awaiting_human / 已完成 / 失败），每条卡片展示表单 URL跳转按钮、字段清单分色展示（绿色=bank命中；橙色=needs_review；紫色=profile取；红色=missing）、缺失字段下方 inline 输入框 + 保存按钮、「标记已提交 / 标记失败」按钮。
+- [x] 4.3 修改 `templates/to_apply.html`：每条加「预填网申」按钮 → 带参数 POST 到 prefill_application_form（MVP 弹出 prompt 让用户手动填字段 JSON 或直接走 dry_run 空结构）。
+- [x] 4.4 修改 `templates/base.html`：侧边栏加「待提交审核」链接。
 
 ### 5. Skill
-- [ ] 5.1 新建 `skills/application-executor/SKILL.md`：
+- [x] 5.1 新建 `skills/application-executor/SKILL.md`：
   - matter：name、description、触发中/英文关键词、alias、allowed-tools（6 新+8 旧）。
   - 12 步工作流对齐 specs/application-executor-skill/spec.md。
   - NEVER 边界清单 6 条对齐 safety-guard spec。
@@ -37,10 +37,10 @@
   - profile.md 推荐字段附录（target_salary、work_authorization、reference_contacts、id_card_number 等）。
 
 ### 6. 测试
-- [ ] 6.1 新建 `tests/test_safety_guard.py`：覆盖 5 类敏感字段分类命中/不命中、is_submit_button 的正则/属性/长度边界、Role family 归一化。
-- [ ] 6.2 新建 `tests/test_submissions.py`：覆盖 3 表 CRUD、status 流转（待投递→待提交→已投递；待提交→失败→待投递）、prefill_dry_run 输出 prefilled_data schema。
-- [ ] 6.3 在 `tests/test_agent_api.py` 追加 6 个新 MCP 工具的同步调用测试（dry_run 模式）。
-- [ ] 6.4 运行 `python -m pytest tests/`，全绿。
+- [x] 6.1 新建 `tests/test_safety_guard.py`：覆盖 5 类敏感字段分类命中/不命中、is_submit_button 的正则/属性/长度边界、Role family 归一化。
+- [x] 6.2 新建 `tests/test_submissions.py`：覆盖 3 表 CRUD、status 流转（待投递→待提交→已投递；待提交→失败→待投递）、prefill_dry_run 输出 prefilled_data schema。
+- [x] 6.3 在 `tests/test_agent_api.py` 追加 6 个新 MCP 工具的同步调用测试（dry_run 模式）。
+- [x] 6.4 运行 `python -m pytest tests/`，全绿。
 
 ---
 
