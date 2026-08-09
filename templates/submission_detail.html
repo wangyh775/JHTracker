@@ -1,0 +1,193 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <div>
+    <a href="/submissions" class="text-decoration-none small me-2"><i class="bi bi-arrow-left"></i> 返回待提交清单</a>
+    <div class="dashboard-title mt-1">
+      <i class="bi bi-pencil-square me-2 text-primary"></i>预填详情 — {{ app.company.name }}
+    </div>
+  </div>
+  <div>
+    <span class="badge bg-primary me-2">待提交</span>
+    {% if sub %}
+    <span class="badge bg-{{ submission_status_badge.get(sub.status, 'secondary') }}">
+      {{ submission_status_label.get(sub.status, sub.status) }}
+    </span>
+    {% endif %}
+  </div>
+</div>
+
+<div class="card mb-3">
+  <div class="card-body">
+    <h6 class="text-secondary mb-3"><i class="bi bi-info-circle me-1"></i>基础信息</h6>
+    <div class="row small">
+      <div class="col-md-4 mb-2">
+        <span class="text-secondary">公司：</span>
+        <a href="/companies/{{ app.company.id }}" class="text-decoration-none">{{ app.company.name }}</a>
+      </div>
+      <div class="col-md-4 mb-2">
+        <span class="text-secondary">岗位：</span>{{ app.position or '待定' }}
+      </div>
+      <div class="col-md-4 mb-2">
+        <span class="text-secondary">行业：</span>{{ app.company.industry or '未填' }}
+      </div>
+      {% if sub %}
+      <div class="col-md-8 mb-2">
+        <span class="text-secondary">表单链接：</span>
+        <a href="{{ sub.form_url }}" target="_blank" class="text-info text-decoration-none">
+          {{ sub.form_url }} <i class="bi bi-box-arrow-up-right ms-1"></i>
+        </a>
+      </div>
+      <div class="col-md-4 mb-2">
+        <span class="text-secondary">预填时间：</span>{{ sub.created_at.strftime('%Y-%m-%d %H:%M') if sub.created_at else '-' }}
+      </div>
+      {% if sub.agent_trace_id %}
+      <div class="col-md-4 mb-2">
+        <span class="text-secondary">Agent 任务：</span>
+        <a href="/traces" class="text-info text-decoration-none">{{ sub.agent_trace_id }}</a>
+      </div>
+      {% endif %}
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+{% if prefilled_data %}
+<div class="card mb-3">
+  <div class="card-body">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h6 class="text-secondary mb-0"><i class="bi bi-list-check me-1"></i>预填字段（{{ prefilled_data.fields | length }}）</h6>
+      <span class="small">
+        <span class="text-success">已填 {{ prefilled_data.fields | selectattr('filled') | list | length }}</span>
+        {% if prefilled_data.fields | rejectattr('filled') | list %}
+        /
+        <span class="text-warning">待补 {{ prefilled_data.fields | rejectattr('filled') | list | length }}</span>
+        {% endif %}
+      </span>
+    </div>
+
+    <div class="table-responsive">
+      <table class="table table-sm table-hover align-middle">
+        <thead>
+          <tr>
+            <th style="width: 5%;">#</th>
+            <th style="width: 22%;">字段识别</th>
+            <th style="width: 12%;">分类</th>
+            <th style="width: 12%;">来源</th>
+            <th>预填值</th>
+            <th style="width: 8%;">状态</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for f in prefilled_data.fields %}
+          <tr>
+            <td class="text-secondary">{{ loop.index }}</td>
+            <td>
+              {% if f.selector.label %}<div>{{ f.selector.label }}</div>{% endif %}
+              <div class="text-muted" style="font-size: 0.7rem;">
+                {% if f.selector.name %}name={{ f.selector.name }}{% endif %}
+                {% if f.selector.id %} · id={{ f.selector.id }}{% endif %}
+              </div>
+            </td>
+            <td>
+              {% if f.classified_as == 'benign' %}
+              <span class="badge bg-secondary">普通</span>
+              {% elif f.classified_as == 'compensation' %}
+              <span class="badge bg-warning text-dark">薪资</span>
+              {% elif f.classified_as == 'identity' %}
+              <span class="badge bg-danger">身份</span>
+              {% elif f.classified_as == 'legal' %}
+              <span class="badge bg-danger">法律</span>
+              {% elif f.classified_as == 'financial' %}
+              <span class="badge bg-danger">金融</span>
+              {% elif f.classified_as == 'current_status' %}
+              <span class="badge bg-warning text-dark">现状</span>
+              {% else %}
+              <span class="badge bg-secondary">{{ f.classified_as }}</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if f.source == 'profile' %}
+              <span class="badge bg-info">画像</span>
+              {% elif f.source == 'answer_bank' %}
+              <span class="badge bg-success">答案库</span>
+              {% elif f.source == 'answer_bank_needs_review' %}
+              <span class="badge bg-warning text-dark">答案库·待审</span>
+              {% elif f.source == 'human_filled' %}
+              <span class="badge bg-primary">人工</span>
+              {% elif f.source == 'missing' %}
+              <span class="badge bg-danger">缺失</span>
+              {% else %}
+              <span class="text-muted">{{ f.source }}</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if f.filled %}
+              <code class="text-light">{{ f.answer }}</code>
+              {% if f.profile_key %}<span class="text-muted small ms-2">({{ f.profile_key }})</span>{% endif %}
+              {% else %}
+              <span class="text-danger">— 需人工补填 —</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if f.filled %}
+              <i class="bi bi-check-circle-fill text-success"></i>
+              {% else %}
+              <i class="bi bi-exclamation-circle-fill text-warning"></i>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    {% if prefilled_data.awaiting_human_items %}
+    <div class="alert alert-warning mt-3 mb-0">
+      <h6 class="alert-heading"><i class="bi bi-exclamation-triangle me-1"></i>待人工补填项（{{ prefilled_data.awaiting_human_items | length }}）</h6>
+      <ul class="mb-0 small">
+        {% for item in prefilled_data.awaiting_human_items %}
+        <li>{{ item }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% else %}
+<div class="card border-dashed">
+  <div class="card-body text-center py-5 text-secondary">
+    <i class="bi bi-inbox fs-1 mb-2 d-block opacity-50"></i>
+    <div class="fw-bold mb-1">尚无预填数据</div>
+    <div class="small">让 Agent 执行 <code>prefill_application_form</code> 工具进行预填</div>
+  </div>
+</div>
+{% endif %}
+
+<!-- 操作区 -->
+<div class="card">
+  <div class="card-body">
+    <h6 class="text-secondary mb-3"><i class="bi bi-toggles me-1"></i>人工操作</h6>
+    {% if sub and sub.form_url %}
+    <a href="{{ sub.form_url }}" target="_blank" class="btn btn-primary me-2 mb-2">
+      <i class="bi bi-box-arrow-up-right me-1"></i>打开真实招聘页面
+    </a>
+    {% endif %}
+    <div class="d-inline-block me-2 mb-2">
+      <form method="post" action="/submissions/{{ app.id }}/submit" onsubmit="return confirm('确认：我已在真实招聘页面上手动点击了「提交」按钮，且投递成功。')">
+        <button class="btn btn-success"><i class="bi bi-check2-circle me-1"></i>已提交，标记为已投递</button>
+      </form>
+    </div>
+    <div class="d-inline-block mb-2">
+      <form method="post" action="/submissions/{{ app.id }}/fail" onsubmit="return confirm('确认此次预填/提交失败，回退到 待投递？')">
+        <input type="hidden" name="failure_reason" value="人工标记提交失败">
+        <button class="btn btn-outline-danger"><i class="bi bi-x-circle me-1"></i>失败回退</button>
+      </form>
+    </div>
+    <div class="small text-secondary mt-2">
+      <i class="bi bi-info-circle me-1"></i>
+      Agent 不会代你点击「提交」按钮。请在真实招聘页面上手动完成提交后，再回到此页面回写结果。
+    </div>
+  </div>
+</div>
+{% endblock %}

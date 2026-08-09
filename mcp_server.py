@@ -10,6 +10,11 @@ from constants import (
     POST_APPLY_STATUS_LIST,
     STAGED_STATUS_LIST,
 )
+from utils import role_family_normalize
+from services.safety_guard import (
+    classify_field as _sg_classify_field,
+    is_sensitive_category as _sg_is_sensitive,
+)
 
 # Initialize FastMCP Server
 mcp = FastMCP("JHTracker")
@@ -1330,3 +1335,379 @@ def notify_db_changed() -> str:
         return json.dumps({'status': 'success', 'message': 'UI notified'}, ensure_ascii=False)
     except Exception as e:
         return json.dumps({'status': 'error', 'message': str(e)}, ensure_ascii=False)
+
+
+# ============================================================
+# Submission Executor Tools（网申预填 + 答案库）
+# ============================================================
+
+
+@mcp.tool()
+def get_answer_bank(role_family: str = None, question: str = None) -> str:
+    """Query reusable answer bank for application form prefill.
+
+    Matching strategy (priority order):
+    1. role_family exact match + question_pattern substring match (prefer needs_review=0)
+    2. role_family=NULL (general) + question_pattern substring match
+    3. fallback: any role_family + question_pattern match
+
+    Sensitive fields (identity/legal/compensation/current_status/financial) are NOT served
+    from answer_bank — they must be sourced from data/profile.md via get_candidate_profile.
+    This tool returns them marked as 'sensitive_use_profile'.
+
+    Args:
+        role_family: optional role family (e.g. '机器人算法'). Normalized internally.
+        question: optional question substring to match question_pattern.
+
+    Returns:
+        JSON with list of matching answers, each marked needs_review flag.
+    """
+    rf_norm = role_family_normalize(role_family)
+    conn = get_db_connection()
+    try:
+        cursor = conn.cursor()
+        rows = []
+        if question:
+            q = question.strip()
+            # 1. role_family 精确
+            if rf_norm:
+                rows = cursor.execute(
+                    "SELECT id, question_pattern, answer, role_family, needs_review, source, created_at "
+                    "FROM answer_bank WHERE role_family = ? AND question_pattern LIKE ? "
+                    "ORDER BY needs_review ASC, id DESC LIMIT 20",
+                    (rf_norm, f'%{q}%')
+                ).fetchall()
+            # 2. 通用
+            if not rows:
+                rows = cursor.execute(
+                    "SELECT id, question_pattern, answer, role_family, needs_review, source, created_at "
+                    "FROM answer_bank WHERE role_family IS NULL AND question_pattern LIKE ? "
+                    "ORDER BY needs_review ASC, id DESC LIMIT 20",
+                    (f'%{q}%',)
+                ).fetchall()
+            # 3. 兜底任意
+            if not rows:
+                rows = cursor.execute(
+                    "SELECT id, question_pattern, answer, role_family, needs_review, source, created_at "
+                    "FROM answer_bank WHERE question_pattern LIKE ? "
+                    "ORDER BY needs_review ASC, id DESC LIMIT 20",
+                    (f'%{q}%',)
+                ).fetchall()
+        else:
+            # 列表模式：按 role_family 过滤
+            if rf_norm:
+                rows = cursor.execute(
+                    "SELECT id, question_pattern, answer, role_family, needs_review, source, created_at "
+                    "FROM answer_bank WHERE role_family = ? OR role_family IS NULL "
+                    "ORDER BY id DESC LIMIT 50",
+                    (rf_norm,)
+                ).fetchall()
+            else:
+                rows = cursor.execute(
+                    "SELECT id, question_pattern, answer, role_family, needs_review, source, created_at "
+                    "FROM answer_bank ORDER BY id DESC LIMIT 50"
+                ).fetchall()
+
+        # 标记敏感类别
+        items = []
+        for r in rows:
+            d = dict(r)
+            d['sensitive_use_profile'] = _sg_is_sensitive(_sg_classify_field(d.get('question_pattern', '')))
+            items.append(d)
+
+        return json.dumps({
+            'status': 'success',
+            'count': len(items),
+            'query_role_family': rf_norm,
+            'query_question': question,
+            'answers': items,
+        }, ensure_ascii=False)
+    finally:
+        conn.close()
+
+
+@mcp.tool()
+def upsert_answer_bank(
+    question_pattern: str,
+    answer: str,
+    role_family: str = None,
+    needs_review: bool = False,
+    source: str = "manual"
+) -> str:
+    """Insert or update an answer in the bank. Deduplicated by (question_pattern, role_family).
+
+    Both question_pattern and role_family are normalized before upsert.
+
+    Args:
+        question_pattern: question text/pattern to match form fields.
+        answer: the answer to fill.
+        role_family: optional role family. Empty = general.
+        needs_review: True = answer sits in pending review state, still returned in searches but
+            flagged for human confirmation before participating in auto-fill without review.
+        source: 'manual' (default) or 'extracted' (auto-extracted from past submissions).
+    """
+    q_norm = question_pattern.strip()
+    rf_norm = role_family_normalize(role_family) if role_family else None
+    if not q_norm or not answer:
+        return json.dumps({'status': 'error', 'message': 'question_pattern and answer are required'}, ensure_ascii=False)
+
+    # 敏感类别警告（不阻断，但提醒用户该字段应走 profile）
+    category = _sg_classify_field(q_norm)
+    sensitive_warning = None
+    if _sg_is_sensitive(category):
+        sensitive_warning = (
+            f"WARNING: question_pattern matches sensitive category '{category}'. "
+            "Sensitive answers are recommended to be sourced from data/profile.md, "
+            "not stored in answer_bank. Stored anyway, but prefer profile."
+        )
+
+    conn = get_db_connection()
+    try:
+        cursor = conn.cursor()
+        # 按 (question_pattern, role_family) upsert（role_family NULL 时单独处理）
+        if rf_norm:
+            existing = cursor.execute(
+                "SELECT id FROM answer_bank WHERE question_pattern = ? AND role_family = ?",
+                (q_norm, rf_norm)
+            ).fetchone()
+            if existing:
+                cursor.execute(
+                    "UPDATE answer_bank SET answer = ?, needs_review = ?, source = ? WHERE id = ?",
+                    (answer, bool(needs_review), source, existing['id'])
+                )
+                answer_id = existing['id']
+                created = False
+            else:
+                cursor.execute(
+                    "INSERT INTO answer_bank (question_pattern, answer, role_family, needs_review, source, created_at) "
+                    "VALUES (?, ?, ?, ?, ?, datetime('now'))",
+                    (q_norm, answer, rf_norm, bool(needs_review), source)
+                )
+                answer_id = cursor.lastrowid
+                created = True
+        else:
+            existing = cursor.execute(
+                "SELECT id FROM answer_bank WHERE question_pattern = ? AND role_family IS NULL",
+                (q_norm,)
+            ).fetchone()
+            if existing:
+                cursor.execute(
+                    "UPDATE answer_bank SET answer = ?, needs_review = ?, source = ? WHERE id = ?",
+                    (answer, bool(needs_review), source, existing['id'])
+                )
+                answer_id = existing['id']
+                created = False
+            else:
+                cursor.execute(
+                    "INSERT INTO answer_bank (question_pattern, answer, role_family, needs_review, source, created_at) "
+                    "VALUES (?, ?, NULL, ?, ?, datetime('now'))",
+                    (q_norm, answer, bool(needs_review), source)
+                )
+                answer_id = cursor.lastrowid
+                created = True
+        conn.commit()
+        result = {
+            'status': 'success',
+            'created': created,
+            'answer_id': answer_id,
+            'question_pattern': q_norm,
+            'role_family': rf_norm,
+            'needs_review': bool(needs_review),
+            'source': source,
+        }
+        if sensitive_warning:
+            result['warning'] = sensitive_warning
+        return json.dumps(result, ensure_ascii=False)
+    finally:
+        conn.close()
+
+
+@mcp.tool()
+def delete_answer_bank(answer_id: int, confirm: bool = False) -> str:
+    """Delete an answer from the bank. Requires confirm=True."""
+    if not confirm:
+        return json.dumps({'status': 'error', 'message': 'Confirmation required. Set confirm=True to delete.'}, ensure_ascii=False)
+    conn = get_db_connection()
+    try:
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM answer_bank WHERE id = ?", (answer_id,))
+        conn.commit()
+        if cursor.rowcount == 0:
+            return json.dumps({'status': 'error', 'message': f'answer_id {answer_id} not found'}, ensure_ascii=False)
+        return json.dumps({'status': 'success', 'message': 'Answer deleted', 'answer_id': answer_id}, ensure_ascii=False)
+    finally:
+        conn.close()
+
+
+@mcp.tool()
+def prefill_application_form(
+    application_id: int,
+    form_url: str,
+    fields: str = None,
+    role_family: str = None,
+    dry_run: bool = True,
+    task_id: str = None
+) -> str:
+    """Prefill a job application form for the given application.
+
+    Phase 1 (current default): dry_run=True — does NOT launch a browser.
+    Caller passes a JSON array of field descriptors, the tool classifies each field via
+    SafetyGuard, fetches answers from answer_bank (non-sensitive) or data/profile.md
+    (sensitive), assembles prefilled_data JSON, writes ApplicationSubmission record, and
+    flips application status from 待投递 to 待提交.
+
+    Phase 2 (future, dry_run=False): launches Playwright to actually open form_url and fill
+    values in the real browser (still NEVER clicks submit). Not enabled yet.
+
+    Args:
+        application_id: Application.id (must be in 待投递 or 待提交 status).
+        form_url: target application form URL.
+        fields: JSON array, each item: { label, name, id, placeholder, value? }. If omitted,
+            the tool writes an empty prefilled_data skeleton (status=awaiting_human).
+        role_family: optional role family for answer routing (normalized internally).
+        dry_run: must be True in Phase 1.
+        task_id: optional agent task id for trace logging.
+
+    Returns:
+        JSON with submission_id, status ('prefilled' or 'awaiting_human'), application_status,
+        prefilled_data, and awaiting_human_items list.
+    """
+    if not dry_run:
+        return json.dumps({
+            'status': 'error',
+            'message': 'Playwright real prefill (dry_run=False) is not yet implemented. Phase 2 feature.'
+        }, ensure_ascii=False)
+
+    # 解析 fields JSON
+    parsed_fields = []
+    if fields:
+        try:
+            parsed_fields = json.loads(fields) if isinstance(fields, str) else fields
+            if not isinstance(parsed_fields, list):
+                return json.dumps({'status': 'error', 'message': 'fields must be a JSON array'}, ensure_ascii=False)
+        except (json.JSONDecodeError, TypeError) as e:
+            return json.dumps({'status': 'error', 'message': f'Invalid fields JSON: {e}'}, ensure_ascii=False)
+
+    from services.submission_executor import prefill_dry_run
+    result = prefill_dry_run(
+        application_id=application_id,
+        form_url=form_url,
+        fields=parsed_fields,
+        role_family=role_family_normalize(role_family) if role_family else None,
+        task_id=task_id,
+    )
+
+    # 通知 UI 刷新
+    try:
+        from routes.dashboard import notify_db_changed as _notify
+        _notify()
+    except Exception:
+        pass
+
+    return json.dumps({'status': 'success', 'result': result}, ensure_ascii=False)
+
+
+@mcp.tool()
+def record_submission_result(
+    application_id: int,
+    success: bool,
+    screenshot_path: str = None,
+    failure_reason: str = None,
+    extracted_answers: str = None
+) -> str:
+    """Record the result after the human has manually clicked submit on the real form.
+
+    success=True → application status flips 待提交 → 已投递, apply_date set to today,
+                   ApplicationSubmission.status='submitted'.
+    success=False → application reverts to 待投递, ApplicationSubmission.status='failed',
+                    failure_reason stored.
+
+    Phase 3 TODO: extracted_answers (JSON array of {question, answer, role_family, classified_as})
+    will be auto-sedimented into answer_bank with needs_review=True, source='extracted'.
+    Phase 1 leaves this as a no-op stub.
+
+    Args:
+        application_id: Application.id.
+        success: True if human submitted successfully, False otherwise.
+        screenshot_path: optional path to a post-submit screenshot.
+        failure_reason: optional failure reason (required when success=False).
+        extracted_answers: optional JSON array (Phase 3 sedimentation input).
+    """
+    # 解析 extracted_answers
+    parsed_extracted = None
+    if extracted_answers:
+        try:
+            parsed_extracted = json.loads(extracted_answers) if isinstance(extracted_answers, str) else extracted_answers
+        except (json.JSONDecodeError, TypeError):
+            parsed_extracted = None
+
+    from services.submission_executor import record_submission
+    result = record_submission(
+        application_id=application_id,
+        success=bool(success),
+        screenshot_path=screenshot_path,
+        failure_reason=failure_reason,
+        extracted_answers=parsed_extracted,
+    )
+
+    # 通知 UI 刷新
+    try:
+        from routes.dashboard import notify_db_changed as _notify
+        _notify()
+    except Exception:
+        pass
+
+    return json.dumps({'status': result.get('status', 'success'), 'result': result}, ensure_ascii=False)
+
+
+@mcp.tool()
+def get_resume_for_role(role_family: str = None, jd_keywords: str = None) -> str:
+    """Pick the best resume version and experience bullets for the given role family.
+
+    Phase 1 (current): returns the default resume (or latest if no default) + a TODO
+    note that ExperienceBank matching is Phase 3.
+    Phase 3 (future): ranks ExperienceBank rows by (role_family match + jd_keywords
+    intersection count) and returns top N bullets + recommended resume_version_id.
+
+    Args:
+        role_family: optional role family (normalized internally).
+        jd_keywords: optional comma-separated JD keywords for ExperienceBank ranking.
+    """
+    rf_norm = role_family_normalize(role_family) if role_family else None
+    conn = get_db_connection()
+    try:
+        cursor = conn.cursor()
+        # 优先取 is_default=1，否则取最新一条
+        row = cursor.execute(
+            "SELECT id, name, version, file_path, file_type, is_default FROM resumes "
+            "WHERE is_default = 1 LIMIT 1"
+        ).fetchone()
+        if not row:
+            row = cursor.execute(
+                "SELECT id, name, version, file_path, file_type, is_default FROM resumes "
+                "ORDER BY id DESC LIMIT 1"
+            ).fetchone()
+
+        if not row:
+            return json.dumps({
+                'status': 'success',
+                'resume': None,
+                'experiences': [],
+                'note': 'No resume uploaded yet. Please upload a resume first.'
+            }, ensure_ascii=False)
+
+        # Phase 3 TODO: ExperienceBank 匹配 + 排序，本期返回空数组 + TODO 提示
+        experiences = []
+        note = 'Phase 1 MVP: returns default resume only. ExperienceBank matching is Phase 3.'
+
+        return json.dumps({
+            'status': 'success',
+            'resume': dict(row),
+            'recommended_resume_id': row['id'],
+            'experiences': experiences,
+            'role_family': rf_norm,
+            'jd_keywords': jd_keywords,
+            'note': note,
+        }, ensure_ascii=False)
+    finally:
+        conn.close()

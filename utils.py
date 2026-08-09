@@ -1,4 +1,5 @@
-"""工具函数：日期解析、整数转换、薪资校验、markdown 表格解析。"""
+"""工具函数：日期解析、整数转换、薪资校验、markdown 表格解析、岗位族归一化。"""
+import re
 from datetime import datetime
 
 
@@ -107,3 +108,51 @@ def humanize_size(num_bytes):
         return f'{num_bytes / 1024:.1f} KB'
     else:
         return f'{num_bytes / (1024 * 1024):.1f} MB'
+
+
+# 岗位族归一化分隔符候选：全角斜杠、中文顿号、全角顿号、空格
+_ROLE_FAMILY_SEP_RE = re.compile(r'[／、,，]|\s+')
+
+
+def role_family_normalize(text):
+    """岗位族归一化：去空格、统一分隔符为半角斜杠、小写。
+
+    用于 AnswerBank/ExperienceBank 唯一键去重，避免「机器人算法」vs「机器人 / 算法」被当两类。
+
+    >>> role_family_normalize('机器人算法')
+    '机器人算法'
+    >>> role_family_normalize('机器人 / 算法')
+    '机器人/算法'
+    >>> role_family_normalize('机器人、算法')
+    '机器人/算法'
+    >>> role_family_normalize('  Embedded  / Software ')
+    'embedded/software'
+    >>> role_family_normalize(None)
+    ''
+    """
+    if not text:
+        return ''
+    # 1) 多种分隔符统一为半角斜杠
+    s = _ROLE_FAMILY_SEP_RE.sub('/', text.strip())
+    # 2) 合并连续斜杠
+    s = re.sub(r'/+', '/', s)
+    # 3) 去掉首尾斜杠
+    s = s.strip('/')
+    # 4) 小写（兼容中英混用，对中文无副作用）
+    return s.lower()
+
+
+def role_family_match(stored, queried):
+    """判断 stored（库中归一化值）是否匹配 queried（查询归一化值）。
+
+    规则：
+    - stored 为空 = 通用，恒匹配；
+    - 否则 stored == queried，或 stored 是 queried 的子串（「算法」匹配「算法工程师」）。
+    """
+    s = role_family_normalize(stored)
+    q = role_family_normalize(queried)
+    if not s:
+        return True  # 通用
+    if not q:
+        return False  # 查询为空，不匹配任何具体岗位族
+    return s == q or s in q or q in s

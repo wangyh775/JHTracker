@@ -59,6 +59,8 @@ class Application(db.Model):
     decision_feedbacks = db.relationship('DecisionFeedback', backref='application',
                                          cascade='all,delete-orphan', lazy='dynamic')
     memories = db.relationship('Memory', backref='application', cascade='all,delete-orphan', lazy='dynamic')
+    submissions = db.relationship('ApplicationSubmission', backref='application',
+                                  cascade='all,delete-orphan', lazy='dynamic')
     resume = db.relationship('Resume', backref='applications', lazy='select')
 
 
@@ -156,5 +158,45 @@ class DecisionFeedback(db.Model):
     reason_category = db.Column(db.String(50))  # tech_mismatch, salary_low, company_reputation, location, general
     raw_feedback = db.Column(db.Text)
     created_at = db.Column(db.DateTime, default=datetime.now)
+
+
+class AnswerBank(db.Model):
+    """可复用求职答案库。敏感答案（身份/法律/薪酬等）不入库，从 data/profile.md 直通。"""
+    __tablename__ = 'answer_bank'
+    id = db.Column(db.Integer, primary_key=True)
+    question_pattern = db.Column(db.String(200), nullable=False, index=True)  # 问题模式（子串或正则）
+    answer = db.Column(db.Text, nullable=False)
+    role_family = db.Column(db.String(100), index=True)  # 岗位族，空=通用；入库前需经 role_family_normalize
+    needs_review = db.Column(db.Boolean, default=False)  # True=人工确认后才参与自动填
+    source = db.Column(db.String(20), default='manual')  # manual / extracted
+    created_at = db.Column(db.DateTime, default=datetime.now)
+
+
+class ExperienceBank(db.Model):
+    """按岗位族路由的经历片段库，供 get_resume_for_role 选最佳简历与经历组合。"""
+    __tablename__ = 'experience_bank'
+    id = db.Column(db.Integer, primary_key=True)
+    role_family = db.Column(db.String(100), nullable=False, index=True)
+    bullet_text = db.Column(db.Text, nullable=False)
+    jd_keywords = db.Column(db.String(500))  # 命中哪些 JD 关键词时优先用，逗号分隔
+    priority = db.Column(db.Integer, default=0)
+    created_at = db.Column(db.DateTime, default=datetime.now)
+
+
+class ApplicationSubmission(db.Model):
+    """网申预填执行记录。Agent 预填后状态=待提交，人类在真实页面提交后回写已投递。"""
+    __tablename__ = 'application_submissions'
+    id = db.Column(db.Integer, primary_key=True)
+    application_id = db.Column(db.Integer, db.ForeignKey('applications.id'), nullable=False, index=True)
+    form_url = db.Column(db.String(500), nullable=False)
+    prefilled_data = db.Column(db.Text)  # JSON，结构见 design.md Decision #4
+    agent_trace_id = db.Column(db.String(100))
+    status = db.Column(db.String(50), default='prefilled')  # prefilled/awaiting_human/submitted/failed
+    human_approved_at = db.Column(db.DateTime)
+    submitted_at = db.Column(db.DateTime)
+    screenshot_path = db.Column(db.String(500))
+    failure_reason = db.Column(db.Text)
+    created_at = db.Column(db.DateTime, default=datetime.now)
+    updated_at = db.Column(db.DateTime, default=datetime.now, onupdate=datetime.now)
 
 

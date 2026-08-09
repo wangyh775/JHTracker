@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <div class="dashboard-title"><i class="bi bi-collection me-2 text-success"></i>答案库管理</div>
+  <div>
+    <span class="badge bg-success me-2">共 {{ items|length }} 条</span>
+    <a href="/submissions" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i>返回待提交</a>
+  </div>
+</div>
+
+<div class="alert alert-info py-2 small mb-3">
+  <i class="bi bi-info-circle me-1"></i>
+  答案库用于网申预填时匹配非敏感字段。<strong>敏感字段（身份/法律/薪资/现状/金融）应存于 <a href="/profile" class="text-info">个人画像</a></strong>，不入此库。
+  Agent 可通过 <code>upsert_answer_bank</code> / <code>get_answer_bank</code> MCP 工具自动读写。
+</div>
+
+<!-- 筛选栏 -->
+<div class="card mb-3">
+  <div class="card-body py-2">
+    <form class="row g-2 align-items-center" method="get">
+      <div class="col-auto">
+        <select class="form-select form-select-sm" name="role_family" onchange="this.form.submit()">
+          <option value="">全部岗位族</option>
+          {% for rf in role_families %}
+            {% if rf is none %}
+              <option value="" {% if not current_role_family %}selected{% endif %}>通用（无岗位族）</option>
+            {% else %}
+              <option value="{{ rf }}" {% if current_role_family == rf %}selected{% endif %}>{{ rf }}</option>
+            {% endif %}
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-auto">
+        <select class="form-select form-select-sm" name="needs_review" onchange="this.form.submit()">
+          <option value="">全部状态</option>
+          <option value="0" {% if current_needs_review == '0' %}selected{% endif %}>已确认</option>
+          <option value="1" {% if current_needs_review == '1' %}selected{% endif %}>待审</option>
+        </select>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% if items %}
+<div class="card">
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-sm table-hover mb-0">
+        <thead>
+          <tr>
+            <th style="width: 5%;">#</th>
+            <th style="width: 22%;">问题模式</th>
+            <th style="width: 35%;">答案</th>
+            <th style="width: 12%;">岗位族</th>
+            <th style="width: 8%;">来源</th>
+            <th style="width: 8%;">状态</th>
+            <th style="width: 10%;">操作</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for it in items %}
+          <tr>
+            <td class="text-secondary">{{ it.id }}</td>
+            <td>{{ it.question_pattern }}</td>
+            <td><code class="text-light small">{{ it.answer[:80] }}{% if it.answer|length > 80 %}…{% endif %}</code></td>
+            <td>
+              {% if it.role_family %}
+              <span class="badge bg-primary">{{ it.role_family }}</span>
+              {% else %}
+              <span class="badge bg-secondary">通用</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if it.source == 'manual' %}
+              <span class="badge bg-secondary">手动</span>
+              {% elif it.source == 'extracted' %}
+              <span class="badge bg-info">自动提取</span>
+              {% else %}
+              <span class="text-muted">{{ it.source }}</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if it.needs_review %}
+              <span class="badge bg-warning text-dark">待审</span>
+              {% else %}
+              <span class="badge bg-success">已确认</span>
+              {% endif %}
+            </td>
+            <td>
+              <form method="post" action="/answer-bank/{{ it.id }}/delete" onsubmit="return confirm('确认删除该答案？此操作不可撤销。')">
+                <input type="hidden" name="confirm" value="1">
+                <button class="btn btn-sm btn-outline-danger" title="删除"><i class="bi bi-trash"></i></button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% else %}
+<div class="card border-dashed">
+  <div class="card-body text-center py-5 text-secondary">
+    <i class="bi bi-inbox fs-1 mb-2 d-block opacity-50"></i>
+    <div class="fw-bold mb-1">答案库为空</div>
+    <div class="small">让 Agent 调用 <code>upsert_answer_bank</code> MCP 工具添加可复用答案</div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}
