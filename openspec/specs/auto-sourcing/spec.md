@@ -1,57 +1,52 @@
 ## Purpose
 
-Provides automated company sourcing, pending application creation, and MCP tools for AI Agents while maintaining human control.
+升级 auto-sourcing spec：`create_application` 工具 SHALL 接收并持久化 `form_type` 与 `source_platform` 字段，供下游 application-executor 选择填写策略；`applications` 表 SHALL 新增对应列。
 
 ## Requirements
 
-### Requirement: Automated Company Creation with Deduplication
-The API SHALL allow AI Agents to batch insert or upsert company records. If a company with the same name already exists, the system SHALL update existing fields or reuse the existing company record without creating duplicates.
+### Requirement: create_application 接收 form_type 与 source_platform
 
-#### Scenario: Batch creating new companies
-- **WHEN** an AI Agent sends a POST request to create multiple companies
-- **THEN** the system creates new company records for unique names and returns their IDs
+`create_application` MCP 工具 SHALL 接收 `form_type` 与 `source_platform` 参数，并写入 application 记录。
 
-#### Scenario: Deduplicating existing companies
-- **WHEN** an AI Agent submits a company name that already exists in the system
-- **THEN** the system reuses the existing company record ID instead of creating a duplicate
+#### Scenario: create_application 携带 form_type
+- **WHEN** Agent 调用 `create_application(form_type="structured", source_platform="beisen", ...)`
+- **THEN** 系统 SHALL 将 `form_type` 与 `source_platform` 写入 application 记录
+- **THEN** 系统 SHALL 返回包含这两个字段的 application 详情
 
-### Requirement: Automated Application Creation in Pending Status
-The API SHALL allow AI Agents to create new job application records with default status "pending", enabling human candidates to review and execute actual applications manually.
+#### Scenario: create_application 未传 form_type
+- **WHEN** Agent 调用 `create_application(...)` 未提供 `form_type`
+- **THEN** 系统 SHALL 写入默认值 `form_type = "open_question"`
+- **THEN** 系统 SHALL 写入 `source_platform = None`
 
-#### Scenario: Creating a pending application
-- **WHEN** an AI Agent calls the application creation endpoint with company ID, position, and optional URL
-- **THEN** the system creates an application record with status "pending" and records trace metadata
+### Requirement: applications 表新增 form_type 与 source_platform 列
 
-### Requirement: MCP Server Sourcing Tools
-The MCP server SHALL provide `create_company` and `create_application` tools enabling external AI agents to trigger automated company and application creation over the Model Context Protocol.
+系统 SHALL 通过 Alembic migration 在 `applications` 表新增两列：
 
-#### Scenario: Agent invokes create_company MCP tool
-- **WHEN** an AI Agent invokes the `create_company` MCP tool with valid parameters
-- **THEN** the MCP server executes the company creation logic and returns structured JSON response
+```sql
+ALTER TABLE applications ADD COLUMN form_type TEXT;
+ALTER TABLE applications ADD COLUMN source_platform TEXT;
+```
 
-#### Scenario: Agent invokes create_application MCP tool
-- **WHEN** an AI Agent invokes the `create_application` MCP tool with company ID and job position
-- **THEN** the system creates a pending application and returns the created record details
+#### Scenario: migration 幂等执行
+- **WHEN** migration 已执行过
+- **THEN** 重复执行 SHALL NOT 报错（使用 `if not exists` 检查）
 
-### Requirement: Agent Must Use Layered Retrieval Protocol
-The Agent SHALL follow the layered retrieval protocol for all company and job sourcing, including tool chain priority, platform routing, and authenticity verification.
+#### Scenario: 旧数据兼容
+- **WHEN** 已有 application 记录未设置 form_type
+- **THEN** 系统 SHALL 视其 `form_type` 为 `None`，application-executor SHALL 按 `open_question` 处理
 
-#### Scenario: Agent sourcing uses protocol
-- **WHEN** an AI Agent performs automated company sourcing
-- **THEN** the Agent SHALL follow the layered retrieval protocol defined in the `layered-retrieval-protocol` specification
-- **THEN** the Agent SHALL record the tool chain, verification status, and source URLs in the trace log
+### Requirement: list_applications 与 get_application 返回新字段
 
-### Requirement: Source URL Required for Application Creation
-The Agent SHALL provide a valid `source_url` when creating an application, and the system SHALL reject applications without a verifiable source URL.
+`list_applications` 与 `get_application` SHALL 在返回结果中包含 `form_type` 与 `source_platform` 字段。
 
-#### Scenario: Application rejected without source URL
-- **WHEN** an AI Agent calls `create_application` without a `source_url` or with an empty `source_url`
-- **THEN** the system SHALL return an error and refuse to create the application record
+#### Scenario: get_application 返回 form_type
+- **WHEN** Agent 调用 `get_application(application_id=100)`
+- **THEN** 返回结果 SHALL 包含 `form_type` 与 `source_platform` 字段
 
-### Requirement: Agent Must Not Fabricate Data
-The Agent SHALL NOT create company or application records without real web-sourced data, and SHALL report failures to the user.
+### Requirement: source_url 校验保留
 
-#### Scenario: Agent unable to find real data
-- **WHEN** an AI Agent cannot find a real company or job matching the user's request after exhausting all retrieval layers
-- **THEN** the Agent SHALL NOT create any records
-- **THEN** the Agent SHALL report the failure to the user with details on what was searched and what was found
+原 spec 中 `source_url` 必填的校验 SHALL 保持不变。`source_platform` 是对 `source_url` 的补充标注，不替代 `source_url`。
+
+#### Scenario: source_url 仍必填
+- **WHEN** Agent 调用 `create_application(...)` 未提供 `source_url`
+- **THEN** 系统 SHALL 拒绝创建并返回错误，行为与原 spec 一致
