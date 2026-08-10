@@ -15,6 +15,7 @@ from services.safety_guard import (
     classify_field as _sg_classify_field,
     is_sensitive_category as _sg_is_sensitive,
 )
+from services.sourcing.ats_fetcher import fetch_ats_jobs as _fetch_ats_jobs
 
 # Initialize FastMCP Server
 mcp = FastMCP("JHTracker")
@@ -210,10 +211,14 @@ def create_application(
     agent_task_id: str = None,
     source_url: str = None,
     resume_id: int = None,
-    status: str = "Pending Approval"
+    status: str = "Pending Approval",
+    form_type: str = None,
+    source_platform: str = None
 ) -> str:
     """Create a new job application proposal record under specified company with default 'Pending Approval' status, resume version binding, and HITL recommendation metadata.
-    AUTHENTICITY CONSTRAINT: A real, verifiable source_url (job listing URL from web search) is REQUIRED. The system will reject applications without a valid source_url. Fabrication or hallucination of job data is STRICTLY PROHIBITED."""
+    AUTHENTICITY CONSTRAINT: A real, verifiable source_url (job listing URL from web search) is REQUIRED. The system will reject applications without a valid source_url. Fabrication or hallucination of job data is STRICTLY PROHIBITED.
+    form_type: 网申类型 structured/open_question/attachment/one_click，未传默认 open_question，供 application-executor 选择填写策略。
+    source_platform: 岗位来源平台标识 beisen/moka/nowcoder/yingjiesheng/zhipin/lagou/zhaopin/iguopin/liepin/official。"""
     conn = get_db_connection()
     try:
         cursor = conn.cursor()
@@ -226,11 +231,15 @@ def create_application(
         if not status or status in POST_APPLY_STATUS_LIST:
             status = 'Pending Approval'
 
+        # form_type 默认 open_question（最保守，走 awaiting_human）
+        if not form_type:
+            form_type = 'open_question'
+
         # Deduplication check for company_id + LOWER(TRIM(position)) within STAGED_STATUS_LIST
         norm_pos = (position or "待定岗位").strip()
         placeholders = ','.join(['?'] * len(STAGED_STATUS_LIST))
         sql = f"""
-            SELECT id, company_id, position, status, url, match_score, agent_reason, agent_task_id, source_url, resume_id
+            SELECT id, company_id, position, status, url, match_score, agent_reason, agent_task_id, source_url, resume_id, form_type, source_platform
             FROM applications
             WHERE company_id = ? AND LOWER(TRIM(position)) = LOWER(?) AND status IN ({placeholders})
             LIMIT 1
@@ -252,14 +261,16 @@ def create_application(
                     'agent_reason': existing['agent_reason'],
                     'agent_task_id': existing['agent_task_id'],
                     'source_url': existing['source_url'],
-                    'resume_id': existing['resume_id']
+                    'resume_id': existing['resume_id'],
+                    'form_type': existing['form_type'],
+                    'source_platform': existing['source_platform']
                 }
             }, ensure_ascii=False)
 
         cursor.execute("""
-            INSERT INTO applications (company_id, position, status, channel, job_desc, url, match_score, agent_reason, agent_task_id, source_url, resume_id, created_at, updated_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
-        """, (company_id, norm_pos, status, channel, job_desc, url, match_score, agent_reason, agent_task_id, source_url, resume_id))
+            INSERT INTO applications (company_id, position, status, channel, job_desc, url, match_score, agent_reason, agent_task_id, source_url, resume_id, form_type, source_platform, created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
+        """, (company_id, norm_pos, status, channel, job_desc, url, match_score, agent_reason, agent_task_id, source_url, resume_id, form_type, source_platform))
         conn.commit()
         app_id = cursor.lastrowid
         return json.dumps({
@@ -276,7 +287,9 @@ def create_application(
                 'agent_reason': agent_reason,
                 'agent_task_id': agent_task_id,
                 'source_url': source_url,
-                'resume_id': resume_id
+                'resume_id': resume_id,
+                'form_type': form_type,
+                'source_platform': source_platform
             }
         }, ensure_ascii=False)
     finally:
@@ -1711,3 +1724,42 @@ def get_resume_for_role(role_family: str = None, jd_keywords: str = None) -> str
         }, ensure_ascii=False)
     finally:
         conn.close()
+
+
+# ============================================================
+# 岗位检索（国内 ATS 直连，Layer 0）
+# ============================================================
+
+@mcp.tool()
+def fetch_ats_jobs(
+    provider: str = "all",
+    keyword: str = "",
+    city: str = None,
+    company_slug: str = None,
+    page: int = 1,
+    page_size: int = 20
+) -> str:
+    """Fetch job listings from China domestic ATS platforms (Beisen/Moka/Nowcoder/Yingjiesheng) via public JSON APIs.
+    This is Layer 0 of the layered retrieval protocol — the highest priority layer for 校招 (campus recruitment) scenario.
+    Each returned job includes a form_type field (structured/open_question/attachment/one_click) for downstream application-executor to choose prefill strategy.
+    provider='all' queries all platforms concurrently and deduplicates by (company, title); single platform failure does NOT block others.
+
+    Args:
+        provider: beisen | moka | nowcoder | yingjiesheng | all
+        keyword: job keyword (e.g. "嵌入式", "算法工程师")
+        city: optional city filter
+        company_slug: required for moka (orgId from URL app.mokahr.com/apply/{orgId})
+        page: page number (1-based)
+        page_size: results per page
+    """
+    result = _fetch_ats_jobs(
+        provider=provider, keyword=keyword, city=city,
+        company_slug=company_slug, page=page, page_size=page_size,
+    )
+    return json.dumps({
+        'status': 'success',
+        'jobs': result['jobs'],
+        'total': result['total'],
+        'provider': result['provider'],
+        'errors': result.get('errors', {}),
+    }, ensure_ascii=False)

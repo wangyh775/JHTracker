@@ -83,6 +83,9 @@ JHTracker 基于 FastMCP 提供了原生的 MCP 接口，供 AI Agent 实时读�
 - `evaluate_jd(jd_text, company_name, task_id)`: 评估 JD 文本，返回匹配分 + 亮点 + 风险提示。
 - `batch_evaluate_jds(jds)`: 批量评估多个 JD，一次调用返回全部结果。
 
+**🔎 岗位检索（国内 ATS 直连）**
+- `fetch_ats_jobs(provider, keyword, city, company_slug, page, page_size)`: 从国内 ATS 平台（北森/Moka/牛客/应届生）直连获取结构化岗位列表，自动识别 `form_type`（structured/open_question/attachment/one_click）。`provider=all` 时并发查询全部平台并去重，单家失败不阻塞其他平台。作为分层检索协议的 Layer 0，最优先调用。
+
 **🔄 轨迹 & 任务**
 - `record_agent_trace(task_id, agent_name, ...)`: 记录或更新任务轨迹。
 - `list_agent_tasks(status, limit)`: 查询任务列表。
@@ -116,7 +119,7 @@ JHTracker 基于 FastMCP 提供了原生的 MCP 接口，供 AI Agent 实时读�
 
 | Skill 目录 | 核心职责与场景 | 对应 MCP 工具 |
 |---|---|---|
-| `skills/job-sourcing-and-scoring` | 自动化寻企、岗位挖掘、结合记忆 AI 打分 | `get_user_preferences`, `search_companies`, `get_company`, `create_company`, `update_company`, `update_company_score`, `evaluate_jd`, `batch_evaluate_jds`, `get_statistics` |
+| `skills/job-sourcing-and-scoring` | 自动化寻企、岗位挖掘、结合记忆 AI 打分 | `get_user_preferences`, `search_companies`, `get_company`, `create_company`, `update_company`, `update_company_score`, `evaluate_jd`, `batch_evaluate_jds`, `get_statistics`, `fetch_ats_jobs` |
 | `skills/application-tracker` | 岗位投递全生命周期、HITL 审核人机交互、Offer 跟踪 | `create_application`, `get_application`, `list_applications`, `update_application_status`, `get_pending_approvals`, `handle_decision`, `archive_application`, `create_interview_feedback`, `list_interview_feedbacks`, `get_user_preferences` |
 | `skills/candidate-profile-and-resume` | 候选人简历解析、求职偏好与负面黑名单记忆 | `get_candidate_profile`, `update_candidate_profile`, `get_user_preferences`, `list_resumes`, `get_default_resume`, `add_memory_rule`, `delete_memory_rule` |
 | `skills/tracker-ops` | 数据批量导入、去重、数据归档与系统运维 | `create_note`, `list_notes`, `update_note`, `delete_note`, `create_timeline_event`, `list_timeline_events`, `toggle_timeline_event`, `list_agent_tasks`, `get_agent_task`, `clear_agent_traces`, `notify_db_changed`, `get_statistics` |
@@ -163,7 +166,58 @@ Include skills definitions from skills/*/SKILL.md
 
 ---
 
-## 5. FAQ 与常见问题
+## 5. 国内 ATS 直连（Layer 0）
+
+国内招聘生态与海外差异巨大，校招网申 70%+ 走北森（Beisen）、Moka、牛客网、应届生求职网，这些平台的招聘页有公开 JSON 接口、无需鉴权、字段结构化、反爬弱。`fetch_ats_jobs` MCP 工具封装这 4 家 ATS 的公开接口，作为分层检索协议的 **Layer 0（最优先层）**。
+
+### 支持的 ATS 平台
+
+| Provider | 域名特征 | 适用场景 | 鉴权 |
+|---|---|---|---|
+| `beisen` | `*.beisen.com`、`yingjiesheng.com` | 央企/国企/大厂校招 | 无需（公开 AppId） |
+| `moka` | `app.mokahr.com` | 民企大厂/外企校招 | 无需（需 orgId） |
+| `nowcoder` | `nowcoder.com` | 牛客网校招专区 | 无需 |
+| `yingjiesheng` | `yingjiesheng.com` | 应届生求职网校招聚合 | 无需 |
+
+### form_type 自动识别
+
+`fetch_ats_jobs` 返回的每个岗位都带 `form_type` 字段，供下游 `application-executor` 选择网申填写策略：
+
+| form_type | 域名特征 | 填写策略 |
+|---|---|---|
+| `structured` | beisen.com, mokahr.com, nowcoder.com | AnswerBank 直接取值 |
+| `open_question` | 未命中规则的默认值 | AnswerBank + LLM 生成 |
+| `attachment` | workday.com, greenhouse.io, lever.co | 跳过表单，走简历生成 |
+| `one_click` | zhipin.com | 不需要 prefill |
+
+### Layer 0 在分层检索协议中的定位
+
+```
+Layer 0: 国内 ATS 直连（fetch_ats_jobs）  ← 最优先
+Layer 1: 平台结构化爬虫（Firecrawl）
+Layer 2: 通用搜索兜底（Exa + Tavily）
+Layer 3: CDP 高风险源（Playwright，仅 BOSS/智联）
+Layer 4: webfetch 终极兜底
+```
+
+**降级规则**：Layer 0 命中 ≥3 条结果 → 停止；<3 条 → 降级 Layer 1。CDP（Layer 3）仅在前 3 层全空时触发，避免高风险源被频繁调用。
+
+### 使用示例
+
+```python
+# Agent 查询北森校招岗位
+fetch_ats_jobs(provider="beisen", keyword="嵌入式", city="深圳")
+
+# Agent 并发查询全部 ATS 平台
+fetch_ats_jobs(provider="all", keyword="嵌入式")
+
+# Agent 查询特定公司的 Moka 岗位
+fetch_ats_jobs(provider="moka", keyword="算法", company_slug="bytedance")
+```
+
+---
+
+## 6. FAQ 与常见问题
 
 1. **Agent 是否需要一直挂着 MCP 服务器？**
    - 不需要。支持 MCP 的 Agent 客户端（如 OpenCode、VS Code）会在需要时根据 `.mcp.json` 自动启动 `mcp_server.py` 子进程。

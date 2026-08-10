@@ -49,6 +49,8 @@ class Application(db.Model):
     agent_reason = db.Column(db.Text)  # AI 推荐理由
     agent_task_id = db.Column(db.String(100))  # 关联抓取任务 ID
     source_url = db.Column(db.String(500))  # 原始岗位链接
+    form_type = db.Column(db.String(50))  # 网申类型：structured/open_question/attachment/one_click
+    source_platform = db.Column(db.String(50))  # 岗位来源平台：beisen/moka/nowcoder/yingjiesheng/zhipin/...
     is_archived = db.Column(db.Boolean, default=False, index=True)
     archived_at = db.Column(db.DateTime)
     created_at = db.Column(db.DateTime, default=datetime.now)
