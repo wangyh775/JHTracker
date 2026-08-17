@@ -1,12 +1,28 @@
 """业务常量：状态、行业、城市、徽章颜色、优先级规则。"""
 
-STATUS_LIST = ['待投递', '已投递', '简历筛选', '笔试', '一面', '二面', '终面', 'Offer', '已拒']
+STATUS_LIST = ['待投递', '待提交', '已投递', '简历筛选', '笔试', '一面', '二面', '终面', 'Offer', '已拒']
 
-# 投递前阶段状态（待审批提案、待投递备选）
-STAGED_STATUS_LIST = ['Pending Approval', '待审批', '待投递']
+# 投递前阶段状态（待审批提案、待投递备选、待提交预填区）
+# Agent 在此区间内可写：Pending Approval → 待投递 → 待提交
+STAGED_STATUS_LIST = ['Pending Approval', '待审批', '待投递', '待提交']
 
-# 投递后流转状态（人类真正投递之后的生命周期状态）
+# 投递后流转状态（人类真正提交之后的生命周期状态，Agent 只读保护）
 POST_APPLY_STATUS_LIST = ['已投递', '简历筛选', '笔试', '一面', '二面', '终面', 'Offer', '已拒', 'Applied', 'to_apply', 'Rejected', 'rejected']
+
+# 网申预填状态（ApplicationSubmission.status）
+SUBMISSION_STATUSES = ['prefilled', 'awaiting_human', 'submitted', 'failed']
+SUBMISSION_STATUS_BADGE = {
+    'prefilled': 'info',
+    'awaiting_human': 'warning',
+    'submitted': 'success',
+    'failed': 'danger',
+}
+SUBMISSION_STATUS_LABEL = {
+    'prefilled': '已预填',
+    'awaiting_human': '待人工处理',
+    'submitted': '已提交',
+    'failed': '失败',
+}
 
 INDUSTRIES = ['3D打印', '机器人', '工业自动化', '高端装备', '汽车制造', '半导体',
               '能源与新能源', '医疗器械', '消费电子', '航空航天', '人工智能/算法',
@@ -16,6 +32,7 @@ CITIES = ['深圳', '上海', '北京', '杭州', '广州', '武汉', '西安', 
 
 STATUS_BADGE = {
     '待投递': 'secondary',
+    '待提交': 'primary',
     '已投递': 'info',
     '简历筛选': 'primary',
     '笔试': 'warning',
@@ -58,6 +75,42 @@ COMPANY_TYPES = ['民企', '央企', '国企', '合资', '外企-美国', '外�
 
 SCALE_CHOICES = ['少于50人', '50-200人', '200-1000人', '1000-5000人', '5000人以上']
 FINANCING_STAGE_CHOICES = ['未融资', '天使轮', 'A轮', 'B轮', 'C轮', 'D轮及以上', '已上市', '国企', '外企']
+
+# ============================================================
+# Safety Guard：网申预填安全边界
+# ============================================================
+# 敏感字段分类正则：命中后只能从 profile 取，缺失则 awaiting_human，绝不猜测
+# (pattern, category) — pattern 大小写不敏感匹配 label/name/id/placeholder
+# 分隔符候选：空格 / . / _ / -，统一用 [\W_]* 表示
+SENSITIVE_FIELD_PATTERNS = [
+    (r'身份证|护照|ssn|id[\W_]*number|national[\W_]*id|身份证号', 'identity'),
+    (r'签证|sponsorship|work[\W_]*auth|犯罪|criminal|background[\W_]*check|移民|immigrat|是否需要签证', 'legal'),
+    (r'薪资|salary|compensation|expect(ed)?[\W_]*pay|wage|期望薪资|期望薪酬|当前薪资', 'compensation'),
+    (r'推荐人|reference|现任雇主|current[\W_]*employ|在职状态|employment[\W_]*status|目前在职', 'current_status'),
+    (r'银行|bank[\W_]*account|tax|社保|公积金|银行卡号', 'financial'),
+]
+
+# 提交按钮识别：命中以下任一条件视为提交类按钮，Playwright 禁止点击
+# 文本正则（长度 ≤ 30 才匹配，避免文章正文误判）
+SUBMIT_BUTTON_TEXT_PATTERNS = [
+    r'提交', r'确认投递', r'投递简历', r'立即投递', r'申请职位',
+    r'apply', r'submit', r'finalize', r'确认申请', r'确认提交',
+]
+
+# 提交按钮属性关键词（id/class/type 含任一即视为提交按钮）
+SUBMIT_BUTTON_ATTR_KEYWORDS = ['submit', 'confirm', 'apply-button', 'submit-btn', 'apply-btn']
+
+# 预填任务最大耗时（秒）
+PLAYWRIGHT_TIMEOUT = 180
+
+# profile.md 中敏感字段对应的标准 key（用于解析 profile 取答案）
+PROFILE_SENSITIVE_KEYS = {
+    'identity': ['id_card_number', 'passport_number'],
+    'legal': ['work_authorization', 'visa_status', 'criminal_record'],
+    'compensation': ['target_salary', 'current_salary'],
+    'current_status': ['current_employer', 'employment_status', 'references'],
+    'financial': ['bank_account', 'social_insurance'],
+}
 
 # ============================================================
 # Memory Engine：双向偏好规则

@@ -19,7 +19,7 @@ flowchart TB
     end
 
     subgraph mcp ["⚡ MCP Server & Unified Tool Layer"]
-        mcp_tools["mcp_server.py (FastMCP)<br/>• evaluate_jd / search_companies<br/>• create_application / record_agent_trace"]
+        mcp_tools["mcp_server.py (FastMCP)<br/>• evaluate_jd / search_companies<br/>• create_application / record_agent_trace<br/>• fetch_ats_jobs (Layer 0 国内 ATS 直连)"]
     end
 
     subgraph app ["🌐 Flask 应用与 API 层"]
@@ -72,6 +72,7 @@ flowchart TB
 | 路由层 | HTTP 入口，页面渲染 + 表单处理 + Agent API | Flask Blueprint | `routes/` ×10 |
 | MCP 服务 | Agent-Native 接口，暴露 MCP 资源与工具 | FastMCP / mcp SDK | `mcp_server.py` |
 | 业务服务 | 归档节流、用户设置持久化 | 标准库 | `services/` |
+| ATS 岗位检索 | 国内 ATS 平台直连（北森/Moka/牛客/应届生），返回结构化岗位 + form_type | 标准库 + requests | `services/sourcing/ats_fetcher.py` |
 | 工具函数 | 日期/薪资校验、Markdown 表格解析、安全文件名 | 标准库 | `utils.py` |
 | 业务常量 | 状态机、行业/城市枚举、优先级规则 | 标准库 | `constants.py` |
 | AI 评分引擎 | 关键词预筛 + LLM 批量评分，直连 SQLite | anthropic / openai | `scripts/ai_scorer.py` |
@@ -145,6 +146,60 @@ flowchart LR
 
 ---
 
+## 🪜 分层检索协议（Sourcing Layered Retrieval）
+
+国内招聘生态无开放 API，Agent 寻岗按数据源稳定性分 5 层降级，免费稳定源优先、高风险源兜底。
+
+```mermaid
+flowchart TD
+    accTitle: Sourcing Layered Retrieval Protocol
+    accDescr: 5-layer fallback from ATS direct connection to webfetch
+
+    L0["Layer 0: 国内 ATS 直连<br/>fetch_ats_jobs (北森/Moka/牛客/应届生)"]
+    L1["Layer 1: 平台结构化爬虫<br/>Firecrawl (国聘/猎聘/海投网)"]
+    L2["Layer 2: 通用搜索兜底<br/>Exa + Tavily"]
+    L3["Layer 3: CDP 高风险源<br/>Playwright (BOSS/智联)"]
+    L4["Layer 4: webfetch 终极兜底"]
+
+    L0 -->|"< 3 条结果"| L1
+    L1 -->|"无结果"| L2
+    L2 -->|"无结果"| L3
+    L3 -->|"无结果"| L4
+
+    L0 -->|"≥ 3 条结果"| STOP["✅ 停止检索 → 走验证门"]
+    L1 -->|"有结果"| STOP
+    L2 -->|"有结果"| STOP
+    L3 -->|"有结果"| STOP
+
+    classDef l0 fill:#dcfce7,stroke:#22c55e,stroke-width:3px,color:#15803d
+    classDef normal fill:#dbeafe,stroke:#2563eb,stroke-width:2px,color:#1e3a5f
+    classDef risky fill:#fee2e2,stroke:#dc2626,stroke-width:2px,color:#991b1b
+    classDef stop fill:#fef3c7,stroke:#d97706,stroke-width:2px,color:#78350f
+
+    class L0 l0
+    class L1,L2 normal
+    class L3,L4 risky
+    class STOP stop
+```
+
+**关键规则：**
+
+- **Layer 0 优先**：校招场景必须先调 `fetch_ats_jobs`，命中 ≥3 条直接停止
+- **CDP 降级兜底**：BOSS/智联 CDP 反爬成本高，仅在前 3 层全空时触发
+- **平台路由二维化**：`enterprise_preference × job_scenario`（校招/社招）路由到不同平台组合
+- **form_type 透传**：Layer 0 自动识别 `form_type`（structured/open_question/attachment/one_click），写入 application 记录，供 `application-executor` 选择网申填写策略
+
+**技术路径决策：MCP 工具下沉 + Skill 编排混合**
+
+| 数据源 | 稳定性 | 技术路径 |
+|---|---|---|
+| 北森/Moka/牛客/应届生 ATS 公开接口 | 高 | 下沉为 `fetch_ats_jobs` MCP 工具（代码实现、可单测） |
+| BOSS/智联/拉勾 CDP 爬虫 | 低（反爬常变） | 保留 skill 编排（改 Markdown 即可适配） |
+| Firecrawl/Exa/Tavily 通用搜索 | 中 | 保留 skill 编排（agent 现场决策） |
+
+
+---
+
 ## 📁 目录结构
 
 ```
@@ -169,7 +224,11 @@ career-tracker/
 │   └── agent_api.py        #   Agent API 端点 & Agent Trace 轨迹
 ├── services/               # 业务逻辑
 │   ├── settings.py         #   用户设置（settings.json）
-│   └── archive.py          #   投递归档（每日节流）
+│   ├── archive.py          #   投递归档（每日节流）
+│   ├── safety_guard.py     #   网申安全分类（敏感字段/提交按钮识别）
+│   ├── submission_executor.py  # 网申预填执行器（Phase 1 dry_run）
+│   └── sourcing/           #   岗位检索
+│       └── ats_fetcher.py  #     国内 ATS 直连（北森/Moka/牛客/应届生）
 ├── scripts/                # 命令行工具
 │   ├── ai_scorer.py        #   AI 评分引擎
 │   └── ...                 #   其他辅助脚本
@@ -204,6 +263,10 @@ career-tracker/
 | **MCP 覆盖全部 REST API 能力** | MCP 工具从 9 扩至 36 个，覆盖 11 个数据域 | Agent 通过 MCP 协议即可完成全部操作，无需 HTTP fallback |
 | **Agent 自主执行 / 删除需审批** | 读/创建/更新操作 Agent 自主执行；删除操作需传 `confirm=True` | 在自动化效率和数据安全之间取得平衡 |
 | **三原则设计哲学** | Agent-First + Human-in-the-Loop + Data Sovereignty | 统一指导所有功能设计和开发决策 |
+| **国内 ATS 直连下沉为 MCP 工具** | 北森/Moka/牛客/应届生公开接口封装到 `services/sourcing/ats_fetcher.py`，暴露为 `fetch_ats_jobs` MCP 工具 | 接口稳定可单测；避免 agent 现场决策解析逻辑，省 token、结果稳定 |
+| **MCP 工具下沉 + Skill 编排混合路径** | 稳定数据源（ATS 直连）下沉为 MCP 工具；反爬常变源（BOSS/智联 CDP）保留 skill 编排 | 按数据源稳定性分层：稳定的下沉、易变的保留 skill，反爬变化时改 Markdown 即可 |
+| **分层检索协议 5 层结构** | Layer 0 ATS 直连 → Layer 1 Firecrawl → Layer 2 Exa/Tavily → Layer 3 CDP → Layer 4 webfetch | 免费稳定源优先、高风险源兜底；CDP 仅在前 3 层全空时触发 |
+| **平台路由二维化** | `enterprise_preference × job_scenario`（校招/社招）二维路由 | 校招与社招数据源差异巨大，一维路由会漏源 |
 
 ---
 
@@ -216,4 +279,4 @@ career-tracker/
 
 ---
 
-_最后更新：2026-07-31 · 维护者：JHTracker 项目组_
+_最后更新：2026-08-09 · 维护者：JHTracker 项目组_

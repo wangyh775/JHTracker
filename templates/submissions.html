@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <div class="dashboard-title"><i class="bi bi-pencil-square me-2 text-primary"></i>待提交清单</div>
+  <div>
+    <span class="badge bg-primary me-2">共 {{ apps|length }} 个待提交预填</span>
+  </div>
+</div>
+
+<div class="alert alert-info py-2 small mb-3">
+  <i class="bi bi-info-circle me-1"></i>
+  Agent 已为以下岗位完成网申表单<strong>预填</strong>。请点击进入审核预填数据，<strong>确认无误后</strong>在真实招聘页面上手动点击「提交」按钮，再回到此页面标记为「已提交」。
+  <strong class="text-warning">Agent 不会代你点击提交</strong>。
+</div>
+
+{% if apps %}
+  {% for a in apps %}
+  {% set sub = submissions_map.get(a.id) %}
+  {% set pdata = submissions_data_map.get(a.id) %}
+  {% set sub_status = sub.status if sub else None %}
+  <div class="card mb-3 border-primary">
+    <div class="card-body py-3">
+      <div class="d-flex justify-content-between align-items-start mb-2">
+        <div>
+          <a href="/companies/{{ a.company.id }}" class="text-decoration-none fw-bold fs-5 me-2">{{ a.company.name }}</a>
+          <span class="badge bg-secondary me-2">{{ a.company.industry or '行业未填' }}</span>
+          <span class="badge badge-priority-{{ a.company.priority }}">{{ a.company.priority }}</span>
+          <div class="text-light fw-medium mt-1 fs-6">
+            <i class="bi bi-briefcase me-1 text-primary"></i>{{ a.position or '待定岗位' }}
+          </div>
+        </div>
+        <div class="text-end">
+          <span class="badge bg-primary fs-6 mb-1">待提交</span>
+          {% if sub %}
+          <span class="badge bg-{{ submission_status_badge.get(sub_status, 'secondary') }} fs-6 mb-1">
+            {{ submission_status_label.get(sub_status, sub_status) }}
+          </span>
+          {% endif %}
+          {% if a.resume %}
+          <div class="small text-info" style="font-size:0.75rem;"><i class="bi bi-file-earmark-text me-1"></i>简历: {{ a.resume.name }}</div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- 预填数据摘要 -->
+      {% if pdata %}
+      <div class="p-2 rounded mb-3" style="background: var(--bg-primary); border: 1px solid var(--border);">
+        <div class="d-flex flex-wrap gap-3 align-items-center justify-content-between">
+          <div class="d-flex align-items-center gap-2">
+            <i class="bi bi-robot text-primary"></i>
+            <span class="small">
+              已预填 <strong>{{ pdata.fields | selectattr('filled') | list | length }}</strong> / {{ pdata.fields | length }} 个字段
+              {% if pdata.awaiting_human_items %}
+              ，<span class="text-warning">{{ pdata.awaiting_human_items | length }} 项待人工补填</span>
+              {% endif %}
+            </span>
+          </div>
+          {% if sub and sub.form_url %}
+          <a href="{{ sub.form_url }}" target="_blank" class="small text-info text-decoration-none">
+            <i class="bi bi-box-arrow-up-right me-1"></i>打开真实招聘页面
+          </a>
+          {% endif %}
+        </div>
+        {% if pdata.awaiting_human_items %}
+        <ul class="small text-warning mt-2 mb-0 ps-3">
+          {% for item in pdata.awaiting_human_items %}
+          <li>{{ item }}</li>
+          {% endfor %}
+        </ul>
+        {% endif %}
+      </div>
+      {% endif %}
+
+      <!-- 操作栏 -->
+      <div class="pt-2 border-top border-secondary d-flex flex-wrap justify-content-between align-items-center gap-2">
+        <div class="d-flex gap-2">
+          <a href="/submissions/{{ a.id }}" class="btn btn-sm btn-outline-info">
+            <i class="bi bi-eye me-1"></i>审核预填详情
+          </a>
+          {% if sub and sub.form_url %}
+          <a href="{{ sub.form_url }}" target="_blank" class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-box-arrow-up-right me-1"></i>打开招聘页
+          </a>
+          {% endif %}
+        </div>
+        <div class="d-flex gap-2">
+          <form method="post" action="/submissions/{{ a.id }}/submit" onsubmit="return confirm('确认：我已在真实招聘页面上手动点击了「提交」按钮，且投递成功。')">
+            <button class="btn btn-sm btn-success"><i class="bi bi-check2-circle me-1"></i>已提交，标记为已投递</button>
+          </form>
+          <form method="post" action="/submissions/{{ a.id }}/fail" onsubmit="return confirm('确认此次预填/提交失败，回退到 待投递？')">
+            <input type="hidden" name="failure_reason" value="人工标记提交失败">
+            <button class="btn btn-sm btn-outline-danger"><i class="bi bi-x-circle me-1"></i>失败回退</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+{% else %}
+<div class="card border-dashed">
+  <div class="card-body text-center py-5 text-secondary">
+    <i class="bi bi-inbox fs-1 mb-2 d-block opacity-50"></i>
+    <div class="fw-bold mb-1">当前没有待提交的预填</div>
+    <div class="small">让 Agent 执行 <code>prefill_application_form</code> 工具预填后，相关 application 会自动进入此清单</div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

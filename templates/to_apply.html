@@ -4,7 +4,13 @@
   <div class="dashboard-title"><i class="bi bi-card-checklist me-2 text-warning"></i>待投递清单</div>
   <div>
     <span class="badge bg-warning text-dark me-2">共 {{ apps.total }} 个待投岗位</span>
+    <a href="/submissions" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil-square me-1"></i>查看待提交预填</a>
   </div>
+</div>
+
+<div class="alert alert-secondary py-2 small mb-3">
+  <i class="bi bi-lightbulb me-1"></i>
+  想让 Agent 自动预填网申表单？在 Agent 客户端中说「<strong>预填 {{ apps.items[0].company.name if apps.items else '某公司' }} 的网申表单</strong>」，Agent 会调用 <code>prefill_application_form</code> MCP 工具，预填完成后该岗位会进入 <a href="/submissions" class="text-info">待提交清单</a> 等你审核。
 </div>
 
 <!-- 筛选栏 -->

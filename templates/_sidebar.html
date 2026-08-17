@@ -19,7 +19,12 @@
   <!-- 3. Applications -->
   <div class="text-secondary px-2 mt-3 mb-1 fw-bold" style="font-size: 0.7rem; letter-spacing: 0.08em;">投递跟踪 APPLICATIONS</div>
   <a class="nav-link {% if 'to-apply' in request.path %}active{% endif %}" href="/to-apply"><i class="bi bi-card-checklist me-2"></i>待投递清单</a>
-  <a class="nav-link {% if 'applications' in request.path and 'to-apply' not in request.path %}active{% endif %}" href="/applications"><i class="bi bi-send me-2"></i>投递记录</a>
+  <a class="nav-link {% if 'submissions' in request.path %}active{% endif %}" href="/submissions"><i class="bi bi-pencil-square me-2"></i>待提交预填</a>
+  <a class="nav-link {% if 'applications' in request.path and 'to-apply' not in request.path and 'submissions' not in request.path %}active{% endif %}" href="/applications"><i class="bi bi-send me-2"></i>投递记录</a>
+
+  <!-- 3b. Submission Toolkit -->
+  <div class="text-secondary px-2 mt-3 mb-1 fw-bold" style="font-size: 0.7rem; letter-spacing: 0.08em;">投递工具箱 TOOLKIT</div>
+  <a class="nav-link {% if 'answer-bank' in request.path %}active{% endif %}" href="/answer-bank"><i class="bi bi-collection me-2"></i>答案库</a>
 
   <!-- 4. Agent Center -->
   <div class="text-secondary px-2 mt-3 mb-1 fw-bold" style="font-size: 0.7rem; letter-spacing: 0.08em;">智能体中心 AGENT CENTER</div>
