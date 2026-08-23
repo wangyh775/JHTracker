@@ -106,6 +106,9 @@ class TestCreateApplicationMcpDefaults:
         conn = sqlite3.connect(db_file)
         conn.executescript('''
             CREATE TABLE companies (id INTEGER PRIMARY KEY, name TEXT, priority TEXT);
+            CREATE TABLE resumes (id INTEGER PRIMARY KEY, name TEXT);
+            CREATE TABLE decision_feedbacks (id INTEGER PRIMARY KEY, application_id INTEGER);
+            CREATE TABLE interview_feedbacks (id INTEGER PRIMARY KEY, application_id INTEGER);
             CREATE TABLE applications (
                 id INTEGER PRIMARY KEY, company_id INTEGER, position TEXT, status TEXT,
                 channel TEXT, job_desc TEXT, url TEXT, match_score INTEGER, agent_reason TEXT,

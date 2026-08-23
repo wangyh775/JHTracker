@@ -5,6 +5,18 @@
   <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addModal"><i class="bi bi-plus-lg me-1"></i>添加节点</button>
 </div>
 
+<!-- 过滤控制开关 -->
+<div class="d-flex gap-3 mb-3 flex-wrap">
+  <div class="form-check form-check-inline">
+    <input class="form-check-input" type="checkbox" id="showCompleted" checked onchange="renderGantt()">
+    <label class="form-check-label small" for="showCompleted">显示已完成</label>
+  </div>
+  <div class="form-check form-check-inline">
+    <input class="form-check-input" type="checkbox" id="showExpired" checked onchange="renderGantt()">
+    <label class="form-check-label small" for="showExpired">显示已过期</label>
+  </div>
+</div>
+
 <!-- 甘特图 -->
 <div class="card mb-4">
   <div class="card-body">
@@ -23,43 +35,15 @@
   </div>
 </div>
 
-<!-- 列表详情 -->
+<!-- 列表详情（微卡片样式） -->
 <div class="card">
   <div class="card-body">
     <h6 class="card-title mb-3"><i class="bi bi-list-ul me-2"></i>节点详情</h6>
-    {% for item in items %}
-    <div id="item-{{ item.id }}"
-         class="border-bottom py-2 timeline-item {% if item.done %}opacity-50{% endif %}"
-         style="cursor:pointer;"
-         data-id="{{ item.id }}"
-         data-start="{{ item.event_date.strftime('%Y-%m-%d') }}"
-         data-end="{{ (item.end_date or item.event_date).strftime('%Y-%m-%d') }}"
-         data-type="{{ item.event_type }}"
-         data-title="{{ (item.title or '')|e }}"
-         data-description="{{ (item.description or '')|e }}"
-         data-done="{{ 'true' if item.done else 'false' }}">
-      <div class="d-flex align-items-center">
-        <span class="badge {% if item.event_type=='deadline' %}bg-danger{% elif item.event_type=='milestone' %}bg-warning text-dark{% elif item.event_type=='reminder' %}bg-secondary{% else %}bg-primary{% endif %} me-2">
-          {{ item.event_type }}
-        </span>
-        <strong class="me-3">{{ item.title }}</strong>
-        <span class="text-secondary small">
-          {{ item.event_date.strftime('%Y-%m-%d') }}{% if item.end_date and item.end_date != item.event_date %} ~ {{ item.end_date.strftime('%Y-%m-%d') }}{% endif %}
-        </span>
-        <div class="ms-auto" onclick="event.stopPropagation();">
-          <form method="post" action="/timeline/{{ item.id }}/toggle">
-            <button class="btn btn-sm {% if item.done %}btn-success{% else %}btn-outline-success{% endif %} py-0 px-2">
-              {% if item.done %}<i class="bi bi-check-circle-fill"></i> 已完成{% else %}<i class="bi bi-circle"></i> 标记完成{% endif %}
-            </button>
-          </form>
-        </div>
+    <div class="d-flex flex-column gap-2" id="timelineCardList">
+      <div class="text-center text-secondary py-4" id="emptyTimelineMessage">
+        <i class="bi bi-calendar-x fs-1"></i><br>暂无活动节点，勾选上方「显示已完成/已过期」可查看历史节点
       </div>
     </div>
-    {% else %}
-    <div class="text-center text-secondary py-4">
-      <i class="bi bi-calendar-x fs-1"></i><br>暂无时间节点，请先<a href="/import">导入时间线</a>
-    </div>
-    {% endfor %}
   </div>
 </div>
 
@@ -163,58 +147,128 @@ const items = [
 
 function toTs(s) { return new Date(s).getTime(); }
 const ONE_DAY = 86400000;
-const chartData = items.map(i => {
-  const s = toTs(i.start);
-  const e = toTs(i.end);
-  return e > s ? [s, e] : [s, s + ONE_DAY * 3];
-});
-
-function rangeFor(kind) {
-  const now = new Date();
-  const y = now.getFullYear();
-  const m = now.getMonth();
-  if (kind === 'month') {
-    const start = new Date(y, m, now.getDate(), 0, 0, 0).getTime();
-    const end = new Date(y, m, now.getDate() + 30, 23, 59, 59).getTime();
-    return [start, end, 'day'];
-  }
-  if (kind === 'quarter') {
-    const start = new Date(y, m, now.getDate() - 30).getTime();
-    const end = new Date(y, m, now.getDate() + 60).getTime();
-    return [start, end, 'week'];
-  }
-  if (kind === 'season') {
-    return [new Date(2026, 6, 1).getTime(), new Date(2026, 11, 31, 23, 59, 59).getTime(), 'month'];
-  }
-  const allMin = Math.min(...chartData.map(d => d[0]));
-  const allMax = Math.max(...chartData.map(d => d[1]));
-  return [allMin, allMax, 'month'];
-}
+const todayStr = new Date().toISOString().split('T')[0];
 
 function colorFor(item) {
   if (item.done) return 'rgba(25,135,84,0.85)';
-  if (item.type === 'deadline') return '#e0312d';
-  if (item.type === 'milestone') return '#ffce3a';
+  if (item.type === 'deadline') return '#ef4444';
+  if (item.type === 'milestone') return '#f59e0b';
   if (item.type === 'reminder') return '#8a94a6';
-  return '#3b8bff';
+  return '#6366f1';
 }
 
+const TYPE_LABELS = {
+  'action': '行动项',
+  'deadline': '截止日',
+  'milestone': '里程碑',
+  'reminder': '提醒'
+};
+const TYPE_BADGE_CLASSES = {
+  'deadline': 'bg-danger',
+  'milestone': 'bg-warning text-dark',
+  'reminder': 'bg-secondary',
+  'action': 'bg-primary'
+};
+
+let currentRangeKind = 'month';
 let chart = null;
-function render(rangeKind) {
-  const [xmin, xmax, unit] = rangeFor(rangeKind);
+
+function filterItems() {
+  const showCompleted = document.getElementById('showCompleted').checked;
+  const showExpired = document.getElementById('showExpired').checked;
+
+  return items.filter(i => {
+    if (!showCompleted && i.done) return false;
+    if (!showExpired && i.end < todayStr) return false;
+    return true;
+  });
+}
+
+function renderCardList(filtered) {
+  const container = document.getElementById('timelineCardList');
+  if (!container) return;
+
+  if (filtered.length === 0) {
+    container.innerHTML = `
+      <div class="text-center text-secondary py-4">
+        <i class="bi bi-calendar-x fs-1"></i><br>暂无活动节点，勾选上方「显示已完成/已过期」可查看历史节点
+      </div>`;
+    return;
+  }
+
+  container.innerHTML = filtered.map(item => `
+    <div class="p-3 rounded bg-zinc-900 border border-zinc-800 timeline-card ${item.done ? 'opacity-50' : ''}" style="cursor:pointer;" data-id="${item.id}">
+      <div class="d-flex justify-content-between align-items-center">
+        <div class="d-flex align-items-center gap-2">
+          <span class="badge ${TYPE_BADGE_CLASSES[item.type] || 'bg-primary'}">${TYPE_LABELS[item.type] || item.type}</span>
+          <strong class="text-light fs-6">${item.title}</strong>
+          ${item.done ? '<span class="badge bg-success ms-1"><i class="bi bi-check-circle-fill me-1"></i>已完成</span>' : ''}
+          ${(!item.done && item.end < todayStr) ? '<span class="badge bg-danger ms-1">已过期</span>' : ''}
+        </div>
+        <div class="d-flex align-items-center gap-3">
+          <span class="text-secondary small">
+            <i class="bi bi-clock me-1"></i>${item.start}${item.end && item.end !== item.start ? ' ~ ' + item.end : ''}
+          </span>
+          <div onclick="event.stopPropagation();">
+            <form method="post" action="/timeline/${item.id}/toggle">
+              <button class="btn btn-sm ${item.done ? 'btn-success' : 'btn-outline-success'} py-0 px-2">
+                ${item.done ? '<i class="bi bi-check-circle-fill"></i> 已完成' : '<i class="bi bi-circle"></i> 标记完成'}
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+      ${item.description ? `<div class="small text-secondary mt-2 border-top border-zinc-800 pt-2">${item.description}</div>` : ''}
+    </div>
+  `).join('');
+}
+
+function renderGantt() {
+  const filtered = filterItems();
+  renderCardList(filtered);
+
+  const chartData = filtered.map(i => {
+    const s = toTs(i.start);
+    const e = toTs(i.end);
+    return e > s ? [s, e] : [s, s + ONE_DAY * 3];
+  });
+
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = now.getMonth();
+  let xmin, xmax, unit;
+
+  if (currentRangeKind === 'month') {
+    xmin = new Date(y, m, 1).getTime();
+    xmax = new Date(y, m + 1, 0, 23, 59, 59).getTime() + ONE_DAY * 30;
+    unit = 'day';
+  } else if (currentRangeKind === 'quarter') {
+    xmin = new Date(y, m - 1, 1).getTime();
+    xmax = new Date(y, m + 2, 0, 23, 59, 59).getTime();
+    unit = 'week';
+  } else if (currentRangeKind === 'season') {
+    xmin = new Date(2026, 6, 1).getTime();
+    xmax = new Date(2026, 11, 31, 23, 59, 59).getTime();
+    unit = 'month';
+  } else {
+    xmin = chartData.length ? Math.min(...chartData.map(d => d[0])) : new Date().getTime();
+    xmax = chartData.length ? Math.max(...chartData.map(d => d[1])) : new Date().getTime() + ONE_DAY * 30;
+    unit = 'month';
+  }
+
   if (chart) chart.destroy();
   chart = new Chart(document.getElementById('ganttChart'), {
     type: 'bar',
     data: {
-      labels: items.map(i => i.title),
+      labels: filtered.map(i => i.title),
       datasets: [{
         data: chartData,
-        backgroundColor: items.map(i => colorFor(i)),
-        borderColor: items.map(i => colorFor(i)),
+        backgroundColor: filtered.map(i => colorFor(i)),
+        borderColor: filtered.map(i => colorFor(i)),
         borderWidth: 1,
-        barPercentage: 0.7,
-        categoryPercentage: 0.85,
-        borderRadius: 3,
+        barPercentage: 0.6,
+        categoryPercentage: 0.8,
+        borderRadius: 4,
       }]
     },
     options: {
@@ -229,27 +283,32 @@ function render(rangeKind) {
           time: {
             unit: unit,
             displayFormats: { day: 'yyyy-MM-dd', week: 'yyyy-MM-dd', month: 'yyyy-MM' },
-            stepSize: unit === 'day' ? 3 : (unit === 'week' ? 1 : 1),
+            stepSize: unit === 'day' ? 3 : 1,
           },
-          ticks: { color: '#bbb', autoSkip: true, maxRotation: 0, maxTicksLimit: 12, font: { size: 11 } },
-          grid: { color: '#2a2a2a' }
+          ticks: { color: '#a1a1aa', autoSkip: true, maxRotation: 0, maxTicksLimit: 12, font: { size: 11 } },
+          grid: { color: '#27272a' }
         },
         y: {
-          ticks: { color: '#bbb', font: { size: 12 }, callback: function(v) { const l = this.getLabelForValue(v); return l.length > 18 ? l.substring(0, 18) + '…' : l; } },
-          grid: { color: '#1a1a1a' }
+          ticks: { color: '#f4f4f5', font: { size: 12 }, callback: function(v) { const l = this.getLabelForValue(v); return l.length > 18 ? l.substring(0, 18) + '…' : l; } },
+          grid: { color: '#18181b' }
         }
       },
       plugins: {
         legend: { display: false },
         tooltip: {
-          backgroundColor: 'rgba(20,20,20,0.95)', padding: 10,
-          callbacks: { label: (ctx) => { const i = items[ctx.dataIndex]; return i.description || `${i.start} ~ ${i.end}`; } }
+          backgroundColor: '#18181b',
+          borderColor: '#27272a',
+          borderWidth: 1,
+          padding: 10,
+          titleColor: '#f4f4f5',
+          bodyColor: '#a1a1aa',
+          callbacks: { label: (ctx) => { const i = filtered[ctx.dataIndex]; return i.description || `${i.start} ~ ${i.end}`; } }
         }
       },
       onClick: (e, els) => {
         if (els.length > 0) {
           const idx = els[0].index;
-          const i = items[idx];
+          const i = filtered[idx];
           openTimelineModal(i.id, i.start, i.end, i.type, i.title, i.description, i.done);
         }
       }
@@ -258,14 +317,15 @@ function render(rangeKind) {
 }
 
 const defaultBtn = document.querySelector('#rangeSwitch [data-range="month"]');
-defaultBtn.classList.add('active');
-render('month');
+if (defaultBtn) defaultBtn.classList.add('active');
+renderGantt();
 
 document.querySelectorAll('#rangeSwitch [data-range]').forEach(btn => {
   btn.addEventListener('click', () => {
     document.querySelectorAll('#rangeSwitch [data-range]').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
-    render(btn.dataset.range);
+    currentRangeKind = btn.dataset.range;
+    renderGantt();
   });
 });
 
@@ -306,18 +366,15 @@ function openTimelineModal(id, eventDate, endDate, eventType, title, description
   new bootstrap.Modal(document.getElementById('editModal')).show();
 }
 
-// 绑定列表项点击事件（使用 data 属性读取，避免特殊字符破坏语法）
-document.querySelectorAll('.timeline-item').forEach(el => {
-  el.addEventListener('click', () => {
-    const id = parseInt(el.dataset.id, 10);
-    const eventDate = el.dataset.start || '';
-    const endDate = el.dataset.end || '';
-    const eventType = el.dataset.type || '';
-    const title = el.dataset.title || '';
-    const description = el.dataset.description || '';
-    const done = el.dataset.done === 'true';
-    openTimelineModal(id, eventDate, endDate, eventType, title, description, done);
-  });
+// 绑定列表项点击事件（事件代理：从内存 items 查找，避免字符串转义/换行导致 JS 语法错误）
+document.getElementById('timelineCardList')?.addEventListener('click', (e) => {
+  const card = e.target.closest('.timeline-card');
+  if (!card) return;
+  const id = parseInt(card.dataset.id, 10);
+  const targetItem = items.find(i => i.id === id);
+  if (targetItem) {
+    openTimelineModal(targetItem.id, targetItem.start, targetItem.end, targetItem.type, targetItem.title, targetItem.description, targetItem.done);
+  }
 });
 
 // 切换到查看模式

@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>企业校园招聘网申系统（全真模拟）</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial; padding: 30px; max-width: 800px; margin: auto; background: #f7f9fa; }
+        .card { background: #fff; padding: 25px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); margin-bottom: 20px; }
+        h2, h3 { color: #333; margin-top: 0; }
+        .form-row { display: flex; gap: 20px; margin-bottom: 15px; }
+        .form-group { flex: 1; display: flex; flex-direction: column; }
+        label { margin-bottom: 6px; font-weight: 600; font-size: 14px; color: #4e5969; }
+        input, select, textarea { padding: 9px 12px; border: 1px solid #e5e6eb; border-radius: 4px; font-size: 14px; outline: none; }
+        input:focus, textarea:focus { border-color: #165dff; }
+        .radio-group { display: flex; gap: 15px; align-items: center; padding-top: 6px; }
+    </style>
+</head>
+<body>
+    <h2>2027 届秋季校园招聘 - 在线网申系统</h2>
+
+    <!-- 基本信息 -->
+    <div class="card">
+        <h3>基本个人信息</h3>
+        <div class="form-row">
+            <div class="form-group">
+                <label>候选人姓名 *</label>
+                <input type="text" name="candidate_name" placeholder="请输入姓名">
+            </div>
+            <div class="form-group">
+                <label>联系电话 *</label>
+                <input type="tel" name="phone_number" placeholder="请输入11位手机号">
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label>常用电子邮箱 *</label>
+                <input type="email" name="user_email" placeholder="example@163.com">
+            </div>
+            <div class="form-group">
+                <label>意向工作地点</label>
+                <input type="text" name="location" placeholder="如：深圳/上海/杭州">
+            </div>
+        </div>
+    </div>
+
+    <!-- 教育经历 -->
+    <div class="card">
+        <h3>最高教育背景（研究生）</h3>
+        <div class="form-row">
+            <div class="form-group">
+                <label>毕业院校名称 *</label>
+                <input type="text" name="school_name" placeholder="请填写就读高校">
+            </div>
+            <div class="form-group">
+                <label>所学专业 *</label>
+                <input type="text" name="major_title" placeholder="如：机械工程">
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label>平均绩点 / 综合平均分</label>
+                <input type="text" name="gpa_score" placeholder="如：85.44 / 3.17">
+            </div>
+            <div class="form-group">
+                <label>政治面貌</label>
+                <input type="text" name="political" placeholder="群众/共青团员/中共党员">
+            </div>
+        </div>
+    </div>
+
+    <!-- 核心项目经历 -->
+    <div class="card">
+        <h3>核心课题与项目经历</h3>
+        <div class="form-group" style="margin-bottom: 15px;">
+            <label>项目名称</label>
+            <input type="text" name="project_name" placeholder="项目或课题全称">
+        </div>
+        <div class="form-group" style="margin-bottom: 15px;">
+            <label>担任角色 / 职务</label>
+            <input type="text" name="project_role" placeholder="如：课题负责人">
+        </div>
+        <div class="form-group">
+            <label>项目详细描述与量化成果</label>
+            <textarea name="project_desc" rows="4" placeholder="请介绍项目背景、个人承担工作及所获成果"></textarea>
+        </div>
+    </div>
+
+    <!-- 综合评价 -->
+    <div class="card">
+        <h3>自我评价与荣誉奖项</h3>
+        <div class="form-group" style="margin-bottom: 15px;">
+            <label>竞赛与荣誉奖项</label>
+            <textarea name="awards" rows="3" placeholder="国家级/省部级竞赛获奖"></textarea>
+        </div>
+        <div class="form-group">
+            <label>个人综合总结与自我介绍</label>
+            <textarea name="self_intro" rows="3" placeholder="简述专业优势与求职意向"></textarea>
+        </div>
+    </div>
+</body>
+</html>

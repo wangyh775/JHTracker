@@ -44,8 +44,8 @@ Invoke when the user says any of:
 2. Read `data/profile.md` and query `memories` table for negative rules.
 3. **Read two routing dimensions from profile.md**:
    - `enterprise_preference` ∈ {央国企, 外企, 民企, 不限} — if absent, ask user and write to profile.
-   - `job_scenario` ∈ {校招, 社招, 实习} — if absent, ask user "校招还是社招？" and write to profile.
-4. **Route to target platforms** based on `enterprise_preference × job_scenario`:
+   - `recruitment_type` ∈ {校招, 社招, 不限} — if absent, ask user "校招、社招还是不限？" and write to profile (defaults to `校招`).
+4. **Route to target platforms** based on `enterprise_preference × recruitment_type`:
 
    | | 校招（网申） | 社招 |
    |---|---|---|
@@ -55,9 +55,9 @@ Invoke when the user says any of:
    | **民企创业** | Layer 0: moka + nowcoder / Layer 1: 牛客校招 | Layer 1: BOSS/拉勾 |
    | **不限** | Layer 0: all 并发 / Layer 1: 海投网+应届生 | Layer 1: BOSS → 国聘 → 猎聘 → 智联 |
 
-5. Log preference ingestion event via `JHTracker:record_agent_trace(task_id=task_id, event_type="preferences_loaded", payload={"enterprise_preference": "<value>", "job_scenario": "<value>", "target_platforms": [...]})`.
+5. Log preference ingestion event via `JHTracker:record_agent_trace(task_id=task_id, event_type="preferences_loaded", payload={"enterprise_preference": "<value>", "recruitment_type": "<value>", "target_platforms": [...]})`.
 
-### 1. Layered Retrieval Protocol (检索-验证闭环)
+### 1. Platform-Specific 4-Stage Fallback Protocol (检索-验证闭环与反爬避让)
 
 **Authenticity Contract**: All company names, positions, URLs, and job descriptions MUST be sourced from real web search results. Fabrication or hallucination of data is STRICTLY PROHIBITED.
 
@@ -131,6 +131,55 @@ Every candidate record MUST pass the following checks before being committed to 
 - If a second independent source confirms → mark as `verified`.
 - If no second source found → mark as `single_source` (still allowed, with provenance note).
 - **Layer 0 豁免**: 若 Layer 0 返回的 `source_platform` 为已知 ATS（beisen/moka/nowcoder/yingjiesheng），视为可信源，可标记 `verified` 无需交叉验证。
+
+#### Step 2d: JD Structured Data Extraction & Token Compression SOP
+
+Before calling evaluation tools or saving JDs, host agents MUST compress and structure the raw webpage content (typically 3000+ tokens) into a compact JSON payload (200-400 tokens), stripping away company promotional copy, perk lists, and peripheral UI text.
+
+**Extracted JSON Fields**:
+```json
+{
+  "must_have_skills": ["STM32H7", "C++", "MPC算法"],
+  "nice_to_have": ["3D打印", "Klipper"],
+  "salary_min": 20,
+  "salary_max": 35,
+  "location": "深圳",
+  "recruitment_type": "校招",
+  "target_graduation_year": 2027,
+  "job_posted_date": "2026-07-15"
+}
+```
+
+**Salary Normalization Table**:
+
+| Raw Salary String | Normalized `salary_min` (k/mo) | Normalized `salary_max` (k/mo) | Notes |
+|-------------------|--------------------------------|--------------------------------|-------|
+| `"20-35K·16薪"` | `20` | `35` | Standard monthly range |
+| `"25k-40k"` | `25` | `40` | Lowercase k handling |
+| `"40-70万/年"` | `33` | `58` | Converted (divide by 12, round) |
+| `"150-250元/天"` | `3` | `5` | Internship daily rate (22 days) |
+
+#### Step 2e: Graduation Batch & Job Freshness Hard Gate
+
+Host agents MUST check the extracted `recruitment_type`, `target_graduation_year`, and `job_posted_date` against candidate profile rules BEFORE calling `evaluate_jd`:
+
+1. **Recruitment Type Rule**:
+   - If `recruitment_type` in `data/profile.md` is `校招` (default): Candidate MUST be a 2027 graduate. The posting MUST target the **2027 graduating class** (or graduation window 2026.09 - 2027.08).
+   - If `recruitment_type` is `社招`: Skip graduation year gate, but verify required experience matches candidate status.
+2. **Job Freshness Rule**:
+   - Job posting date (`job_posted_date`) MUST be **on or after 2026-07-01**.
+   - Any job posted prior to 2026-07-01 (e.g. old 2025/2026 spring postings) MUST be immediately rejected as EXPIRED.
+
+**Keyword Inspection Checklist**:
+
+| Field | Passing Keywords (`ALLOW`) | Blocking Keywords (`REJECT`) |
+|-------|----------------------------|------------------------------|
+| **Graduation Batch** (when `recruitment_type: 校招`) | `2027届`, `2027年毕业`, `2027校招`, `2027应届` | `2026届`, `2025届`, `社招`, `3年以上经验`, `往届生` |
+| **Posting Date** | Posted on/after `2026-07-01`, `2027秋招` | Posted before `2026-07-01`, `2025年`, `2026春招` |
+
+**Rejection Protocol**:
+If a job fails Step 2e, DO NOT call `evaluate_jd` or `create_application`. Log rejection in trace:
+`payload={"skipped": true, "reason": "expired_or_batch_mismatch", "posting_date": "...", "target_batch": "..."}`.
 
 ### 3. Deduplication & Company Creation
 

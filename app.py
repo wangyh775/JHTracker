@@ -66,7 +66,10 @@ if __name__ == '__main__':
                 'match_score': 'INTEGER',
                 'agent_reason': 'TEXT',
                 'agent_task_id': 'VARCHAR(100)',
-                'source_url': 'VARCHAR(500)'
+                'source_url': 'VARCHAR(500)',
+                'resume_id': 'INTEGER',
+                'form_type': 'VARCHAR(50)',
+                'source_platform': 'VARCHAR(50)'
             }
             for col_name, col_type in app_alter_cols.items():
                 if col_name not in columns:

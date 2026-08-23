@@ -1,0 +1,178 @@
+{
+  "task_id": "midnight-review-20260821-000000",
+  "status": "success",
+  "score_updates": [
+    {
+      "company_id": 775,
+      "name": "杭州宇树科技有限公司",
+      "score": 97,
+      "result": {
+        "status": "success",
+        "company_id": 775,
+        "score": 97,
+        "score_reason": "【2026-08-21 夜间深度复盘】S级重点企业。2027届校园招聘全面推进，官网热招“嵌入式软件开发工程师（BLDC/PMSM电机控制/机电控制系统）”、“AI算法工程师（机器人大模型/控制）”与“机器人感知与运控”。与候选人电机矢量控制、STM32/RK3588及MPC/EKF控制算法高度契合，保持97分高分。"
+      }
+    },
+    {
+      "company_id": 776,
+      "name": "广州中望龙腾软件股份有限公司",
+      "score": 94,
+      "result": {
+        "status": "success",
+        "company_id": 776,
+        "score": 94,
+        "score_reason": "【2026-08-21 夜间深度复盘】A级重点工业软件龙头。2027届秋招全面启动（广州/武汉/上海），官网热招“AI应用开发工程师（工业场景Agent与CAx/C++）”、“CAE研发工程师”与“ZW3D研发工程师”。候选人机械工程硕士、SolidWorks+CFD流热耦合仿真、OrcaSlicer源码级二次开发及Langgraph多智能体AI Agent全栈极度契合，上调至94分。"
+      }
+    },
+    {
+      "company_id": 777,
+      "name": "北京国望光学科技有限公司",
+      "score": 93,
+      "result": {
+        "status": "success",
+        "company_id": 777,
+        "score": 93,
+        "score_reason": "【2026-08-21 夜间深度复盘】A级重点企业（北京国望光学）。IC光刻机曝光光学系统战略国企，2027届校招全面推进，热招机械机电类、机械环境控制类与软件算法类岗位。候选人机械硕士、SolidWorks设计、CFD热流固耦合仿真及精密温控算法深度契合，提供北京落户，上调至93分。"
+      }
+    },
+    {
+      "company_id": 779,
+      "name": "深圳格见半导体有限公司",
+      "score": 91,
+      "result": {
+        "status": "success",
+        "company_id": 779,
+        "score": 91,
+        "score_reason": "【2026-08-21 夜间深度复盘】A级重点企业。国产工业级实时控制DSP芯片领军企业，2027校招热招嵌入式软件开发工程师（负责RTOS内核组件、Bootloader及芯片外设驱动），产品覆盖具身机器人与高精度运动控制。候选人STM32H7/Linux系统开发、电机驱动及FOC运控经验极度契合，上调至91分。"
+      }
+    },
+    {
+      "company_id": 783,
+      "name": "深圳市普渡科技股份有限公司",
+      "score": 95,
+      "result": {
+        "status": "success",
+        "company_id": 783,
+        "score": 95,
+        "score_reason": "【2026-08-21 夜间深度复盘】A级商用服务与具身机器人龙头。2027届校招与实习项目火热进行中（深圳/成都），开放运动控制算法、通用具身Agent开发及嵌入式系统工程师全栈岗位。候选人RK3588/STM32分布式架构、MPC/EKF控制算法及Langgraph Agent切片优化经历高度匹配，上调至95分。"
+      }
+    }
+  ],
+  "created_apps": [
+    {
+      "company_id": 775,
+      "name": "杭州宇树科技有限公司",
+      "result": {
+        "status": "success",
+        "created": true,
+        "application": {
+          "id": 130,
+          "company_id": 775,
+          "company_name": "杭州宇树科技有限公司",
+          "position": "嵌入式软件开发工程师（电机控制与驱动）",
+          "status": "Pending Approval",
+          "url": "https://www.unitree.com/cn/position",
+          "match_score": 97,
+          "agent_reason": "宇树科技2027届官网热招核心研发岗。岗位要求BLDC/PMSM电机控制程序开发与机电控制系统开发，与候选人STM32H7/Linux底层驱动开发、电机FOC矢量控制及MPC高精度控制算法实战经验100%契合。",
+          "agent_task_id": "midnight-review-20260821-000000",
+          "source_url": "https://www.unitree.com/cn/position",
+          "resume_id": 1,
+          "form_type": "open_question",
+          "source_platform": "official"
+        }
+      }
+    },
+    {
+      "company_id": 776,
+      "name": "广州中望龙腾软件股份有限公司",
+      "result": {
+        "status": "success",
+        "created": true,
+        "application": {
+          "id": 131,
+          "company_id": 776,
+          "company_name": "广州中望龙腾软件股份有限公司",
+          "position": "AI应用开发工程师（工业Agent与CAx）（2027届）",
+          "status": "Pending Approval",
+          "url": "https://www.zwsoft.cn/job/campus",
+          "match_score": 94,
+          "agent_reason": "中望软件2027届共性技术研究院核心AI+工业软件岗位。候选人具备机械工程硕士学历，曾对OrcaSlicer源码二次开发并深度集成Langgraph多智能体AI Agent重构切片工作流，技能与研发方向完美契合。",
+          "agent_task_id": "midnight-review-20260821-000000",
+          "source_url": "https://www.zwsoft.cn/job/campus",
+          "resume_id": 1,
+          "form_type": "open_question",
+          "source_platform": "official"
+        }
+      }
+    },
+    {
+      "company_id": 777,
+      "name": "北京国望光学科技有限公司",
+      "result": {
+        "status": "success",
+        "created": true,
+        "application": {
+          "id": 132,
+          "company_id": 777,
+          "company_name": "北京国望光学科技有限公司",
+          "position": "机械环境控制工程师（2027届校招）",
+          "status": "Pending Approval",
+          "url": "https://campus.niuqizp.com/job-vmy5zzttn.html",
+          "match_score": 93,
+          "agent_reason": "国望光学2027届校招核心战略研发岗。候选人机械工程硕士背景，精通SolidWorks设计，拥有PEEK高温喷头流热耦合CFD仿真及MPC/EKF精密温控实战经历，且符合北京落户政策与正向偏好规则加成。",
+          "agent_task_id": "midnight-review-20260821-000000",
+          "source_url": "https://campus.niuqizp.com/job-vmy5zzttn.html",
+          "resume_id": 1,
+          "form_type": "open_question",
+          "source_platform": "official"
+        }
+      }
+    },
+    {
+      "company_id": 779,
+      "name": "深圳格见半导体有限公司",
+      "result": {
+        "status": "success",
+        "created": true,
+        "application": {
+          "id": 133,
+          "company_id": 779,
+          "company_name": "深圳格见半导体有限公司",
+          "position": "嵌入式软件开发工程师（RTOS/芯片外设驱动）",
+          "status": "Pending Approval",
+          "url": "https://www.gejian-semi.com/about/careers",
+          "match_score": 91,
+          "agent_reason": "格见半导体2027届校招核心嵌入式研发岗。候选人具备STM32H7与Linux底层外设驱动开发能力，熟悉RTOS与通信协议，具备电机控制算法落地经验，与DSP驱动与控制生态开发高度契合。",
+          "agent_task_id": "midnight-review-20260821-000000",
+          "source_url": "https://www.gejian-semi.com/about/careers",
+          "resume_id": 1,
+          "form_type": "open_question",
+          "source_platform": "official"
+        }
+      }
+    },
+    {
+      "company_id": 783,
+      "name": "深圳市普渡科技股份有限公司",
+      "result": {
+        "status": "success",
+        "created": true,
+        "application": {
+          "id": 134,
+          "company_id": 783,
+          "company_name": "深圳市普渡科技股份有限公司",
+          "position": "具身Agent开发工程师（2027届校招）",
+          "status": "Pending Approval",
+          "url": "https://career.nankai.edu.cn/correcruit/content/id/116156.html",
+          "match_score": 95,
+          "agent_reason": "普渡机器人2027届校招核心前沿研发岗。候选人具备Langgraph多智能体AI Agent开发经验，且拥有Linux+RK3588分布式控制系统全栈实践，与具身Agent开发高度匹配。",
+          "agent_task_id": "midnight-review-20260821-000000",
+          "source_url": "https://career.nankai.edu.cn/correcruit/content/id/116156.html",
+          "resume_id": 1,
+          "form_type": "open_question",
+          "source_platform": "official"
+        }
+      }
+    }
+  ]
+}

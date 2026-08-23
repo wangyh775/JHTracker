@@ -1,0 +1,420 @@
+[
+  {
+    "id": 775,
+    "name": "杭州宇树科技有限公司",
+    "priority": "S",
+    "score": 97,
+    "score_reason": "【2026-08-15 夜间深度复盘】S级重点企业。2027届校招热招“机器人运动控制算法工程师”与“嵌入式软件工程师（Linux）”，与候选人MPC/EKF控制算法及Linux+STM32机电控制极度契合，保持97分。",
+    "website": "https://www.unitree.com/",
+    "industry": "具身智能/机器人",
+    "city": "北京/深圳",
+    "created_at": "2026-08-07 01:03:36",
+    "applications": [
+      {
+        "id": 87,
+        "position": "机器人运动控制算法工程师",
+        "status": "Pending Approval",
+        "match_score": 96,
+        "source_url": "https://www.unitree.com/cn/position",
+        "created_at": "2026-08-11 16:07:47"
+      },
+      {
+        "id": 63,
+        "position": "运动控制算法/嵌入式软件工程师（2027届校招）",
+        "status": "待投递",
+        "match_score": 96,
+        "source_url": "https://github.com/Xbotics-Embodied-AI-club/Xbotics-Embodied-AI-Job",
+        "created_at": "2026-08-07 01:03:48"
+      }
+    ]
+  },
+  {
+    "id": 776,
+    "name": "广州中望龙腾软件股份有限公司",
+    "priority": "A",
+    "score": 92,
+    "score_reason": "工业软件/CAE/CAD领域龙头企业（2027届校招正式启动）。开放图形算法工程师、CAE/CAM研发工程师、C++研发工程师等方向，候选人机械工程硕士背景、SolidWorks与CFD流热耦合仿真及OrcaSlicer开源切片二次开发经验极度契合。",
+    "website": "https://www.zwsoft.cn",
+    "industry": "工业软件/CAE/CAD",
+    "city": "广州/武汉/上海",
+    "created_at": "2026-08-08 01:02:39",
+    "applications": [
+      {
+        "id": 69,
+        "position": "图形算法工程师 / CAE/CAM研发工程师（2027届校招）",
+        "status": "待投递",
+        "match_score": 85,
+        "source_url": "https://www.zwsoft.cn/job/campus",
+        "created_at": "2026-08-08 01:02:59"
+      }
+    ]
+  },
+  {
+    "id": 777,
+    "name": "北京国望光学科技有限公司",
+    "priority": "A",
+    "score": 92,
+    "score_reason": "A级正向偏好企业（北京国望光学）。光刻机/超精密光学装备：得分92分（行业30/岗位38/城市15/技术9）。正向规则prefer_company加成，开放仿真工程师（光/力/热协同设计）、机械工程师，契合候选人机械硕士+SolidWorks+CFD热流耦合仿真背景，可解决北京户口。",
+    "website": "https://www.nirvana-optical.com",
+    "industry": "光刻机/超精密光学",
+    "city": "北京",
+    "created_at": "2026-08-08 01:03:16",
+    "applications": [
+      {
+        "id": 92,
+        "position": "运动控制工程师（2027校招）",
+        "status": "Pending Approval",
+        "match_score": 75,
+        "source_url": "https://bebee.com/cn/jobs/2027--techmap_cn_CC805002370J40875347010",
+        "created_at": "2026-08-12 01:04:34"
+      },
+      {
+        "id": 70,
+        "position": "仿真工程师（光/力/热协同设计）/ 机械工程师（2027届校招）",
+        "status": "待投递",
+        "match_score": 78,
+        "source_url": "https://campus.niuqizp.com/job-vmy5zzttn.html",
+        "created_at": "2026-08-08 01:03:23"
+      }
+    ]
+  },
+  {
+    "id": 779,
+    "name": "深圳格见半导体有限公司",
+    "priority": "A",
+    "score": 88,
+    "score_reason": "实时控制DSP芯片设计硬核企业（2027届校招开启于2026-06-04，持续招募）。开放嵌入式软件开发工程师岗位（RTOS/Bootloader/芯片驱动）。候选人STM32H7/Linux嵌入式系统开发、C/C++、电机与伺服控制经验高度契合芯片驱动与嵌入式应用。工作地点覆盖深圳、上海。",
+    "website": "https://gejian-semi.com",
+    "industry": "芯片/实时控制DSP/工业自动化",
+    "city": "深圳/上海/成都",
+    "created_at": "2026-08-08 01:03:40",
+    "applications": [
+      {
+        "id": 72,
+        "position": "嵌入式软件开发工程师（2027届校招）",
+        "status": "待投递",
+        "match_score": 83,
+        "source_url": "https://gejian-semi.com/about/careers",
+        "created_at": "2026-08-08 01:03:54"
+      }
+    ]
+  },
+  {
+    "id": 780,
+    "name": "北京蓝箭鸿擎科技有限公司",
+    "priority": "A",
+    "score": 95,
+    "score_reason": "【2026-08-20 全网自动搜寻】商业航天/卫星互联网龙头企业。2027届校招全面推进（2026-08-07官方启动），涵盖星载嵌入式控制、霍尔电推进及太阳翼驱动控制。与候选人Linux+MCU分布式控制、MPC/EKF控制算法高度契合，保持95分。已有提案处于Pending Approval状态，跳过重复推送。",
+    "website": "https://www.landspace.com/",
+    "industry": "商业航天/卫星",
+    "city": "北京",
+    "created_at": "2026-08-09 01:14:44",
+    "applications": [
+      {
+        "id": 74,
+        "position": "嵌入式设计工程师 / 姿轨控软件工程师 / 运控软件开发工程师",
+        "status": "Pending Approval",
+        "match_score": 88,
+        "source_url": "https://job.buaa.edu.cn/",
+        "created_at": "2026-08-09 01:15:14"
+      }
+    ]
+  },
+  {
+    "id": 783,
+    "name": "深圳市普渡科技股份有限公司",
+    "priority": "A",
+    "score": 94,
+    "score_reason": "商用服务机器人龙头，2027届秋招开启（发布时间2026-06-26，7-10月滚动面试）。开放运动控制算法工程师、系统软件工程师、嵌入式软件工程师（深圳/成都）岗位。候选人RK3588/STM32嵌入式分布式架构与MPC控制算法经验高度匹配。得分94分（行业30/岗位39/城市15/技术10）。",
+    "website": "https://www.pudurobotics.com",
+    "industry": "机器人/自动化",
+    "city": "深圳",
+    "created_at": "2026-08-10 09:10:26",
+    "applications": [
+      {
+        "id": 76,
+        "position": "运动控制算法工程师 / 嵌入式软件工程师",
+        "status": "Pending Approval",
+        "match_score": 94,
+        "source_url": "https://career.nankai.edu.cn/correcruit/content/id/116156.html",
+        "created_at": "2026-08-10 09:13:36"
+      }
+    ]
+  },
+  {
+    "id": 784,
+    "name": "首形科技（AheadForm）",
+    "priority": "A",
+    "score": 93,
+    "score_reason": "新一代超生机器人/具身智能前沿创业公司（2027届秋招启动于2026-07-28）。开放机器人运动控制工程师、嵌入式工程师（北京/上海/杭州）。候选人MPC/EKF控制算法及Linux+STM32底层能力高度契合。得分93分（行业30/岗位38/城市15/技术10）。",
+    "website": "https://aheadform.com",
+    "industry": "具身智能/机器人",
+    "city": "北京/上海/杭州",
+    "created_at": "2026-08-10 09:10:26",
+    "applications": [
+      {
+        "id": 113,
+        "position": "机器人工程师（嵌入式/控制方向-2027届校招）",
+        "status": "Pending Approval",
+        "match_score": 93,
+        "source_url": "https://www.aheadform.com/zh/recruiting",
+        "created_at": "2026-08-15 01:07:05"
+      },
+      {
+        "id": 77,
+        "position": "机器人运动控制工程师 / 嵌入式工程师",
+        "status": "Pending Approval",
+        "match_score": 93,
+        "source_url": "https://campus.niuqizp.com/schedule-7wm85MzaM.html",
+        "created_at": "2026-08-10 09:13:42"
+      }
+    ]
+  },
+  {
+    "id": 785,
+    "name": "卡特彼勒（Caterpillar）",
+    "priority": "A",
+    "score": 88,
+    "score_reason": "外企机械巨头，2026-08-09发布2027校园招聘研发类（无锡/天津），招募嵌入式系统工程师与电子电气开发，契合候选人嵌入式及控制开发背景。",
+    "website": "https://careers.caterpillar.com",
+    "industry": "工业自动化/工程机械",
+    "city": "无锡/天津",
+    "created_at": "2026-08-11 01:04:13",
+    "applications": [
+      {
+        "id": 84,
+        "position": "嵌入式系统工程师 / 研发类（2027校园招聘）",
+        "status": "Pending Approval",
+        "match_score": 88,
+        "source_url": "https://careers.caterpillar.com/zh/职位/r0000387379/2027校园招聘-研发类-电子电气软件-测试方向",
+        "created_at": "2026-08-11 01:05:02"
+      }
+    ]
+  },
+  {
+    "id": 786,
+    "name": "航天智能科技研究院（航天科工）",
+    "priority": "S",
+    "score": 95,
+    "score_reason": "正向偏好航天/军工领域，2026-07-14发布2027届校园招聘，包含智能飞行器控制系统与嵌入式软硬件岗位，与MPC/EKF控制算法及STM32/Linux分布式架构高度吻合。",
+    "website": "https://www.casic.com.cn",
+    "industry": "航天/军工",
+    "city": "北京",
+    "created_at": "2026-08-11 01:04:13",
+    "applications": [
+      {
+        "id": 82,
+        "position": "智能飞行器控制/嵌入式系统（2027届校招）",
+        "status": "Pending Approval",
+        "match_score": 95,
+        "source_url": "https://finance.sina.com.cn/wm/2026-07-14/doc-inihtvuk5352435.shtml",
+        "created_at": "2026-08-11 01:05:02"
+      }
+    ]
+  },
+  {
+    "id": 787,
+    "name": "字节跳动（ByteDance）",
+    "priority": "S",
+    "score": 92,
+    "score_reason": "S级头部大厂，2026-08-10发布2027届校招/Seed大模型人才招聘，开放具身智能算法与移动OS嵌入式系统开发岗位，技术深度与研发投入极高。",
+    "website": "https://jobs.bytedance.com",
+    "industry": "机器人/AI/嵌入式",
+    "city": "北京/上海/深圳",
+    "created_at": "2026-08-11 01:04:14",
+    "applications": [
+      {
+        "id": 83,
+        "position": "嵌入式开发工程师（移动OS/具身智能 2027校招）",
+        "status": "Pending Approval",
+        "match_score": 92,
+        "source_url": "https://seed.bytedance.com/zh/seedearlycareer",
+        "created_at": "2026-08-11 01:05:02"
+      }
+    ]
+  },
+  {
+    "id": 788,
+    "name": "深圳市元启姝辰科技有限公司",
+    "priority": "A",
+    "score": 95,
+    "score_reason": "多轴运动控制算法工程师岗位与候选人运动控制、G-code插补/S曲线加减速及Klipper/Linux/STM32全栈完全匹配，属于高契合优质项目。",
+    "website": "http://nfkjdx.bibibi.net/detail/online?id=3534973",
+    "industry": "智能硬件/运动控制",
+    "city": "深圳",
+    "created_at": "2026-08-13 02:26:52",
+    "applications": [
+      {
+        "id": 103,
+        "position": "运动控制算法工程师（2027校招）",
+        "status": "Pending Approval",
+        "match_score": 98,
+        "source_url": "http://nfkjdx.bibibi.net/detail/online?id=3534973",
+        "created_at": "2026-08-14 01:52:56"
+      },
+      {
+        "id": 96,
+        "position": "运动控制算法工程师（2027届校招）",
+        "status": "Pending Approval",
+        "match_score": 95,
+        "source_url": "http://nfkjdx.bibibi.net/detail/online?id=3534973",
+        "created_at": "2026-08-13 02:33:56"
+      }
+    ]
+  },
+  {
+    "id": 789,
+    "name": "中国长征火箭有限公司",
+    "priority": "S",
+    "score": 96,
+    "score_reason": "国家重点商业航天国企，2027届校招电气设计与总体岗位与候选人MPC/EKF及分布式嵌入式系统设计高度契合。",
+    "website": "https://fenbi.com/page/fenxiaozhaokaodetail/8/0/467597792924672",
+    "industry": "商业航天",
+    "city": "北京/文昌",
+    "created_at": "2026-08-13 02:26:52",
+    "applications": [
+      {
+        "id": 97,
+        "position": "电气设计岗（2027届校招）",
+        "status": "Pending Approval",
+        "match_score": 96,
+        "source_url": "https://fenbi.com/page/fenxiaozhaokaodetail/8/0/467597792924672",
+        "created_at": "2026-08-13 02:33:56"
+      }
+    ]
+  },
+  {
+    "id": 790,
+    "name": "伽利略（天津）技术有限公司",
+    "priority": "A",
+    "score": 95,
+    "score_reason": "国家级专精特新小巨人企业，专攻人形/四足机器人。2027全球校招二批（2026.07.08启动）开放运控算法工程师（足式机器人强化学习运控）与导航算法工程师，高度匹配控制工程与机器人算法背景。",
+    "website": "https://www.wondercv.com/xiaozhao/galileo-2027-global-campus-recruitment-batch-2-hang-12407-022908",
+    "industry": "具身智能/人形机器人",
+    "city": "杭州/天津",
+    "created_at": "2026-08-14 01:52:52",
+    "applications": [
+      {
+        "id": 105,
+        "position": "运控算法工程师（2027全球校招二批）",
+        "status": "Pending Approval",
+        "match_score": 95,
+        "source_url": "https://www.wondercv.com/xiaozhao/galileo-2027-global-campus-recruitment-batch-2-hang-12407-022908",
+        "created_at": "2026-08-14 01:53:08"
+      }
+    ]
+  },
+  {
+    "id": 791,
+    "name": "地平线（Horizon Robotics）",
+    "priority": "S",
+    "score": 96,
+    "score_reason": "【2026-08-17 夜间深度复盘】S级重点企业。2027届秋招今日（2026-08-17）截止，核心热招“机器人运动控制工程师（足式机器人全身运控）”与“规划控制算法工程师”，嵌入式量产与MPC/EKF控制算法极其契合，保持96分。",
+    "website": "https://www.wondercv.com/xiaozhao/horizon-robotics-2027-autumn-campus-12397-992460",
+    "industry": "人工智能/芯片/机器人",
+    "city": "上海/北京/深圳/南京",
+    "created_at": "2026-08-14 01:52:53",
+    "applications": [
+      {
+        "id": 104,
+        "position": "机器人运动控制工程师（2027届校招）",
+        "status": "Pending Approval",
+        "match_score": 96,
+        "source_url": "https://www.wondercv.com/xiaozhao/horizon-robotics-2027-autumn-campus-12397-992460",
+        "created_at": "2026-08-14 01:53:00"
+      }
+    ]
+  },
+  {
+    "id": 792,
+    "name": "强脑科技（BrainCo）",
+    "priority": "A",
+    "score": 90,
+    "score_reason": "",
+    "website": "https://www.brainco.cn",
+    "industry": "具身智能/机器人",
+    "city": "深圳/杭州",
+    "created_at": "2026-08-15 01:05:50",
+    "applications": [
+      {
+        "id": 112,
+        "position": "具身智能运控算法工程师（2027届校招）",
+        "status": "Pending Approval",
+        "match_score": 92,
+        "source_url": "https://www.wondercv.com/xiaozhao/brainco-2027-fall-campus-recruitment-11593-7e1efe",
+        "created_at": "2026-08-15 01:06:05"
+      },
+      {
+        "id": 111,
+        "position": "嵌入式工程师（2027届校招）",
+        "status": "Pending Approval",
+        "match_score": 90,
+        "source_url": "https://www.wondercv.com/xiaozhao/brainco-2027-fall-campus-recruitment-11593-7e1efe",
+        "created_at": "2026-08-15 01:06:02"
+      }
+    ]
+  },
+  {
+    "id": 793,
+    "name": "深圳嘉立创科技集团股份有限公司",
+    "priority": "A",
+    "score": 85,
+    "score_reason": "【2026-08-19 搜寻入库】嘉立创深主板IPO过会（营收百亿级），2026-08-16正式发布2027届工业软件板块秋招，招聘CAX研发工程师、WebCAD与AI研发岗。岗位要求C/C++、CAD/CAE二次开发与AI for CAX，与候选人机械工程硕博背景、OrcaSlicer源码级重构、AI Agent切片优化高度契合。",
+    "website": "https://www.jlcgroup.cn",
+    "industry": "工业软件/EDA/CAX/3D打印",
+    "city": "深圳/上海/北京/武汉",
+    "created_at": "2026-08-19 01:05:34",
+    "applications": [
+      {
+        "id": 121,
+        "position": "CAX 研发工程师（2027届校招）",
+        "status": "Pending Approval",
+        "match_score": 85,
+        "source_url": "https://upjianli.com/xiaozhao/cmsv5y0zk002hm9pa4cu7x1b5.html",
+        "created_at": "2026-08-19 01:05:39"
+      }
+    ]
+  },
+  {
+    "id": 794,
+    "name": "普源精电科技股份有限公司",
+    "priority": "A",
+    "score": 91,
+    "score_reason": "【2026-08-20 全网自动搜寻】电子测试测量仪器龙头企业。2027届校招正式开放，热招嵌入式软件工程师（深圳/苏州/西安/北京），要求熟练掌握C/C++、Linux/RTOS、STM32/ARM驱动开发及总线通信协议。候选人嵌入式底层驱动与控制算法背景高度匹配，评定91分。",
+    "website": "https://www.rigol.com",
+    "industry": "电子测试测量/芯片/仪器装备",
+    "city": "深圳/苏州/西安/北京",
+    "created_at": "2026-08-20 01:24:08",
+    "applications": [
+      {
+        "id": 128,
+        "position": "嵌入式软件工程师-2027届（深圳/苏州/西安/北京）",
+        "status": "Pending Approval",
+        "match_score": 91,
+        "source_url": "https://rigolportal.jobs.feishu.cn/campus/m/position/7647748348228962598/detail",
+        "created_at": "2026-08-20 01:24:53"
+      }
+    ]
+  },
+  {
+    "id": 795,
+    "name": "智平方(深圳)科技有限公司",
+    "priority": "S",
+    "score": 96,
+    "score_reason": "【2026-08-20 全网自动搜寻】S级通用具身机器人企业（智平方AI² Robotics）。2027届校园招聘全面开启（2026-08-02发布），热招具身智能运控与嵌入式系统工程师，负责人形机器人底层运控、端侧异构驱动及低延迟实时调度。与候选人Linux+RK3588/STM32分布式架构、MPC/EKF控制算法深度匹配，评定96分。",
+    "website": "https://ai2robotics.com",
+    "industry": "具身智能/人形机器人",
+    "city": "深圳/北京",
+    "created_at": "2026-08-20 01:24:08",
+    "applications": [
+      {
+        "id": 129,
+        "position": "具身智能运控与嵌入式系统工程师（2027届校招）",
+        "status": "Pending Approval",
+        "match_score": 96,
+        "source_url": "https://ai2robotics.com/about",
+        "created_at": "2026-08-20 01:24:54"
+      }
+    ]
+  }
+]

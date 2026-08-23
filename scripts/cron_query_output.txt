@@ -1,0 +1,329 @@
+=== MEMORIES / PREFERENCES ===
+{'category': 'prefer_company', 'rule_value': '北京精密机电控制设备研究所（航天科技一院18所）', 'raw_feedback': None}
+{'category': 'prefer_domain', 'rule_value': '航天/军工', 'raw_feedback': None}
+{'category': 'prefer_company', 'rule_value': '上海航天精密机械研究所（航天科技八院149厂）', 'raw_feedback': None}
+{'category': 'prefer_company', 'rule_value': '深圳逐际动力', 'raw_feedback': None}
+{'category': 'prefer_company', 'rule_value': '深圳市汇川技术', 'raw_feedback': None}
+{'category': 'prefer_domain', 'rule_value': '工业软件/CAE/CAD', 'raw_feedback': None}
+{'category': 'prefer_company', 'rule_value': '广州中望龙腾软件股份有限公司', 'raw_feedback': None}
+{'category': 'prefer_domain', 'rule_value': '光刻机/超精密光学', 'raw_feedback': None}
+{'category': 'prefer_company', 'rule_value': '北京国望光学科技有限公司', 'raw_feedback': None}
+{'category': 'prefer_domain', 'rule_value': '半导体装备', 'raw_feedback': None}
+{'category': 'prefer_company', 'rule_value': '上海宇量昇科技有限公司', 'raw_feedback': None}
+{'category': 'prefer_domain', 'rule_value': '芯片/实时控制DSP/工业自动化', 'raw_feedback': None}
+{'category': 'prefer_company', 'rule_value': '深圳格见半导体有限公司', 'raw_feedback': None}
+{'category': 'prefer_company', 'rule_value': '中国电科（CETC）旗下研究所', 'raw_feedback': None}
+{'category': 'prefer_company', 'rule_value': '中科新松', 'raw_feedback': None}
+
+=== TOTAL S/A COMPANIES (154) ===
+ID 2: 汇川技术 [A] (Score: 96) - Created: 2026-07-25 19:26:26.581351 - Reason: A级重点企业复盘：2027届校招提前批（2026-07-11发布，截至09-09）正火热进行，开放运动控制算法、电机控制算法及嵌入式软件等核心岗位，与候选人技术栈高度匹配，保持96分高匹配评分。
+ID 216: 大疆创新（DJI） [A] (Score: 97) - Created: 2026-07-25 19:26:27.368611 - Reason: 【2026-08-18 夜间深度复盘】A级重点企业。大疆2027“拓疆者”校招全面开放（发布日期2026-07-01），热招“空间智能OS工程师”、“端侧AI系统工程师”、“控制算法工程师”与“Agent智能作业算法工程师”。候选人Linux+STM32/RK3588底层驱动、端侧AI Agent切片系统及MPC/EKF控制算法全栈高度契合，上调至97分。
+ID 312: 拓竹科技（Bambu Lab） [S] (Score: 98) - Created: 2026-07-25 19:26:27.429139 - Reason: 【2026-08-15 夜间深度复盘】S级重点企业。2026年8月7日官方全面开启2027届秋季校招（开放超100种岗位，行业最大规模），新增“嵌入式开发-算法部署”、“控制算法”、“AI算法”等核心岗。与候选人ARM/MCU/RK3588/OrcaSlicer全栈极度契合，保持98分。
+ID 313: 创想三维（Creality） [A] (Score: 96) - Created: 2026-07-25 19:26:27.430140 - Reason: 【2026-08-18 夜间深度复盘】A级重点企业。发布KliTek™喷头架构与新一代FDM旗舰，持续热招“运动控制算法工程师/专家”、“高级嵌入式工程师（FDM整机架构/Klipper）”、“高级电机驱动工程师”。候选人Klipper/OrcaSlicer二次开发、FDM整机搭建与MPC温控经验100%契合，保持96分。
+ID 314: 纵维立方（Anycubic） [A] (Score: 96) - Created: 2026-07-25 19:26:27.430140 - Reason: 【2026-08-18 夜间深度复盘】A级重点企业。2026年完成数亿元B轮融资，发布Kobra X与Anycubic Slicer Next。2027校招与研发热招“中级电机控制算法工程师（FOC/ARM/DSP）”、“嵌入式软件开发工程师”。候选人FDM整机研发、电机控制及温控算法深度匹配，上调至96分。
+ID 315: 智能派（Elegoo） [A] (Score: 96) - Created: 2026-07-25 19:26:27.431150 - Reason: 【2026-08-15 夜间深度复盘】A级重点企业。发布Centauri Carbon 2 Combo等多色新品，官网热招“高级电机控制算法工程师（30-60K）”、“Linux嵌入式软件工程师”、“嵌入式软件工程师(MCU)”。与候选人电机FOC控制及嵌入式经验高度匹配，保持96分。
+ID 511: 大疆创新（DJI）（见机器人章节） [A] (Score: 85) - Created: 2026-07-25 19:26:27.581099 - Reason:  | 缺: 无人机飞行控制细节需补充
+ID 523: 深圳快造科技（Snapmaker） [S] (Score: 98) - Created: 2026-07-26 13:48:32 - Reason: 【2026-08-15 夜间深度复盘】S级重点企业。2026年7月完成10亿元单笔最高融资，猎聘/官网最新热招嵌入式软件工程师（3D打印）、高级硬件工程师（运控方向）、C++算法开发工程师。与候选人Klipper/RK3588/STM32全栈完全契合，保持98分。
+ID 525: 湖南华曙高科 [A] (Score: 88) - Created: 2026-07-26 13:48:32 - Reason: 湖南华曙高科（Farsoon）作为工业级增材制造龙头，持续拓展金属/高分子3D打印设备控制软件与软件切片算法研发。候选人切片软件二次开发（OrcaSlicer/Langgraph）及FDM/PEEK高温打印经验具备良好通用性，评分提升至88分A级。
+ID 526: 西安铂力特 [A] (Score: 82) - Created: 2026-07-26 13:48:32 - Reason: 控制系统对口，金属工艺需学习 | 缺: 金属3D打印工艺
+ID 527: 智能派科技（Elegoo） [A] (Score: 96) - Created: 2026-07-26 13:48:32 - Reason: A级重点企业（正向规则加成：智能派）。3D打印/运动控制与嵌入式：得分96分（行业30/岗位40/城市15/技术11）。同步2027校招/社招高级电机控制算法与嵌入式工程师，MPC/EKF与STM32/Linux全覆盖。
+ID 528: 中山汉邦科技 [A] (Score: 80) - Created: 2026-07-26 13:48:32 - Reason: A级重点企业。3D打印/金属增材：得分80分（行业28/岗位32/城市12/技术8）。控制算法对口，但金属增材工艺需学习且城市中山不符合偏好。
+ID 529: 北京易加三维 [A] (Score: 78) - Created: 2026-07-26 13:48:32 - Reason: 大尺寸设备经验相关，金属需补 | 缺: 金属增材工艺
+ID 531: 浙江闪铸科技 [A] (Score: 96) - Created: 2026-07-26 13:48:32 - Reason: 【2026-08-17 夜间深度复盘】A级重点企业。发布多色FDM新品“金刚狼5/金刚狼5 Pro”，高校就业平台发布“嵌入式开发工程师”（研究生学历/C/C++/控制与插补算法）。候选人Klipper/OrcaSlicer开发及MPC温控算法高度契合，保持96分。
+ID 539: 深圳市汇川技术 [S] (Score: 96) - Created: 2026-07-26 13:48:32 - Reason: 【2026-08-17 夜间深度复盘】S级重点企业。2027届秋招宣讲与提前批（2026-08-11开启）全面推进，官网热招“嵌入式软件开发工程师”、“运动控制算法工程师”与“电机控制算法工程师”，薪资21-42K/月，工作地深圳/上海/苏州。候选人Linux+STM32底层开发及驱控经验高度契合，保持96分。
+ID 540: 深圳市雷赛智能 [S] (Score: 96) - Created: 2026-07-26 13:48:32 - Reason: 【2026-08-19 夜间深度复盘】S级重点企业。智能装备运控领军上市公司（002979），深耕PC-based运动控制器（DMC/EMC）、运控PLC（LC/MC）及人形机器人灵巧手/电机部件。2027校招开放“运动控制算法工程师”与“嵌入式软件工程师”，候选人Linux+STM32H7架构、G代码插补/S曲线加减速及MPC算法深度吻合，上调至96分。
+ID 548: 智元机器人（Agibot） [S] (Score: 97) - Created: 2026-07-26 13:48:32 - Reason: 【2026-08-17 夜间深度复盘】S级重点企业。2026年8月全面开启2027届校园招聘及“优才计划”，热招“具身智能运控算法工程师”、“嵌入式软件工程师（Linux/实时驱动）”及“具身操作算法工程师”。候选人Linux+STM32/RK3588分布式驱动架构、嵌入式底层及MPC/EKF控制算法与智元机器人软硬件需求极度契合，上调至97分。
+ID 549: 深圳逐际动力 [S] (Score: 96) - Created: 2026-07-26 13:48:32 - Reason: 【2026-08-18 夜间深度复盘】S级重点企业（逐际动力）。2026年7月完成Pre-IPO轮融资，发布LimX Luna交互人形机器人及COSA 0.5系统，热招“足式/人形机器人运动控制算法工程师”与“机器人嵌入式驱动工程师”。候选人MPC/EKF运控算法与Linux+STM32/RK3588分布式驱动架构完全契合，上调至96分。
+ID 562: 海康威视 [A] (Score: 92) - Created: 2026-07-26 13:48:32 - Reason: A级重点企业。嵌入式/算法：得分92分（行业25/岗位38/城市15/技术14）。嵌入式/算法需求与候选人技术栈完美契合，AI方向深度略需加强。
+ID 563: 科大讯飞 [A] (Score: 88) - Created: 2026-07-26 13:48:32 - Reason: 机器人控制方向与候选人技能高度匹配 | 缺: 语音相关经验非核心需求
+ID 564: 地平线 [S] (Score: 95) - Created: 2026-07-26 13:48:32 - Reason: S级重点企业。机器人/自动驾驶：得分95分（行业28/岗位39/城市15/技术13）。3D打印经验+控制算法+机器人需求完美匹配，自动驾驶感知技术非必需。
+ID 567: 中科慧眼 [A] (Score: 78) - Created: 2026-07-26 13:48:32 - Reason: 嵌入式Linux与AI Agent经验可迁移至视觉系统。 | 缺: 双目视觉算法及车载感知经验。
+ID 568: 旷视科技 [A] (Score: 75) - Created: 2026-07-26 13:48:32 - Reason: AI+控制开发能力与机器人路径规划方向契合。 | 缺: 大规模视觉处理与AI工程部署经验。
+ID 569: 商汤科技 [A] (Score: 72) - Created: 2026-07-26 13:48:32 - Reason: AI Agent与高性能嵌入式控制技术有较强共性。 | 缺: 大模型底层架构及视觉算法模型落地。
+ID 579: 瑞芯微 [S] (Score: 96) - Created: 2026-07-26 13:48:32 - Reason: 【2026-08-14 夜间复盘】S级重点芯片/嵌入式企业。2027届校招软件工程师（Linux方向）全面启动，主攻RK3588/RK3568等芯片平台Linux系统移植、内核优化与驱动开发，候选人RK3588+Linux系统实战经验高度契合，上调至96分。
+ID 591: 维宏股份 [A] (Score: 92) - Created: 2026-07-26 13:48:32 - Reason: 控制算法与运动控制完美契合
+ID 592: 科德数控 [A] (Score: 86) - Created: 2026-07-26 13:48:32 - Reason: 机电控制经验可迁移到数控 | 缺: 数控机床具体经验
+ID 593: 拓斯达 [A] (Score: 78) - Created: 2026-07-26 13:48:32 - Reason: 自动化和嵌入式技能匹配 | 缺: 机器人运动控制经验
+ID 594: 埃夫特 [A] (Score: 74) - Created: 2026-07-26 13:48:32 - Reason: 机电控制基础良好，行业相关 | 缺: 机器人相关具体经验
+ID 595: 中科新松 [A] (Score: 90) - Created: 2026-07-26 13:48:32 - Reason: A级重点企业。机器人控制系统/机电一体化：得分90分（行业30/岗位36/城市14/技术10）。开放机器人控制系统软件与导航算法岗，Klipper二次开发与嵌入式控制高度吻合。
+ID 596: 极智嘉 [A] (Score: 87) - Created: 2026-07-26 13:48:32 - Reason: AMR移动机器人导航控制与状态估计经验高度相关 | 缺: 激光SLAM算法经验
+ID 597: 海柔创新 [A] (Score: 85) - Created: 2026-07-26 13:48:32 - Reason: 仓储机器人机电控制匹配分布式系统开发经验 | 缺: 大规模调度算法经验
+ID 598: 快仓智能 [A] (Score: 84) - Created: 2026-07-26 13:48:32 - Reason: AGV移动机器人与PLC/电气设计经验对口 | 缺: 多机协同调度经验
+ID 599: 北京精密机电控制设备研究所（航天科技一院18所） [S] (Score: 97) - Created: 2026-07-26T14:10:23.658245 - Reason: 【2026-08-14 夜间复盘】S级顶尖航天研究所。2027届提前批“星辰英才计划”正式启动，重点招收控制科学与工程、导航制导与控制、电气工程硕博生。候选人MPC/EKF控制算法与嵌入式系统能力100%匹配，解决北京户口+五险两金。
+ID 600: 上海航天控制技术研究所（航天科技八院803所） [S] (Score: 96) - Created: 2026-07-26T14:10:23.660247 - Reason: 【2026-08-19 夜间深度复盘】S级顶尖航天研究所（航天八院803所）。2027届提前批全面启动，重点招聘控制科学与工程、机械工程、电气工程硕博生，热招“制导导航与控制（GNC）设计师”与“嵌入式控制系统设计师”。候选人MPC/EKF控制算法与Linux+STM32嵌入式开发能力高度匹配，提供上海落户+人才公寓，上调至96分。
+ID 601: 北京控制工程研究所（航天科技五院502所） [S] (Score: 96) - Created: 2026-07-26T14:10:23.660247 - Reason: 【2026-08-18 夜间深度复盘】S级顶尖航天研究所（航天五院502所）。2027届提前批于2026年7月正式启动，重点招收控制科学与工程、导航制导与控制硕博生，热招“航天器GNC系统设计师”与“嵌入式实时控制系统工程师”。候选人MPC/EKF控制算法与嵌入式系统能力100%契合，提供北京户口，上调至96分。
+ID 602: 西安航天动力测控技术研究所（航天科技四院401所） [A] (Score: 65) - Created: 2026-07-26T14:10:23.660247 - Reason: 测控方向有基础 | 缺: 动力测控领域经验
+ID 604: 航空计算技术研究所（航空工业631所） [S] (Score: 75) - Created: 2026-07-26T14:10:23.660247 - Reason: 嵌入式开发经验匹配 | 缺: 机载系统经验
+ID 605: 北京航空精密机械研究所（航空工业303所） [A] (Score: 78) - Created: 2026-07-26T14:10:23.660247 - Reason: 控制算法与嵌入式技能匹配，行业有差距 | 缺: 军工/航空背景经验
+ID 606: 北京航空制造技术研究院（航空工业625所） [A] (Score: 75) - Created: 2026-07-26T14:10:23.660247 - Reason: 制造自动化方向契合，控制技能可用 | 缺: 航空制造工艺知识
+ID 607: 洛阳电光设备研究所（航空工业613所） [A] (Score: 72) - Created: 2026-07-26T14:10:23.660247 - Reason: 光电控制岗位匹配，行业方向有差异 | 缺: 光电系统/火控经验
+ID 608: 成都飞机设计研究所（航空工业611所） [S] (Score: 68) - Created: 2026-07-26T14:10:23.660247 - Reason: 飞控核心岗高度匹配，但偏硬件算法 | 缺: 飞行器飞控实战经验
+ID 609: 沈阳飞机设计研究所（航空工业601所） [A] (Score: 70) - Created: 2026-07-26T14:10:23.660247 - Reason: 机电控制方向契合，需补航空背景 | 缺: 航空机电系统集成经验
+ID 610: 中国航空综合技术研究所（航空工业301所） [A] (Score: 60) - Created: 2026-07-26T14:10:23.661247 - Reason: 控制栈匹配，军工3D打印经验少 | 缺: 3D打印经验非主流应用
+ID 611: 北京长城航空测控技术研究所（航空工业304所） [A] (Score: 65) - Created: 2026-07-26T14:10:23.661247 - Reason: 控制/嵌入式高度匹配，行业适配 | 缺: 3D打印与测控交叉度低
+ID 612: 中国商飞上海飞机设计研究院 [S] (Score: 75) - Created: 2026-07-26T14:10:23.661247 - Reason: 飞控与控制算法匹配，技术深度足 | 缺: 无航空飞控项目经验
+ID 613: 中国商飞上海飞机制造有限公司 [A] (Score: 70) - Created: 2026-07-26T14:10:23.661247 - Reason: 智能制造匹配，控制与3D打印通用 | 缺: 航空制造工艺专项弱
+ID 614: 中国商飞北京民用飞机技术研究中心 [A] (Score: 72) - Created: 2026-07-26T14:10:23.661247 - Reason: 预研岗偏控制算法，基础好 | 缺: 预研领域经验需补充
+ID 615: 西安机电信息技术研究所（兵器202所） [A] (Score: 82) - Created: 2026-07-26T14:10:23.661247 - Reason: 嵌入式与机电控制能力强，高度契合引信控制研发。 | 缺: 缺乏军工项目涉密开发经验。
+ID 616: 西安现代控制技术研究所（兵器203所） [S] (Score: 85) - Created: 2026-07-26T14:10:23.661247 - Reason: S级重点企业。兵器203所导弹制导控制：得分85分（行业26/岗位35/城市11/技术13）。MPC与EKF算法背景与导弹制导控制需求高度重合，需补充飞行器动力学建模专业知识。
+ID 617: 西安机电信息研究所（兵器212所） [A] (Score: 80) - Created: 2026-07-26T14:10:23.661247 - Reason: 自动化控制及嵌入式系统设计能力匹配度高。 | 缺: 缺乏微系统机电集成实战经验。
+ID 618: 中国北方车辆研究所（兵器201所） [A] (Score: 78) - Created: 2026-07-26T14:10:23.661247 - Reason: 车辆自动化控制与机电一体化设计经验扎实。 | 缺: 需补充大型车辆底盘控制逻辑背景。
+ID 619: 兵器工业导航与控制技术研究所（导控所） [S] (Score: 95) - Created: 2026-07-26T14:10:23.661247 - Reason: 【2026-08-19 夜间深度复盘】S级重点科研事业单位。国家重点保军单位，专攻惯性导航、制导控制与智能化弹药总体。2026年7月27日正式启动2027届提前批，热招“自动化控制”、“导航制导”与“嵌入式软件”研发岗。候选人EKF状态估计与MPC先进控制算法极度契合，提供北京户口，上调至95分。
+ID 620: 兵器工业信息研究院 [A] (Score: 80) - Created: 2026-07-26T14:10:23.661247 - Reason: 嵌入式与控制技能匹配，行业稍有差异 | 缺: 指挥控制领域经验
+ID 621: 兵器工业夜视研究院（兵器211所） [A] (Score: 70) - Created: 2026-07-26T14:10:23.661247 - Reason: 控制基础良好，光电方向有欠缺 | 缺: 光电控制经验
+ID 623: 兵器装备集团自动化研究所（58所） [A] (Score: 90) - Created: 2026-07-26T14:10:23.661247 - Reason: A级重点企业。自动化机器人与嵌入式：得分90分（行业26/岗位36/城市10/技术18）。自动化机器人与嵌入式高度匹配，城市绵阳暂不符合偏好。
+ID 624: 上海电控研究所（兵装21所） [A] (Score: 85) - Created: 2026-07-26T14:10:23.661247 - Reason: A级重点企业。电控与嵌入式：得分85分（行业26/岗位35/城市14/技术10）。电控与嵌入式技能完美契合，极速定位上海。
+ID 625: 重庆长安望江工业集团 [A] (Score: 86) - Created: 2026-07-26T14:10:23.661247 - Reason: A级重点企业。机电一体化与控制：得分86分（行业26/岗位36/城市8/技术16）。机电控制技能高度契合，城市重庆不符偏好，缺军工重型装备经验。
+ID 626: 南京电子技术研究所（中电科14所） [S] (Score: 79) - Created: 2026-07-26T14:10:23.662249 - Reason: 嵌入式及控制算法符合岗位要求 | 缺: FPGA及雷达信号处理背景
+ID 627: 南京电子工程研究所（中电科28所） [A] (Score: 78) - Created: 2026-07-26T14:10:23.662249 - Reason: 嵌入式Linux及C++开发契合岗位 | 缺: 系统级软件及网络通信经验
+ID 628: 华东电子工程研究所（中电科38所） [A] (Score: 78) - Created: 2026-07-26T14:10:23.662249 - Reason: 嵌入式软件与控制系统背景契合 | 缺: FPGA开发与雷达电子知识
+ID 629: 中电科第10研究所（成都） [A] (Score: 80) - Created: 2026-07-26T14:10:23.662249 - Reason: 控制算法与嵌入式开发方向匹配 | 缺: 无线电通信与测控背景
+ID 630: 中电科第29研究所（成都） [A] (Score: 65) - Created: 2026-07-26T14:10:23.662249 - Reason: 嵌入式控制基础匹配，但军工通信方向偏差 | 缺: 信号处理/FPGA/微波专业背景
+ID 631: 华东计算技术研究所（中电科32所） [A] (Score: 70) - Created: 2026-07-26T14:10:23.662249 - Reason: 嵌入式系统契合，工业控制方向有重叠 | 缺: 操作系统底层开发经验
+ID 632: 中电科第54研究所（石家庄） [A] (Score: 60) - Created: 2026-07-26T14:10:23.662249 - Reason: 控制算法基础可迁移，测控方向有交集 | 缺: 卫星通信/导航领域经验
+ID 633: 中电科第58研究所（无锡微电子） [A] (Score: 55) - Created: 2026-07-26T14:10:23.662249 - Reason: 嵌入式开发能力匹配，但偏芯片设计 | 缺: 微电子/芯片设计经验
+ID 635: 华北计算技术研究所（中电科15所） [A] (Score: 78) - Created: 2026-07-26T14:10:23.662249 - Reason: 嵌入式控制能力匹配，科研院所研发氛围好 | 缺: 军工信息化经验，北京竞争激烈
+ID 636: 西安导航技术研究所（中电科20所） [A] (Score: 75) - Created: 2026-07-26T14:10:23.662249 - Reason: 导航控制方向与控制算法契合，嵌入式基础扎实 | 缺: 导航领域知识，城市不在偏好内
+ID 638: 中国电子信息产业集团（CEC） [A] (Score: 80) - Created: 2026-07-26T14:10:23.662249 - Reason: 央企工业控制方向，嵌入式控制技能契合度高 | 缺: 网络安全/信创领域经验缺失
+ID 639: 中国长城科技集团 [A] (Score: 85) - Created: 2026-07-26T14:10:23.662249 - Reason: 深圳PLC/嵌入式岗，控制与电气设计能力高度匹配 | 缺: 国产CPU/信创生态经验不足
+ID 640: 武汉船舶设计研究所（中船701所） [A] (Score: 72) - Created: 2026-07-26T14:10:23.663252 - Reason: 控制/机电基础扎实，军工船舶行业跨度大 | 缺: 船舶总体设计经验缺乏
+ID 642: 上海船舶设备研究所（中船704所） [A] (Score: 78) - Created: 2026-07-26T14:10:23.663252 - Reason: 机电系统与嵌入式控制高度契合，上海匹配 | 缺: 船舶特种装置经验缺乏
+ID 643: 武汉数字工程研究所（中船709所） [A] (Score: 85) - Created: 2026-07-26T14:10:23.663252 - Reason: A级重点企业。中船709所嵌入式与控制：得分85分（行业26/岗位36/城市10/技术13）。嵌入式系统与控制算法完美契合，城市武汉非核心偏好，缺军工指挥系统经验。
+ID 645: 连云港杰瑞电子（中船716所） [A] (Score: 65) - Created: 2026-07-26T14:10:23.663252 - Reason: 中船船舶电子控制匹配度高，但3D打印经验行业关联弱 | 缺: 军工嵌入式经验欠缺
+ID 646: 武汉光电测控技术研究所（中船717所） [A] (Score: 60) - Created: 2026-07-26T14:10:23.663252 - Reason: 光电测控涉及控制算法，但3D打印经验相关性较低 | 缺: 光电感知方向技能缺失
+ID 647: 南京船舶雷达研究所（中船724所） [A] (Score: 62) - Created: 2026-07-26T14:10:23.663252 - Reason:  | 缺: FPGA与雷达信号处理经验
+ID 649: 上海船用柴油机研究所（中船711所） [A] (Score: 68) - Created: 2026-07-26T14:10:23.663252 - Reason: 船舶动力系统控制与候选人控制算法、机电背景契合度较好 | 缺: 柴油机控制系统专项经验
+ID 650: 中国核动力研究设计院（一院） [A] (Score: 50) - Created: 2026-07-26T14:10:23.663252 - Reason: 控制技能匹配但行业差异大 | 缺: 缺乏核电/能源领域经验
+ID 651: 中国原子能科学研究院 [A] (Score: 50) - Created: 2026-07-26T14:10:23.663252 - Reason: 控制算法匹配但领域不同 | 缺: 未涉及核科学相关项目
+ID 652: 核工业理化工程研究院 [A] (Score: 50) - Created: 2026-07-26T14:10:23.663252 - Reason: 控制技能重合但行业偏离 | 缺: 无同位素控制相关经验
+ID 653: 中核控制系统工程有限公司 [A] (Score: 65) - Created: 2026-07-26T14:10:23.663252 - Reason: 控制/嵌入式技能高度匹配 | 缺: 欠缺核电行业背景
+ID 655: 中国工程物理研究院（中物院/九院） [S] (Score: 90) - Created: 2026-07-26T14:10:23.663252 - Reason: S级重点科研院所。增材制造/精密机电控制：得分90分（行业28/岗位37/城市12/技术13）。满足科研单位高端研发需求，RK3588分布式控制与嵌入式/仿真算法契合。
+ID 656: 中物院电子工程研究所（5所） [S] (Score: 82) - Created: 2026-07-26T14:10:23.664250 - Reason: RK3588分布式控制与嵌入式功底，与电子工程所匹配度高。 | 缺: 嵌入式硬件设计在极端环境下的稳定性经验。
+ID 657: 中物院机械制造工艺研究所（6所） [A] (Score: 88) - Created: 2026-07-26T14:10:23.664250 - Reason: A级重点企业。增材制造与精密机电：得分88分（行业28/岗位36/城市10/技术14）。增材制造与精密机电经验完美契合，城市绵阳不符，缺大型工业化规范流程。
+ID 658: 中物院总体工程研究所（4所） [A] (Score: 85) - Created: 2026-07-26T14:10:23.664250 - Reason: A级重点企业。总体工程与机电：得分85分（行业28/岗位36/城市10/技术11）。机电结构、仿真分析及控制算法能力全面，城市绵阳不符偏好，缺总体架构设计经验。
+ID 659: 中物院计算机应用研究所（12所） [A] (Score: 76) - Created: 2026-07-26T14:10:23.664250 - Reason: AI Agent开发与仿真建模能力，可支撑计算机所的算法研发。 | 缺: 高性能计算架构与复杂计算集群的部署经验。
+ID 660: 中物院成都科学技术发展中心 [A] (Score: 82) - Created: 2026-07-26T14:10:23.664250 - Reason: 核心技能高度匹配，行业有交集 | 缺: 无明确航空航天经验
+ID 661: 中车株洲电力机车研究所有限公司（中车株洲所） [S] (Score: 73) - Created: 2026-07-26T14:10:23.664250 - Reason: 控制算法/嵌入式基础扎实 | 缺: 缺乏牵引控制/电力电子经验
+ID 662: 中车青岛四方机车车辆股份有限公司 [A] (Score: 68) - Created: 2026-07-26T14:10:23.664250 - Reason: 机电背景通用，整车控制有偏差 | 缺: 列车网络/自动化装备经验不足
+ID 663: 中车长春轨道客车股份有限公司 [A] (Score: 66) - Created: 2026-07-26T14:10:23.664250 - Reason: 类似中车青岛，技能通用 | 缺: 缺少轨道交通具体项目经验
+ID 665: 中车株洲电机有限公司 [A] (Score: 70) - Created: 2026-07-26T14:10:23.664250 - Reason: 电机控制与嵌入式匹配 | 缺: 轨道交通行业经验
+ID 666: 中车大连电力牵引研发中心 [A] (Score: 75) - Created: 2026-07-26T14:10:23.664250 - Reason: 牵引控制与嵌入式匹配 | 缺: 轨道交通行业经验
+ID 667: 中车南京浦镇车辆有限公司 [A] (Score: 65) - Created: 2026-07-26T14:10:23.664250 - Reason: 机电控制基础扎实 | 缺: 车辆系统经验
+ID 668: 中国机械工业集团（国机集团） [A] (Score: 70) - Created: 2026-07-26T14:10:23.664250 - Reason: 机电与自动化匹配 | 缺: 大型装备项目经验
+ID 673: 中国通用技术集团 [A] (Score: 75) - Created: 2026-07-26T14:10:23.665248 - Reason: 高端装备控制方向匹配 | 缺: 医疗器械行业经验
+ID 674: 通用技术集团机床研究院 [A] (Score: 85) - Created: 2026-07-26T14:10:23.665248 - Reason: A级重点企业。机床研究院/运动控制：得分85分（行业26/岗位35/城市14/技术10）。运动控制与嵌入式高度匹配，位处北京，缺乏数控机床具体经验。
+ID 676: 上海电气集团 [A] (Score: 75) - Created: 2026-07-26T14:10:23.665248 - Reason: 控制算法与嵌入式能力匹配工业自动化需求 | 缺: 缺乏重型能源装备行业经验
+ID 677: 上海电气电站集团 [A] (Score: 75) - Created: 2026-07-26T14:10:23.665248 - Reason: 电气与控制基础扎实，契合电站自动化研发 | 缺: 欠缺大型电站控制系统经验
+ID 678: 哈尔滨电气集团 [A] (Score: 70) - Created: 2026-07-26T14:10:23.665248 - Reason: 控制算法与机电基础匹配央企研发岗 | 缺: 地域不符且缺能源装备背景
+ID 679: 中国西电集团（中国电气装备） [A] (Score: 70) - Created: 2026-07-26T14:10:23.665248 - Reason: 电气设计与控制底层技能高度可迁移 | 缺: 地域偏好不符且缺电力系统经验
+ID 682: 中联重科 [A] (Score: 72) - Created: 2026-07-26T14:10:23.665248 - Reason: 工程机械智能控制需求高，嵌入式算法契合 | 缺: 缺乏工程机械液压及整车控制经验
+ID 683: 徐工集团工程机械有限公司 [A] (Score: 72) - Created: 2026-07-26T14:10:23.665248 - Reason: 智能制造与控制算法匹配，机电基础扎实 | 缺: 缺少工程机械底盘及作业装置控制经验
+ID 687: 中国钢研科技集团有限公司 [A] (Score: 80) - Created: 2026-07-26T14:10:23.665248 - Reason: 央企研发岗匹配度高，材料控制方向有拓展空间 | 缺: 冶金控制算法需快速了解
+ID 690: 中国煤炭科工集团 [A] (Score: 65) - Created: 2026-07-26T14:10:23.665248 - Reason: 控制与机电匹配，行业相关度低 | 缺: 行业经验欠缺
+ID 691: 中国铁路通信信号集团（中国通号） [A] (Score: 70) - Created: 2026-07-26T14:10:23.666246 - Reason: 控制算法/嵌入式高度匹配，行业略偏 | 缺: 铁路信号领域知识
+ID 699: 北京机械工业自动化研究所 [A] (Score: 92) - Created: 2026-07-26T14:10:23.666246 - Reason: A级重点企业。工业自动化研究所：得分92分（行业28/岗位38/城市13/技术13）。科研院所属性与候选人研发深耕意愿完美契合，专业能力与研究方向高度对口。
+ID 700: 上海电器科学研究所（集团） [A] (Score: 82) - Created: 2026-07-26T14:10:23.666246 - Reason: 核心技能覆盖自动化控制，电气设计匹配 | 缺: 新能源行业经验较少
+ID 706: 北京航空航天大学无人系统研究院 [A] (Score: 80) - Created: 2026-07-26T14:10:23.667929 - Reason: 无人机控制与嵌入式匹配 | 缺: 无人系统领域经验
+ID 707: 西北工业大学无人系统技术研究院 [A] (Score: 80) - Created: 2026-07-26T14:10:23.667929 - Reason: 控制算法与无人机匹配 | 缺: 无人系统领域经验
+ID 708: 哈尔滨工业大学航天学院/控制与仿真中心 [A] (Score: 75) - Created: 2026-07-26T14:10:23.667929 - Reason: 控制理论与仿真匹配 | 缺: 航天控制领域经验
+ID 709: 南京航空航天大学无人机研究院 [A] (Score: 80) - Created: 2026-07-26T14:10:23.667929 - Reason: 控制与机电匹配无人机 | 缺: 无人机领域经验
+ID 710: 中国空气动力研究与发展中心（29基地） [A] (Score: 80) - Created: 2026-07-26T14:10:23.667929 - Reason: 控制嵌入式技能匹配，CFD经验相关 | 缺: 风洞/气动专业知识
+ID 711: 中国航天员科研训练中心 [A] (Score: 75) - Created: 2026-07-26T14:10:23.668917 - Reason: 嵌入式控制可迁移，航天科研环境 | 缺: 航天医学/环控经验
+ID 712: 中国卫星导航系统管理办公室 [A] (Score: 70) - Created: 2026-07-26T14:10:23.668917 - Reason: 控制基础好，无导航专项经验 | 缺: 卫星导航系统经验
+ID 713: 中电海康（CETC旗下） [A] (Score: 88) - Created: 2026-07-26T14:10:23.668917 - Reason: A级重点企业。中电海康/嵌入式：得分88分（行业25/岗位36/城市13/技术14）。嵌入式/控制高度匹配，AI经验加分，缺安防物联网项目。
+ID 722: 上海航天精密机械研究所（航天科技八院149厂） [S] (Score: 95) - Created: None - Reason: 【2026-08-19 夜间深度复盘】S级重点企业。航天八院总装总集成单位，2026年7月27日通过官方招聘系统（sast.zhiye.com）正式发布2027届校招提前批，热招“机电总体设计师（2027届）”与“工艺研发技术专家”。候选人独立搭建500mm高温FDM大型设备与机电一体化全栈能力完全契合，上调至95分。
+ID 723: 上海航天技术研究院第八设计部（八部） [A] (Score: 85) - Created: None - Reason: A级重点企业。航天/军工机电控制：得分85分（行业28/岗位36/城市14/技术7）。机电控制综合能力佳，符合研发与城市偏好，缺航天总体设计经验。
+ID 724: 上海航天精密机械研究所（149厂）-机电总体设计师 [S] (Score: 93) - Created: None - Reason: S级重点企业。航天/军工机电总体设计师：得分93分（行业28/岗位39/城市14/技术12）。独立搭建装备经验完美契合机电总体要求，缺大型航天特种装备开发经验。
+ID 756: 魔芯科技（Diverse Core） [A] (Score: 94) - Created: 2026-08-01 01:04:12 - Reason: A级重点企业。消费级3D打印研发：得分94分（行业30/岗位38/城市14/技术12）。Klipper二次开发与温控算法高度吻合，工业级高温PEEK偏向需少量适配。
+ID 757: 地瓜机器人（Diguarobotics） [S] (Score: 96) - Created: 2026-08-01 01:04:12 - Reason: 【2026-08-17 夜间深度复盘】S级重点企业。具身智能控制器与底层运控芯片生态（RDK S600/S100/X5持续迭代）。候选人RK3588系统级开发、Linux+STM32分布式架构及MPC/EKF控制算法与公司核心研发方向完全吻合，保持96分。
+ID 758: 灵心巧手（Dextrous Hands） [A] (Score: 92) - Created: 2026-08-01 01:04:12 - Reason: A级重点企业。灵巧手/机器人运控：得分92分（行业30/岗位38/城市14/技术10）。电机FOC与伺服驱动控制研发需求急增，MPC/EKF及STM32经验高度命中。
+ID 759: 傲鲨智能（ULS Robotics） [A] (Score: 86) - Created: 2026-08-01 01:04:12 - Reason: 外骨骼力控及伺服驱动控制, 嵌入式系统与电机控制算法对口 | 缺: 外骨骼康复医学知识
+ID 761: 千寻智能（万境千寻） [S] (Score: 96) - Created: 2026-08-02 01:41:28 - Reason: 【2026-08-15 夜间深度复盘】S级重点企业。2027届校招特招“机器人嵌入式开发工程师”、“强化学习运控算法工程师”等全栈岗位，与候选人Linux+STM32分布式底层及MPC/EKF运控算法100%匹配，保持96分。
+ID 762: 自变量机器人（X2 Robot） [S] (Score: 0) - Created: 2026-08-02 01:41:29 - Reason: 关键词预筛淘汰：岗位用途含“实习”性质（匹配理由触发排除词），不符合目标校招研发岗位，直接评0分淘汰。
+ID 763: 驭势科技（UISEE） [S] (Score: 93) - Created: 2026-08-02 01:41:34 - Reason: S级重点企业（正向规则加成：驭势科技）。自动驾驶/具身智能：得分93分（行业28/岗位39/城市14/技术12）。嵌入式系统工程师与汽车电子/智驾控制高度匹配候选人嵌入式及控制算法背景。
+ID 764: 深圳市大寰机器人科技有限公司 [S] (Score: 96) - Created: 2026-08-02 12:00:59 - Reason: 【2026-08-14 夜间复盘】S级重点企业。2027届“寰星计划”校招热招中，重点招聘伺服软件工程师、嵌入式软件工程师（编码器方向），与候选人电机矢量控制、通信协议及嵌入式底盘开发高度契合。
+ID 765: 边界智控（Border Control） [A] (Score: 93) - Created: 2026-08-02 12:00:59 - Reason: A级重点企业（正向规则加成：边界智控）。航空/飞行控制：得分93分（行业28/岗位38/城市15/技术12）。飞控算法与嵌入式系统软硬件开发，匹配度93%。
+ID 766: 上海它石智航技术有限公司 [S] (Score: 96) - Created: 2026-08-02 12:49:33 - Reason: 【2026-08-14 夜间复盘】S级重点企业。全栈研发专注于具身智能机器人与移动物理AI，继续保持96分高匹配度。暂无单独新增校招链接。
+ID 767: 北京松延动力科技集团股份有限公司 [S] (Score: 96) - Created: 2026-08-02 12:49:33 - Reason: 【2026-08-14 夜间复盘】S级人形机器人领军企业。2027届校招与提前批热招嵌入式软件、硬件与电机控制算法工程师，要求STM32/Linux/EtherCAT/ROS2经验，与候选人全栈匹配度提高至96分。
+ID 768: 北京星际荣耀科技有限责任公司 [S] (Score: 95) - Created: 2026-08-02 12:49:34 - Reason: 【2026-08-19 夜间深度复盘】S级商业航天重点企业。国内首家民营入轨火箭企业，2027届校招提前批热招“姿控设计岗”与“嵌入式软件开发工程师”。候选人MPC/EKF姿轨控算法、Linux/RTOS及ARM/DSP嵌入式开发背景极度对口，提供北京落户机会，上调至95分。
+ID 769: 深圳协同创新高科技发展有限公司 [A] (Score: 93) - Created: 2026-08-02 12:49:34 - Reason: A级重点企业。3D打印/工业级增材制造：得分93分（行业30/岗位38/城市15/技术10）。招聘嵌入式驱动与运动控制卡开发，与FDM/PEEK整机控制及运控算法高度对口。
+ID 770: 上海穹彻智能科技有限公司 [S] (Score: 97) - Created: 2026-08-03 02:34:47 - Reason: 【2026-08-20 夜间深度复盘】S级重点企业（上海穹彻智能）。2027届“Noe-Star”顶尖人才招募专项计划全面开启，聚焦通用具身大脑Noematrix Brain与力位混合物理交互，热招“机器人算法（运控方向）”、“具身Agent算法”及“嵌入式硬件开发”等核心岗位。候选人Linux+STM32/RK3588分布式驱动架构、MPC/EKF控制算法及Langgraph多智能体AI Agent全栈极度契合，上调至97分。
+ID 771: 深圳市卓驭科技有限公司（大疆车载） [S] (Score: 97) - Created: 2026-08-03 02:40:16 - Reason: 【2026-08-20 夜间深度复盘】S级重点企业（卓驭科技/大疆车载）。2027届秋招及“领航者计划”全面推进（2026-07-09启动），开放移动物理AI、成行智驾平台及自主移动机器人全栈岗位，官网热招“物理AI Agent算法工程师”、“嵌入式软件工程师”与“传感器算法工程师”。候选人Linux+RK3588/STM32底层架构、MPC/EKF控制算法及AI Agent智能工作流能力深度契合，上调至97分。
+ID 772: 深圳联合飞机科技有限公司 [S] (Score: 96) - Created: 2026-08-06 01:03:07 - Reason: 【2026-08-20 夜间深度复盘】S级重点企业（深圳联合飞机）。高端无人机装备领军企业，2027届校招提前批开放59个核心研发岗（深圳/北京），热招“Linux嵌入式驱动工程师”、“飞控算法工程师（控制律设计与仿真）”及“起落架控制系统工程师”。候选人RK3588/STM32分布式控制系统、MPC/EKF控制算法与CFD热流耦合仿真全栈覆盖，上调至96分。
+ID 773: 英伟达半导体科技（上海）有限公司 [S] (Score: 94) - Created: 2026-08-06 01:03:08 - Reason: 【2026-08-20 夜间深度复盘】S级重点企业（英伟达半导体）。全球物理AI与计算芯片霸主，2027届早期人才计划/NCG校园招聘全面开启（2026-08-01启动），重点发力具身智能、Isaac Sim物理仿真、人形机器人全身控制（WBC）及Jetson Thor端侧部署。候选人Linux+RK3588/STM32嵌入式开发、MPC运控算法及开源切片内核二次开发能力高度契合，上调至94分。
+ID 774: 北京银河通用机器人有限公司 [S] (Score: 97) - Created: 2026-08-07 01:03:36 - Reason: 【2026-08-20 夜间深度复盘】S级重点企业（北京银河通用机器人）。通用具身大模型机器人领军企业，2026-07-28官方启动“2027届具身领航者秋季校招”（北京/深圳/苏州），热招“机器人规划与控制算法工程师”、“具身智能操作算法工程师”及“机器人嵌入式硬件与量产”。候选人MPC/EKF控制算法、Linux+RK3588/STM32分布式架构及AI Agent切片研发经历100%对口，上调至97分。
+ID 775: 杭州宇树科技有限公司 [S] (Score: 97) - Created: 2026-08-07 01:03:36 - Reason: 【2026-08-15 夜间深度复盘】S级重点企业。2027届校招热招“机器人运动控制算法工程师”与“嵌入式软件工程师（Linux）”，与候选人MPC/EKF控制算法及Linux+STM32机电控制极度契合，保持97分。
+ID 776: 广州中望龙腾软件股份有限公司 [A] (Score: 92) - Created: 2026-08-08 01:02:39 - Reason: 工业软件/CAE/CAD领域龙头企业（2027届校招正式启动）。开放图形算法工程师、CAE/CAM研发工程师、C++研发工程师等方向，候选人机械工程硕士背景、SolidWorks与CFD流热耦合仿真及OrcaSlicer开源切片二次开发经验极度契合。
+ID 777: 北京国望光学科技有限公司 [A] (Score: 92) - Created: 2026-08-08 01:03:16 - Reason: A级正向偏好企业（北京国望光学）。光刻机/超精密光学装备：得分92分（行业30/岗位38/城市15/技术9）。正向规则prefer_company加成，开放仿真工程师（光/力/热协同设计）、机械工程师，契合候选人机械硕士+SolidWorks+CFD热流耦合仿真背景，可解决北京户口。
+ID 779: 深圳格见半导体有限公司 [A] (Score: 88) - Created: 2026-08-08 01:03:40 - Reason: 实时控制DSP芯片设计硬核企业（2027届校招开启于2026-06-04，持续招募）。开放嵌入式软件开发工程师岗位（RTOS/Bootloader/芯片驱动）。候选人STM32H7/Linux嵌入式系统开发、C/C++、电机与伺服控制经验高度契合芯片驱动与嵌入式应用。工作地点覆盖深圳、上海。
+ID 780: 北京蓝箭鸿擎科技有限公司 [A] (Score: 95) - Created: 2026-08-09 01:14:44 - Reason: 【2026-08-20 全网自动搜寻】商业航天/卫星互联网龙头企业。2027届校招全面推进（2026-08-07官方启动），涵盖星载嵌入式控制、霍尔电推进及太阳翼驱动控制。与候选人Linux+MCU分布式控制、MPC/EKF控制算法高度契合，保持95分。已有提案处于Pending Approval状态，跳过重复推送。
+ID 783: 深圳市普渡科技股份有限公司 [A] (Score: 94) - Created: 2026-08-10 09:10:26 - Reason: 商用服务机器人龙头，2027届秋招开启（发布时间2026-06-26，7-10月滚动面试）。开放运动控制算法工程师、系统软件工程师、嵌入式软件工程师（深圳/成都）岗位。候选人RK3588/STM32嵌入式分布式架构与MPC控制算法经验高度匹配。得分94分（行业30/岗位39/城市15/技术10）。
+ID 784: 首形科技（AheadForm） [A] (Score: 93) - Created: 2026-08-10 09:10:26 - Reason: 新一代超生机器人/具身智能前沿创业公司（2027届秋招启动于2026-07-28）。开放机器人运动控制工程师、嵌入式工程师（北京/上海/杭州）。候选人MPC/EKF控制算法及Linux+STM32底层能力高度契合。得分93分（行业30/岗位38/城市15/技术10）。
+ID 785: 卡特彼勒（Caterpillar） [A] (Score: 88) - Created: 2026-08-11 01:04:13 - Reason: 外企机械巨头，2026-08-09发布2027校园招聘研发类（无锡/天津），招募嵌入式系统工程师与电子电气开发，契合候选人嵌入式及控制开发背景。
+ID 786: 航天智能科技研究院（航天科工） [S] (Score: 95) - Created: 2026-08-11 01:04:13 - Reason: 正向偏好航天/军工领域，2026-07-14发布2027届校园招聘，包含智能飞行器控制系统与嵌入式软硬件岗位，与MPC/EKF控制算法及STM32/Linux分布式架构高度吻合。
+ID 787: 字节跳动（ByteDance） [S] (Score: 92) - Created: 2026-08-11 01:04:14 - Reason: S级头部大厂，2026-08-10发布2027届校招/Seed大模型人才招聘，开放具身智能算法与移动OS嵌入式系统开发岗位，技术深度与研发投入极高。
+ID 788: 深圳市元启姝辰科技有限公司 [A] (Score: 95) - Created: 2026-08-13 02:26:52 - Reason: 多轴运动控制算法工程师岗位与候选人运动控制、G-code插补/S曲线加减速及Klipper/Linux/STM32全栈完全匹配，属于高契合优质项目。
+ID 789: 中国长征火箭有限公司 [S] (Score: 96) - Created: 2026-08-13 02:26:52 - Reason: 国家重点商业航天国企，2027届校招电气设计与总体岗位与候选人MPC/EKF及分布式嵌入式系统设计高度契合。
+ID 790: 伽利略（天津）技术有限公司 [A] (Score: 95) - Created: 2026-08-14 01:52:52 - Reason: 国家级专精特新小巨人企业，专攻人形/四足机器人。2027全球校招二批（2026.07.08启动）开放运控算法工程师（足式机器人强化学习运控）与导航算法工程师，高度匹配控制工程与机器人算法背景。
+ID 791: 地平线（Horizon Robotics） [S] (Score: 96) - Created: 2026-08-14 01:52:53 - Reason: 【2026-08-17 夜间深度复盘】S级重点企业。2027届秋招今日（2026-08-17）截止，核心热招“机器人运动控制工程师（足式机器人全身运控）”与“规划控制算法工程师”，嵌入式量产与MPC/EKF控制算法极其契合，保持96分。
+ID 792: 强脑科技（BrainCo） [A] (Score: 90) - Created: 2026-08-15 01:05:50 - Reason: 
+ID 793: 深圳嘉立创科技集团股份有限公司 [A] (Score: 85) - Created: 2026-08-19 01:05:34 - Reason: 【2026-08-19 搜寻入库】嘉立创深主板IPO过会（营收百亿级），2026-08-16正式发布2027届工业软件板块秋招，招聘CAX研发工程师、WebCAD与AI研发岗。岗位要求C/C++、CAD/CAE二次开发与AI for CAX，与候选人机械工程硕博背景、OrcaSlicer源码级重构、AI Agent切片优化高度契合。
+ID 794: 普源精电科技股份有限公司 [A] (Score: 91) - Created: 2026-08-20 01:24:08 - Reason: 【2026-08-20 全网自动搜寻】电子测试测量仪器龙头企业。2027届校招正式开放，热招嵌入式软件工程师（深圳/苏州/西安/北京），要求熟练掌握C/C++、Linux/RTOS、STM32/ARM驱动开发及总线通信协议。候选人嵌入式底层驱动与控制算法背景高度匹配，评定91分。
+ID 795: 智平方(深圳)科技有限公司 [S] (Score: 96) - Created: 2026-08-20 01:24:08 - Reason: 【2026-08-20 全网自动搜寻】S级通用具身机器人企业（智平方AI² Robotics）。2027届校园招聘全面开启（2026-08-02发布），热招具身智能运控与嵌入式系统工程师，负责人形机器人底层运控、端侧异构驱动及低延迟实时调度。与候选人Linux+RK3588/STM32分布式架构、MPC/EKF控制算法深度匹配，评定96分。
+
+=== RECENT AGENT TASKS ===
+{'task_id': 'sourcing-20260820-090000', 'agent_name': 'SourcingAgent', 'status': 'completed', 'created_at': '2026-08-20 01:17:19'}
+{'task_id': 'scoring-20260820', 'agent_name': 'ScoringAgent', 'status': 'running', 'created_at': '2026-08-19 20:04:09'}
+{'task_id': 'cron_midnight_review_20260820', 'agent_name': 'MidnightCompanyReviewAgent', 'status': 'success', 'created_at': '2026-08-19 16:04:08'}
+{'task_id': 'sourcing-20260819-090000', 'agent_name': 'SourcingAgent', 'status': 'completed', 'created_at': '2026-08-19 01:02:34'}
+{'task_id': 'midnight-review-20260819', 'agent_name': 'Midnight-Company-Reviewer', 'status': 'completed', 'created_at': '2026-08-18 16:09:33'}
+{'task_id': 'midnight-review-20260818-000000', 'agent_name': 'Midnight Company Review Agent', 'status': 'success', 'created_at': '2026-08-18 02:24:16'}
+{'task_id': 'scoring-20260817', 'agent_name': 'Hermes-Cron-Scoring', 'status': 'running', 'created_at': '2026-08-17 01:25:06'}
+{'task_id': 'sourcing-20260817-0900', 'agent_name': 'SourcingAgent', 'status': 'completed', 'created_at': '2026-08-17 01:01:26'}
+{'task_id': 'midnight_review_2026_08_17', 'agent_name': 'MidnightCompanyReview', 'status': 'success', 'created_at': '2026-08-17 00:58:31'}
+{'task_id': 'scoring-20260816', 'agent_name': 'ai-scorer', 'status': 'running', 'created_at': '2026-08-16 03:01:02'}
+{'task_id': 'sourcing-20260816-0900', 'agent_name': 'SourcingAgent', 'status': 'running', 'created_at': '2026-08-16 02:21:56'}
+{'task_id': 'sourcing-20260815-090000', 'agent_name': 'SourcingAgent', 'status': 'completed', 'created_at': '2026-08-15 01:02:50'}
+{'task_id': 'MIDNIGHT_REVIEW_20260815', 'agent_name': 'MidnightCompanyReviewer', 'status': 'success', 'created_at': '2026-08-14 16:05:29'}
+{'task_id': 'scoring-20260814', 'agent_name': 'Hermes-CronScorer', 'status': 'completed', 'created_at': '2026-08-14 02:11:10'}
+{'task_id': 'sourcing-20260814-0900', 'agent_name': 'SourcingAgent', 'status': 'completed', 'created_at': '2026-08-14 01:51:38'}
+{'task_id': 'midnight-review-20260814-0059', 'agent_name': 'Midnight Company Reviewer', 'status': 'completed', 'created_at': '2026-08-13 16:03:40'}
+{'task_id': 'scoring-20260813', 'agent_name': 'AI_Scoring_Assistant', 'status': 'completed', 'created_at': '2026-08-13 03:19:05'}
+{'task_id': 'sourcing-20260813-090000', 'agent_name': 'SourcingAgent', 'status': 'completed', 'created_at': '2026-08-13 02:15:04'}
+{'task_id': 'MIDNIGHT_REVIEW_20260813', 'agent_name': 'MidnightCompanyReview', 'status': 'completed', 'created_at': '2026-08-12 16:04:33'}
+{'task_id': 'sourcing-20260812-0900', 'agent_name': 'SourcingAgent', 'status': 'completed', 'created_at': '2026-08-12 01:02:25'}
+
+=== RECENT AGENT EVENTS ===
+2026-08-20 01:24:59 | Task: sourcing-20260820-090000 | Event: finish | Payload: {"deduplicated_skipped": [{"existing_app_id": 74, "reason": "已有待审批提案，执行严格查重跳过", "company": "北京蓝箭鸿擎科技有限公司"}], "created_applications": [{"scor
+2026-08-20 01:23:54 | Task: sourcing-20260820-090000 | Event: evaluation_result | Payload: {"task_id": "sourcing-20260820-090000", "company_name": "智平方(深圳)科技有限公司", "match_score": 79, "highlights": ["匹配用户偏好规则: 机器人"], "risks": [], "p
+2026-08-20 01:23:54 | Task: sourcing-20260820-090000 | Event: evaluation_result | Payload: {"task_id": "sourcing-20260820-090000", "company_name": "北京蓝箭鸿擎科技有限公司", "match_score": 79, "highlights": ["匹配用户偏好规则: 机器人"], "risks": [], "po
+2026-08-20 01:23:54 | Task: sourcing-20260820-090000 | Event: evaluation_result | Payload: {"task_id": "sourcing-20260820-090000", "company_name": "普源精电科技股份有限公司", "match_score": 75, "highlights": [], "risks": [], "positive_matches"
+2026-08-20 01:17:19 | Task: sourcing-20260820-090000 | Event: start | Payload: {"action": "init", "timestamp": "2026-08-20T09:00:00+08:00"}
+2026-08-19 20:04:09 | Task: scoring-20260820 | Event: task_start | Payload: {"description": "Start batch scoring un-scored S and A tier companies"}
+2026-08-19 16:08:12 | Task: cron_midnight_review_20260820 | Event: complete | Payload: {"summary": "成功完成 5 家轮询企业的 2027 届校招深度复盘，更新评分并新增 5 条有效投递记录。", "completed_targets": [{"position": "机器人算法工程师（运控方向）", "new_score": 97, "name": "
+2026-08-19 16:04:08 | Task: cron_midnight_review_20260820 | Event: start | Payload: {"phase": "init", "rotation_targets": [770, 771, 772, 773, 774], "timestamp": "2026-08-20T00:00:00"}
+2026-08-19 01:07:22 | Task: sourcing-20260819-090000 | Event: finish | Payload: {"summary": "完成了全网2027届最新校招岗位的检索、时间硬门控校验与查重，成功新增入库1家工业软件领军企业并推送2个高契合度HITL审批提案。", "status": "success", "created_applications": 2, "proposals"
+2026-08-19 01:06:16 | Task: sourcing-20260819-090000 | Event: evaluation_result | Payload: {"task_id": "sourcing-20260819-090000", "company_name": "先临三维科技股份有限公司", "match_score": 83, "highlights": ["匹配用户偏好规则: 3D打印, 工业自动化"], "risks":
+2026-08-19 01:05:27 | Task: sourcing-20260819-090000 | Event: evaluation_result | Payload: {"task_id": "sourcing-20260819-090000", "company_name": "深圳嘉立创科技集团股份有限公司", "match_score": 75, "highlights": [], "risks": [], "positive_match
+2026-08-19 01:02:37 | Task: sourcing-20260819-090000 | Event: preferences_loaded | Payload: {"recruitment_type": "校招", "target_platforms": ["BOSS直聘", "国聘", "猎聘", "牛客网", "应届生求职网", "企业官网"], "target_graduation_year": 2027, "enterprise_
+2026-08-19 01:02:34 | Task: sourcing-20260819-090000 | Event: start | Payload: {"timestamp": "2026-08-19 09:00:00", "action": "init"}
+2026-08-18 16:09:33 | Task: midnight-review-20260819 | Event: company_review_completed | Payload: {"applications_created": [{"position": "运动控制算法工程师", "company": "深圳市雷赛智能", "app_id": 116, "score": 96}, {"position": "制导导航与控制（GNC）设计师", "comp
+2026-08-18 02:24:16 | Task: midnight-review-20260818-000000 | Event: company_review_completed | Payload: {"companies_reviewed": [{"name": "大疆创新（DJI）", "old_score": 96, "new_score": 97, "positions": ["空间智能 OS 工程师", "端侧 AI 系统工程师", "Agent 智能作业算法工程师
+2026-08-17 01:25:06 | Task: scoring-20260817 | Event: task_start | Payload: {"description": "对 S 级和 A 级未评分企业进行 AI 匹配度评分", "trigger": "cron 04:00", "timestamp": "2026-08-17T04:00:00+08:00"}
+2026-08-17 01:05:12 | Task: sourcing-20260817-0900 | Event: finish | Payload: {"skipped_duplicates": 10, "message": "Daily 09:00 sourcing complete. All eligible 2027 batch positions in key sectors (Robotics, 3D Printin
+2026-08-17 01:05:03 | Task: sourcing-20260817-0900 | Event: search_completed | Payload: {"candidates_evaluated": 2, "duplicates_skipped": 10, "existing_companies": 20, "new_companies_found": 0, "platforms_searched": ["BOSS直聘", "
+2026-08-17 01:04:49 | Task: sourcing-20260817-0900 | Event: evaluation_result | Payload: {"task_id": "sourcing-20260817-0900", "company_name": "峰岹科技（深圳）股份有限公司", "match_score": 79, "highlights": ["匹配用户偏好规则: 机器人"], "risks": [], "po
+2026-08-17 01:01:26 | Task: sourcing-20260817-0900 | Event: start | Payload: {"action": "init", "cron": "daily-09:00", "date": "2026-08-17"}
+2026-08-17 00:58:47 | Task: midnight_review_2026_08_17 | Event: deep_review | Payload: {"action": "update_company_score", "company_id": 757, "company_name": "地瓜机器人（Diguarobotics）", "review_date": "2026-08-17", "review_findings"
+2026-08-17 00:58:46 | Task: midnight_review_2026_08_17 | Event: deep_review | Payload: {"action": "update_company_score", "company_id": 791, "company_name": "地平线（Horizon Robotics）", "review_date": "2026-08-17", "review_findings
+2026-08-17 00:58:46 | Task: midnight_review_2026_08_17 | Event: deep_review | Payload: {"action": "update_company_score", "company_id": 531, "company_name": "浙江闪铸科技", "review_date": "2026-08-17", "review_findings": "发布金刚狼5/5Pro
+2026-08-17 00:58:46 | Task: midnight_review_2026_08_17 | Event: deep_review | Payload: {"action": "update_company_score", "company_id": 539, "company_name": "汇川技术", "review_date": "2026-08-17", "review_findings": "2027届秋招宣讲与提前批
+2026-08-17 00:58:46 | Task: midnight_review_2026_08_17 | Event: deep_review | Payload: {"action": "update_company_score", "company_id": 548, "company_name": "智元机器人（Agibot）", "new_score": 97, "reason": "2027届校招全面启动+优才计划，嵌入式软件与运控
+2026-08-17 00:58:32 | Task: midnight_review_2026_08_17 | Event: deep_review | Payload: {"action": "update_company_score", "company_id": 757, "company_name": "地瓜机器人（Diguarobotics）", "review_findings": "官网开发者社区活跃，RDK S600/S100/X5
+2026-08-17 00:58:32 | Task: midnight_review_2026_08_17 | Event: deep_review | Payload: {"action": "update_company_score", "company_id": 791, "company_name": "地平线（Horizon Robotics）", "review_findings": "2027届秋招截止日期为2026-08-17（即今
+2026-08-17 00:58:31 | Task: midnight_review_2026_08_17 | Event: deep_review | Payload: {"action": "update_company_score", "company_id": 531, "company_name": "浙江闪铸科技", "review_findings": "浙大就业平台发布嵌入式开发工程师岗位（研究生及以上学历，C/C++/交叉编译/插
+2026-08-17 00:58:31 | Task: midnight_review_2026_08_17 | Event: deep_review | Payload: {"action": "update_company_score", "company_id": 539, "company_name": "汇川技术", "review_findings": "2027届秋招正式开启（发布2026-08-11），官网最新热招嵌入式软件开发、运动
+2026-08-17 00:58:31 | Task: midnight_review_2026_08_17 | Event: deep_review | Payload: {"action": "update_company_score", "company_id": 548, "company_name": "智元机器人（Agibot）", "new_score": 97, "reason": "2027届校招全面启动+优才计划，嵌入式软件与运控
+
+=== S/A APPLICATIONS (98) ===
+App 129 | Comp 795 (智平方(深圳)科技有限公司): 具身智能运控与嵌入式系统工程师（2027届校招） [Pending Approval] Score: 96 Created: 2026-08-20 01:24:54
+App 128 | Comp 794 (普源精电科技股份有限公司): 嵌入式软件工程师-2027届（深圳/苏州/西安/北京） [Pending Approval] Score: 91 Created: 2026-08-20 01:24:53
+App 127 | Comp 774 (北京银河通用机器人有限公司): 机器人规划与控制算法工程师 [Pending Approval] Score: 97 Created: 2026-08-19 16:07:52
+App 126 | Comp 773 (英伟达半导体科技（上海）有限公司): 机器人与智能驾驶嵌入式系统工程师 [Pending Approval] Score: 94 Created: 2026-08-19 16:07:52
+App 125 | Comp 772 (深圳联合飞机科技有限公司): Linux嵌入式驱动工程师 [Pending Approval] Score: 96 Created: 2026-08-19 16:07:51
+App 124 | Comp 771 (深圳市卓驭科技有限公司（大疆车载）): 物理AI Agent算法工程师 [Pending Approval] Score: 97 Created: 2026-08-19 16:07:51
+App 123 | Comp 770 (上海穹彻智能科技有限公司): 机器人算法工程师（运控方向） [Pending Approval] Score: 97 Created: 2026-08-19 16:07:51
+App 121 | Comp 793 (深圳嘉立创科技集团股份有限公司): CAX 研发工程师（2027届校招） [Pending Approval] Score: 85 Created: 2026-08-19 01:05:39
+App 120 | Comp 768 (北京星际荣耀科技有限责任公司): 嵌入式软件工程师（控制方向） [Pending Approval] Score: 95 Created: 2026-08-18 16:09:31
+App 119 | Comp 722 (上海航天精密机械研究所（航天科技八院149厂）): 机电总体设计师（2027届） [Pending Approval] Score: 95 Created: 2026-08-18 16:09:30
+App 118 | Comp 619 (兵器工业导航与控制技术研究所（导控所）): 导航制导与控制研发工程师 [Pending Approval] Score: 95 Created: 2026-08-18 16:09:30
+App 117 | Comp 600 (上海航天控制技术研究所（航天科技八院803所）): 制导导航与控制（GNC）设计师 [Pending Approval] Score: 96 Created: 2026-08-18 16:09:24
+App 116 | Comp 540 (深圳市雷赛智能): 运动控制算法工程师 [Pending Approval] Score: 96 Created: 2026-08-18 16:09:24
+App 115 | Comp 773 (英伟达半导体科技（上海）有限公司): 机器人与智能驾驶嵌入式系统软件工程师（2027届校招） [Pending Approval] Score: 92 Created: 2026-08-15 01:07:44
+App 113 | Comp 784 (首形科技（AheadForm）): 机器人工程师（嵌入式/控制方向-2027届校招） [Pending Approval] Score: 93 Created: 2026-08-15 01:07:05
+App 112 | Comp 792 (强脑科技（BrainCo）): 具身智能运控算法工程师（2027届校招） [Pending Approval] Score: 92 Created: 2026-08-15 01:06:05
+App 111 | Comp 792 (强脑科技（BrainCo）): 嵌入式工程师（2027届校招） [Pending Approval] Score: 90 Created: 2026-08-15 01:06:02
+App 110 | Comp 315 (智能派（Elegoo）): 高级电机控制算法工程师 [Pending Approval] Score: 96 Created: 2026-08-14 16:05:10
+App 109 | Comp 523 (深圳快造科技（Snapmaker）): 嵌入式软件工程师（3D打印） [Pending Approval] Score: 98 Created: 2026-08-14 16:05:10
+App 108 | Comp 761 (千寻智能（万境千寻）): 机器人嵌入式开发工程师 [Pending Approval] Score: 96 Created: 2026-08-14 16:05:10
+App 107 | Comp 312 (拓竹科技（Bambu Lab）): 嵌入式开发 - 算法部署 [Pending Approval] Score: 98 Created: 2026-08-14 16:05:09
+App 106 | Comp 761 (千寻智能（万境千寻）): 强化学习运控算法工程师（2027届校招特招） [Pending Approval] Score: 97 Created: 2026-08-14 01:53:15
+App 105 | Comp 790 (伽利略（天津）技术有限公司): 运控算法工程师（2027全球校招二批） [Pending Approval] Score: 95 Created: 2026-08-14 01:53:08
+App 104 | Comp 791 (地平线（Horizon Robotics）): 机器人运动控制工程师（2027届校招） [Pending Approval] Score: 96 Created: 2026-08-14 01:53:00
+App 103 | Comp 788 (深圳市元启姝辰科技有限公司): 运动控制算法工程师（2027校招） [Pending Approval] Score: 98 Created: 2026-08-14 01:52:56
+App 102 | Comp 579 (瑞芯微): 2027届校招软件工程师（Linux嵌入式方向） [Pending Approval] Score: 96 Created: 2026-08-13 16:04:19
+App 101 | Comp 767 (北京松延动力科技集团股份有限公司): 校招-嵌入式硬件与软件工程师 [Pending Approval] Score: 96 Created: 2026-08-13 16:04:18
+App 100 | Comp 764 (深圳市大寰机器人科技有限公司): 校招-嵌入式软件工程师（编码器方向） [Pending Approval] Score: 95 Created: 2026-08-13 16:04:13
+App 99 | Comp 764 (深圳市大寰机器人科技有限公司): 校招-伺服软件工程师 [Pending Approval] Score: 96 Created: 2026-08-13 16:04:13
+App 98 | Comp 599 (北京精密机电控制设备研究所（航天科技一院18所）): 伺服控制与姿轨控研发工程师（2027届提前批） [Pending Approval] Score: 97 Created: 2026-08-13 16:04:13
+App 97 | Comp 789 (中国长征火箭有限公司): 电气设计岗（2027届校招） [Pending Approval] Score: 96 Created: 2026-08-13 02:33:56
+App 96 | Comp 788 (深圳市元启姝辰科技有限公司): 运动控制算法工程师（2027届校招） [Pending Approval] Score: 95 Created: 2026-08-13 02:33:56
+App 95 | Comp 312 (拓竹科技（Bambu Lab）): 嵌入式开发-算法部署（2027届校招） [Pending Approval] Score: 98 Created: 2026-08-12 16:03:37
+App 94 | Comp 216 (大疆创新（DJI）): 控制算法工程师（2027拓疆者校招） [Pending Approval] Score: 96 Created: 2026-08-12 16:03:37
+App 93 | Comp 2 (汇川技术): 运动控制算法工程师（2027届提前批） [Pending Approval] Score: 96 Created: 2026-08-12 16:03:36
+App 92 | Comp 777 (北京国望光学科技有限公司): 运动控制工程师（2027校招） [Pending Approval] Score: 75 Created: 2026-08-12 01:04:34
+App 91 | Comp 564 (地平线): 机器人运动控制工程师 / 规划控制算法工程师 [Pending Approval] Score: 83 Created: 2026-08-12 01:04:33
+App 90 | Comp 600 (上海航天控制技术研究所（航天科技八院803所）): 航天工程师（飞行控制/伺服控制方向） [Pending Approval] Score: 93 Created: 2026-08-12 01:04:19
+App 89 | Comp 523 (深圳快造科技（Snapmaker）): 嵌入式软件工程师（3D打印整机/运动控制） [Pending Approval] Score: 98 Created: 2026-08-11 16:07:47
+App 88 | Comp 774 (北京银河通用机器人有限公司): 机器人规划与控制工程师 [Pending Approval] Score: 96 Created: 2026-08-11 16:07:47
+App 87 | Comp 775 (杭州宇树科技有限公司): 机器人运动控制算法工程师 [Pending Approval] Score: 96 Created: 2026-08-11 16:07:47
+App 86 | Comp 771 (深圳市卓驭科技有限公司（大疆车载）): 嵌入式软件工程师（智能驾驶/移动物理AI方向） [Pending Approval] Score: 96 Created: 2026-08-11 16:07:46
+App 85 | Comp 312 (拓竹科技（Bambu Lab）): 嵌入式软件工程师（3D打印与算法部署方向） [Pending Approval] Score: 98 Created: 2026-08-11 16:07:46
+App 84 | Comp 785 (卡特彼勒（Caterpillar）): 嵌入式系统工程师 / 研发类（2027校园招聘） [Pending Approval] Score: 88 Created: 2026-08-11 01:05:02
+App 83 | Comp 787 (字节跳动（ByteDance）): 嵌入式开发工程师（移动OS/具身智能 2027校招） [Pending Approval] Score: 92 Created: 2026-08-11 01:05:02
+App 82 | Comp 786 (航天智能科技研究院（航天科工）): 智能飞行器控制/嵌入式系统（2027届校招） [Pending Approval] Score: 95 Created: 2026-08-11 01:05:02
+App 81 | Comp 314 (纵维立方（Anycubic）): 中级电机控制算法工程师 [Pending Approval] Score: 95 Created: 2026-08-10 16:10:38
+App 80 | Comp 313 (创想三维（Creality）): 高级嵌入式工程师 [Pending Approval] Score: 96 Created: 2026-08-10 16:10:31
+App 79 | Comp 216 (大疆创新（DJI）): 控制算法工程师 [Pending Approval] Score: 96 Created: 2026-08-10 16:09:36
+App 78 | Comp 2 (汇川技术): 控制算法工程师 [Pending Approval] Score: 96 Created: 2026-08-10 16:09:36
+App 77 | Comp 784 (首形科技（AheadForm）): 机器人运动控制工程师 / 嵌入式工程师 [Pending Approval] Score: 93 Created: 2026-08-10 09:13:42
+App 76 | Comp 783 (深圳市普渡科技股份有限公司): 运动控制算法工程师 / 嵌入式软件工程师 [Pending Approval] Score: 94 Created: 2026-08-10 09:13:36
+App 75 | Comp 312 (拓竹科技（Bambu Lab）): 嵌入式开发-算法部署 [Pending Approval] Score: 90 Created: 2026-08-10 08:39:52
+App 74 | Comp 780 (北京蓝箭鸿擎科技有限公司): 嵌入式设计工程师 / 姿轨控软件工程师 / 运控软件开发工程师 [Pending Approval] Score: 88 Created: 2026-08-09 01:15:14
+App 73 | Comp 216 (大疆创新（DJI）): 控制算法工程师（深圳） [Pending Approval] Score: 95 Created: 2026-08-08 16:17:42
+App 72 | Comp 779 (深圳格见半导体有限公司): 嵌入式软件开发工程师（2027届校招） [待投递] Score: 83 Created: 2026-08-08 01:03:54
+App 70 | Comp 777 (北京国望光学科技有限公司): 仿真工程师（光/力/热协同设计）/ 机械工程师（2027届校招） [待投递] Score: 78 Created: 2026-08-08 01:03:23
+App 69 | Comp 776 (广州中望龙腾软件股份有限公司): 图形算法工程师 / CAE/CAM研发工程师（2027届校招） [待投递] Score: 85 Created: 2026-08-08 01:02:59
+App 68 | Comp 539 (深圳市汇川技术): 运动控制算法工程师 / 嵌入式软件工程师（2027届提前批） [待投递] Score: 96 Created: 2026-08-07 16:06:08
+App 67 | Comp 549 (深圳逐际动力): 人形机器人运动控制算法 / 具身智能嵌入式工程师（2027届校招） [待投递] Score: 80 Created: 2026-08-07 16:06:06
+App 65 | Comp 722 (上海航天精密机械研究所（航天科技八院149厂）): 机电总体设计师 / 机械结构与控制工程师（2027届校招提前批） [待投递] Score: 93 Created: 2026-08-07 16:05:57
+App 64 | Comp 599 (北京精密机电控制设备研究所（航天科技一院18所）): 伺服控制/姿态控制与系统总体工程师（2027届校招提前批） [待投递] Score: 96 Created: 2026-08-07 16:05:53
+App 63 | Comp 775 (杭州宇树科技有限公司): 运动控制算法/嵌入式软件工程师（2027届校招） [待投递] Score: 96 Created: 2026-08-07 01:03:48
+App 62 | Comp 774 (北京银河通用机器人有限公司): 机器人规划与控制算法工程师（2027届校招） [待投递] Score: 96 Created: 2026-08-07 01:03:48
+App 61 | Comp 312 (拓竹科技（Bambu Lab）): 运动控制/嵌入式算法工程师（2027届提前批） [待投递] Score: 98 Created: 2026-08-07 01:03:35
+App 60 | Comp 773 (英伟达半导体科技（上海）有限公司): 机器人与智能驾驶嵌入式工程师（NCG 2027届） [待投递] Score: 92 Created: 2026-08-06 01:03:41
+App 59 | Comp 772 (深圳联合飞机科技有限公司): 电控嵌入式工程师 / 飞控软件工程师（2027届秋招） [待投递] Score: 95 Created: 2026-08-06 01:03:41
+App 58 | Comp 531 (浙江闪铸科技): FDM 3D打印控制算法工程师 / 嵌入式软件工程师（2027届校招） [待投递] Score: 96 Created: 2026-08-05 16:09:04
+App 57 | Comp 768 (北京星际荣耀科技有限责任公司): 姿控总体工程师 / 嵌入式软件设计工程师（2027届校招） [待投递] Score: 94 Created: 2026-08-04 16:08:26
+App 56 | Comp 579 (瑞芯微): 软件开发工程师（嵌入式/Linux方向）（2027届校招） [待投递] Score: 95 Created: 2026-08-04 16:07:55
+App 55 | Comp 564 (地平线): 嵌入式系统软件工程师 / 自动驾驶规控算法工程师（2027届秋招） [待投递] Score: 95 Created: 2026-08-04 16:07:16
+App 54 | Comp 767 (北京松延动力科技集团股份有限公司): 嵌入式Linux软件工程师 / 运动控制算法工程师（2027届校招） [待投递] Score: 95 Created: 2026-08-04 16:06:48
+App 53 | Comp 540 (深圳市雷赛智能): 运动控制算法工程师 / 嵌入式软件工程师（2027届校招） [待投递] Score: 95 Created: 2026-08-04 16:05:49
+App 52 | Comp 757 (地瓜机器人（Diguarobotics）): 具身智能控制器嵌入式开发工程师（2027届校招提前批） [待投递] Score: 96 Created: 2026-08-04 01:11:04
+App 51 | Comp 766 (上海它石智航技术有限公司): 机器人全栈系统工程师（嵌入式/运控方向·2027届提前批） [待投递] Score: 96 Created: 2026-08-04 01:11:04
+App 50 | Comp 601 (北京控制工程研究所（航天科技五院502所）): 空间控制分系统与机电产品研发工程师（2027届校招提前批） [待投递] Score: 94 Created: 2026-08-04 01:06:05
+App 49 | Comp 761 (千寻智能（万境千寻）): 机器人嵌入式开发工程师 / 运控算法工程师（2027届校招提前批） [待投递] Score: 96 Created: 2026-08-04 01:06:05
+App 48 | Comp 548 (智元机器人（Agibot）): 具身算法工程师（全身运控/嵌入式方向·2027届优才计划） [待投递] Score: 96 Created: 2026-08-04 01:06:05
+App 47 | Comp 315 (智能派（Elegoo）): 高级电机控制算法工程师 / Linux嵌入式软件工程师（2027届校招/提前批） [待投递] Score: 96 Created: 2026-08-03 16:25:12
+App 46 | Comp 312 (拓竹科技（Bambu Lab）): 嵌入式开发工程师 / 运动控制算法工程师（2027届提前批） [待投递] Score: 98 Created: 2026-08-03 16:20:43
+App 45 | Comp 2 (汇川技术): 运动控制算法工程师 / 嵌入式软件工程师（2027届提前批） [待投递] Score: 96 Created: 2026-08-03 16:15:12
+App 43 | Comp 771 (深圳市卓驭科技有限公司（大疆车载）): 嵌入式开发工程师 / 规控算法工程师 [待投递] Score: 96 Created: 2026-08-03 02:41:42
+App 42 | Comp 216 (大疆创新（DJI）): 控制算法工程师 / 嵌入式工程师 [待投递] Score: 96 Created: 2026-08-03 02:41:42
+App 41 | Comp 770 (上海穹彻智能科技有限公司): 机器人算法工程师（运控方向）/ 嵌入式工程师 [待投递] Score: 96 Created: 2026-08-03 02:41:42
+App 40 | Comp 548 (智元机器人（Agibot）): 运动控制算法工程师 / 嵌入式软件工程师 [待投递] Score: 96 Created: 2026-08-03 02:41:42
+App 39 | Comp 761 (千寻智能（万境千寻）): 机器人嵌入式开发工程师 / 强化学习运控算法工程师 [待投递] Score: 96 Created: 2026-08-03 02:41:42
+App 38 | Comp 595 (中科新松): 机器人控制系统软件工程师（2027届校招） [待投递] Score: 90 Created: 2026-08-02 16:09:20
+App 37 | Comp 548 (智元机器人（Agibot）): 机器人运动控制算法工程师（2027届校招） [待投递] Score: 95 Created: 2026-08-02 16:09:20
+App 33 | Comp 765 (边界智控（Border Control）): 飞控算法/嵌入式软件工程师 [待投递] Score: 93 Created: 2026-08-02 12:01:15
+App 32 | Comp 764 (深圳市大寰机器人科技有限公司): 伺服控制算法工程师 [待投递] Score: 96 Created: 2026-08-02 12:01:15
+App 31 | Comp 761 (千寻智能（万境千寻）): 机器人嵌入式/运控算法工程师 [待投递] Score: 96 Created: 2026-08-02 12:01:15
+App 26 | Comp 763 (驭势科技（UISEE）): 嵌入式系统工程师/规控算法工程师（2027秋招） [待投递] Score: 93 Created: 2026-08-02 01:42:17
+App 25 | Comp 762 (自变量机器人（X2 Robot）): 嵌入式软件工程师/运动控制算法工程师（2027届校招） [待投递] Score: 95 Created: 2026-08-02 01:42:17
+App 24 | Comp 761 (千寻智能（万境千寻）): 机器人嵌入式开发工程师（2027届校招） [待投递] Score: 96 Created: 2026-08-02 01:42:17
+App 22 | Comp 313 (创想三维（Creality）): 3D打印控制算法工程师 [待投递] Score: 96 Created: 2026-08-01 16:01:20
+App 21 | Comp 314 (纵维立方（Anycubic）): 算法研究岗（3D打印控制算法） [待投递] Score: 95 Created: 2026-08-01 16:01:20
+App 5 | Comp 523 (深圳快造科技（Snapmaker）): 3D打印设备研发工程师 [已投递] Score: None Created: 2026-07-30 11:34:18.391982
+App 1 | Comp 312 (拓竹科技（Bambu Lab）): 2027届研发提前批（机械类/校招综合岗） [已投递] Score: None Created: 2026-07-25 19:35:11.710139
+
+=== RESUMES ===
+{'id': 1, 'name': '3D打印', 'version': '0.2', 'file_path': 'data/resumes/1785287941_d8fe54b5.docx', 'is_default': 1}

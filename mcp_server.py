@@ -30,6 +30,28 @@ def get_db_connection():
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA journal_mode=WAL;")
     conn.execute("PRAGMA busy_timeout=5000;")
+    # Ensure missing columns exist in SQLite applications table
+    try:
+        cursor = conn.cursor()
+        cursor.execute("PRAGMA table_info(applications)")
+        existing_cols = {row['name'] for row in cursor.fetchall()}
+        if 'form_type' not in existing_cols:
+            cursor.execute("ALTER TABLE applications ADD COLUMN form_type VARCHAR(50)")
+        if 'source_platform' not in existing_cols:
+            cursor.execute("ALTER TABLE applications ADD COLUMN source_platform VARCHAR(50)")
+        if 'resume_id' not in existing_cols:
+            cursor.execute("ALTER TABLE applications ADD COLUMN resume_id INTEGER")
+        if 'match_score' not in existing_cols:
+            cursor.execute("ALTER TABLE applications ADD COLUMN match_score INTEGER")
+        if 'agent_reason' not in existing_cols:
+            cursor.execute("ALTER TABLE applications ADD COLUMN agent_reason TEXT")
+        if 'agent_task_id' not in existing_cols:
+            cursor.execute("ALTER TABLE applications ADD COLUMN agent_task_id VARCHAR(100)")
+        if 'source_url' not in existing_cols:
+            cursor.execute("ALTER TABLE applications ADD COLUMN source_url VARCHAR(500)")
+        conn.commit()
+    except Exception:
+        pass
     return conn
 
 
