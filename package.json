@@ -1,0 +1,20 @@
+{
+  "name": "career-tracker",
+  "version": "2.0.0",
+  "private": true,
+  "description": "Personal Career OS: Vue 3 SPA + Async FastAPI Backend with CDP Autofill & HITL Governance",
+  "scripts": {
+    "setup": "pnpm install && uv sync",
+    "dev:frontend": "pnpm --prefix frontend dev",
+    "dev:backend": "uv run uvicorn backend.app.main:app --reload --port 5000",
+    "dev": "concurrently -n \"FRONTEND,BACKEND\" -c \"cyan,green\" \"pnpm run dev:frontend\" \"pnpm run dev:backend\"",
+    "build:frontend": "pnpm --prefix frontend build",
+    "build": "pnpm run build:frontend",
+    "start": "uv run uvicorn backend.app.main:app --port 5000",
+    "test:backend": "uv run pytest backend/tests",
+    "test": "pnpm run test:backend"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}

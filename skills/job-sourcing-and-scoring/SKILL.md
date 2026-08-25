@@ -190,14 +190,20 @@ If a job fails Step 2e, DO NOT call `evaluate_jd` or `create_application`. Log r
    - `industry`, `city`, `priority` based on verified data.
 3. Log provenance in trace: `payload={"source_url": "...", "source_platform": "...", "discovery_tool": "...", "verification_status": "verified|single_source"}`.
 
-### 3a. Application Deduplication Check (查重与跳过)
+### 3a. Application Deduplication Check (全量查重与跳过)
 
 **IMPORTANT: Before calling `create_application`, you MUST pass this deduplication gate.**
 
-1. If `create_company` returns `created: False` (company already exists), call `JHTracker:search_companies(query=name)` to get the company ID.
-2. Use the company ID to list existing applications for that company. Check if there is already an application with the same (or very similar) position in `Pending Approval` or `待投递` status.
-3. **If a duplicate is found**: SKIP this position entirely. Do NOT call `create_application`. Log the skip in the trace: `payload={"skipped": true, "reason": "duplicate_proposal", "company": "<name>", "position": "<position>"}`.
-4. **If no duplicate is found**: Proceed to Step 4 (AI Matching Evaluation).
+**去重核心规则**：
+1. **多岗位允许**：同一个公司可以录入多个不同的岗位（例如：公司 A + 嵌入式软件开发工程师、公司 A + 控制算法工程师 均可正常录入）。
+2. **同公司同岗位唯一性（绝对去重）**：严禁出现同一个公司、同一个岗位的重复记录（无论该岗位处于 `已投递`、`待投递`、`Pending Approval`、`流程中` 还是已归档状态）。
+
+**查重执行步骤**：
+1. 若搜寻到某岗位，首先通过 `JHTracker:search_companies(query=name)` 获取目标公司的 `company_id`。
+2. 检索并核对该公司在库内已有的全部岗位记录。若发现库中已经存在相同（或标准化后完全一致）的岗位名称：
+   - **立即跳过（SKIP）** 该岗位，严禁调用 `JHTracker:create_application`。
+   - 在 trace 中记录跳过事件：`payload={"skipped": true, "reason": "duplicate_position", "company": "<name>", "position": "<position>"}`。
+3. 若库中无该公司的同名岗位（即使已有其他不同岗位），则判定为新岗位，继续进入 Step 4（AI 匹配度评估）及 Step 5（推送待审批）。
 
 ### 4. AI Matching Evaluation (0 - 100)
 

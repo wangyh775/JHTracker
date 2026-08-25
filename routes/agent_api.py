@@ -229,11 +229,10 @@ def create_application():
 
     position_val = (data.get('position') or '待定岗位').strip()
 
-    # Deduplication check for company_id + position within STAGED_STATUS_LIST
+    # Deduplication check for company_id + position across all application records (同一公司同一岗位全量去重)
     existing_app = Application.query.filter(
         Application.company_id == company_id,
-        db.func.lower(db.func.trim(Application.position)) == position_val.lower(),
-        Application.status.in_(STAGED_STATUS_LIST)
+        db.func.lower(db.func.trim(Application.position)) == position_val.lower()
     ).first()
 
     if existing_app:

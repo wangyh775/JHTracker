@@ -1,0 +1,36 @@
+{
+  "task_id": "cron_midnight_review_20260823",
+  "agent_name": "MidnightCompanyReviewAgent",
+  "results": [
+    {
+      "company_id": 784,
+      "name": "首形科技（AheadForm）",
+      "new_score": 94,
+      "created_application_id": null
+    },
+    {
+      "company_id": 785,
+      "name": "卡特彼勒（Caterpillar）",
+      "new_score": 93,
+      "created_application_id": 6
+    },
+    {
+      "company_id": 786,
+      "name": "航天智能科技研究院（航天科工）",
+      "new_score": 96,
+      "created_application_id": null
+    },
+    {
+      "company_id": 787,
+      "name": "字节跳动（ByteDance）",
+      "new_score": 95,
+      "created_application_id": null
+    },
+    {
+      "company_id": 788,
+      "name": "深圳市元启姝辰科技有限公司",
+      "new_score": 95,
+      "created_application_id": null
+    }
+  ]
+}

@@ -257,16 +257,15 @@ def create_application(
         if not form_type:
             form_type = 'open_question'
 
-        # Deduplication check for company_id + LOWER(TRIM(position)) within STAGED_STATUS_LIST
+        # Deduplication check for company_id + LOWER(TRIM(position)) across all application statuses (已投递 / 待审批 / 流程中全量去重)
         norm_pos = (position or "待定岗位").strip()
-        placeholders = ','.join(['?'] * len(STAGED_STATUS_LIST))
-        sql = f"""
+        sql = """
             SELECT id, company_id, position, status, url, match_score, agent_reason, agent_task_id, source_url, resume_id, form_type, source_platform
             FROM applications
-            WHERE company_id = ? AND LOWER(TRIM(position)) = LOWER(?) AND status IN ({placeholders})
+            WHERE company_id = ? AND LOWER(TRIM(position)) = LOWER(?)
             LIMIT 1
         """
-        cursor.execute(sql, (company_id, norm_pos, *STAGED_STATUS_LIST))
+        cursor.execute(sql, (company_id, norm_pos))
         existing = cursor.fetchone()
         if existing:
             return json.dumps({

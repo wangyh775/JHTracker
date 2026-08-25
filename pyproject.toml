@@ -1,0 +1,35 @@
+[project]
+name = "career-tracker-backend"
+version = "2.0.0"
+description = "FastAPI Async Backend for Career Tracker"
+requires-python = ">=3.10"
+dependencies = [
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.32.0",
+    "sqlalchemy>=2.0.35",
+    "aiosqlite>=0.20.0",
+    "pydantic>=2.9.0",
+    "pydantic-settings>=2.5.0",
+    "playwright>=1.48.0",
+    "fastmcp>=0.4.0",
+    "mcp>=1.0.0",
+    "python-multipart>=0.0.12",
+    "jinja2>=3.1.4",
+    "pytest>=8.3.0",
+    "pytest-asyncio>=0.24.0",
+    "httpx>=0.27.2",
+    "websockets>=13.1",
+    "psutil>=6.0.0"
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["backend"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["backend/tests"]
+pythonpath = ["."]

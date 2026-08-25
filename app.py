@@ -75,12 +75,14 @@ if __name__ == '__main__':
                 if col_name not in columns:
                     db.session.execute(text(f"ALTER TABLE applications ADD COLUMN {col_name} {col_type}"))
             db.session.commit()
-            # 创建部分唯一索引，防止同一公司+同一岗位在待审批/待投递阶段重复
+            # 创建全量唯一索引，防止同一公司+同一岗位在任何阶段重复
             try:
                 db.session.execute(text("""
+                    DROP INDEX IF EXISTS idx_applications_dedup
+                """))
+                db.session.execute(text("""
                     CREATE UNIQUE INDEX IF NOT EXISTS idx_applications_dedup
-                    ON applications(company_id, LOWER(position))
-                    WHERE status IN ('Pending Approval', '待审批', '待投递')
+                    ON applications(company_id, LOWER(TRIM(position)))
                 """))
                 db.session.commit()
             except Exception:
