@@ -249,6 +249,37 @@ flask db upgrade
 
 ---
 
+## 🛡️ 外部安全区备份 (External Data Vault) 与灾难恢复
+
+为了彻底解决“**用户隐私数据（姓名、简历、真实投递记录）严禁被 Git 跟踪推送到远程**”与“**AI 智能体在自动化重构/清理时可能误删 `data/tracker.db` 和用户画像**”的矛盾，系统建立了工作区外的自动化数据备份与灾难恢复机制（External Data Vault）。
+
+### 1. 物理隔离存储机制
+* **存储路径**：默认位于用户主目录 `~/.career-tracker/backups/`（Windows 下为 `C:\Users\<用户名>\.career-tracker\backups\`），可通过环境变量 `CAREER_TRACKER_BACKUP_DIR` 覆盖。
+* **隔离价值**：完全脱离 Git 工作区目录。无论是执行 `git clean -fdx`、分支切换，还是智能体清理工作区，均无法波及安全区。
+
+### 2. 三位一体备份范围
+1. **SQLite 数据库快照 (`tracker.db`)**：采用 `sqlite3.backup` API 进行在线无锁物理拷贝，保证 WAL 模式下的事务原子一致性。
+2. **用户画像套件 (`profile/`)**：涵盖 `data/profile.md`、`data/applicant_profile.json`、`data/.profile_hash`。
+3. **投递与简历物理资产 (`assets/`)**：包含 `data/resumes/`（4-Track 简历实体）以及 `career_data/`（重点企业清单）。
+
+### 3. 灾难探测与自愈架构
+
+```mermaid
+flowchart TD
+    A[系统启动] --> B{检测 data/tracker.db 是否存在?}
+    B -- 存在 --> C{自上次快照是否超过 2小时?}
+    C -- 是 --> D[执行轻量增量快照至 ~/.career-tracker/backups/snapshots/]
+    C -- 否 --> E[跳过快照 (节流控制)]
+    D --> F[启动成功]
+    E --> F
+    
+    B -- 丢失 (误删事故) --> G{扫描 ~/.career-tracker/backups/ 安全区}
+    G -- 发现有效历史快照 --> H[控制台高亮预警 & 输出恢复指令/自动恢复]
+    G -- 无备份 --> I[初始化新空白库]
+```
+
+---
+
 ## 🔗 相关文档
 
 - [系统架构](architecture.md) — 模块与数据流
@@ -257,4 +288,4 @@ flask db upgrade
 
 ---
 
-_最后更新：2026-07-31 · 维护者：JHTracker 项目组_
+_最后更新：2026-08-26 · 维护者：JHTracker 项目组_

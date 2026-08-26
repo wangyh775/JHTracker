@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>Hermes 网申插件测试页 (模拟企业校招网申)</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #f8fafc; padding: 40px 20px; }
+    .container { max-width: 700px; margin: 0 auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.06); }
+    h2 { color: #1e293b; margin-top: 0; }
+    .form-group { margin-bottom: 20px; }
+    label { display: block; font-weight: 600; margin-bottom: 6px; color: #334155; }
+    input[type="text"], input[type="tel"], input[type="email"], select, textarea {
+      width: 100%; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; box-sizing: border-box;
+    }
+    textarea { height: 120px; resize: vertical; }
+    .btn { background: #2563eb; color: white; border: none; padding: 12px 24px; border-radius: 6px; font-size: 15px; font-weight: 600; cursor: pointer; }
+    .btn:hover { background: #1d4ed8; }
+    .tip { background: #eff6ff; color: #1d4ed8; padding: 12px; border-radius: 6px; margin-bottom: 20px; font-size: 13px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>🚀 2027届机器人与智能硬件校招网申表单 (测试)</h2>
+    <div class="tip">
+      💡 提示：如果 Hermes 插件已加载，右下角应出现 <b>🟢 Hermes</b> 悬浮球。点击展开后可一键自动填充。
+    </div>
+
+    <form id="applyForm">
+      <div class="form-group">
+        <label for="name">真实姓名 *</label>
+        <input type="text" id="name" placeholder="请输入姓名">
+      </div>
+
+      <div class="form-group">
+        <label for="phone">手机号码 *</label>
+        <input type="tel" id="phone" placeholder="请输入11位手机号">
+      </div>
+
+      <div class="form-group">
+        <label for="email">电子邮箱 *</label>
+        <input type="email" id="email" placeholder="example@domain.com">
+      </div>
+
+      <div class="form-group">
+        <label for="school">毕业院校</label>
+        <input type="text" id="school" placeholder="请输入学校全称">
+      </div>
+
+      <div class="form-group">
+        <label for="major">专业名称</label>
+        <input type="text" id="major" placeholder="请输入主修专业">
+      </div>
+
+      <div class="form-group">
+        <label for="degree">最高学历</label>
+        <select id="degree">
+          <option value="">请选择学历</option>
+          <option value="本科">本科</option>
+          <option value="硕士">硕士</option>
+          <option value="博士">博士</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="project">重点项目经历或开放性阐述 (500字内)</label>
+        <textarea id="project" placeholder="请详细阐述你的核心项目与技术攻关经历..."></textarea>
+      </div>
+
+      <div class="form-group">
+        <label for="resume">上传个人简历附件 (.pdf / .docx)</label>
+        <input type="file" id="resume" accept=".pdf,.docx">
+      </div>
+
+      <button type="submit" class="btn">提交申请 (Zero-Submit 核对)</button>
+    </form>
+  </div>
+</body>
+</html>

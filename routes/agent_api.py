@@ -1,11 +1,12 @@
 """Agent RESTful API & Trace Endpoints (/api/v1/)."""
 import os
 import json
+from datetime import datetime, date
 from flask import Blueprint, jsonify, request, render_template
 from extensions import db
-from models import Company, Application, AgentTask, AgentEvent, Memory, DecisionFeedback
+from models import Company, Application, AgentTask, AgentEvent, Memory, DecisionFeedback, Resume, AnswerBank, ApplicationSubmission
 from constants import POST_APPLY_STATUS_LIST, STAGED_STATUS_LIST
-from config import DATA_DIR
+from config import DATA_DIR, BASE_DIR
 from services.cleanup import run_auto_cleanup, clear_all_traces
 
 bp = Blueprint('agent_api', __name__)
@@ -44,28 +45,304 @@ def _rest_upsert_positive_memories(application, explicit_rule_value, raw_feedbac
 def traces_view():
     from config import Config
     run_auto_cleanup(days=Config.TRACES_RETENTION_DAYS)
+    tasks = AgentTask.query.order_by(AgentTask.id.desc()).limit(50).all()
+    results = []
+    for t in tasks:
+        events = t.events.order_by(AgentEvent.id.asc()).all()
+        results.append({
+            'id': t.id,
+            'task_id': t.task_id,
+            'agent_name': t.agent_name,
+            'status': t.status,
+            'created_at': t.created_at.isoformat() if t.created_at else None,
+            'events': [
+                {
+                    'id': e.id,
+                    'event_type': e.event_type,
+                    'payload': json.loads(e.payload_json) if e.payload_json and e.payload_json.startswith(('{', '[')) else e.payload_json,
+                    'created_at': e.created_at.isoformat() if e.created_at else None
+                }
+                for e in events
+            ]
+        })
     if request.headers.get('Accept') == 'application/json' or request.args.get('format') == 'json':
-        tasks = AgentTask.query.order_by(AgentTask.id.desc()).limit(50).all()
-        results = []
-        for t in tasks:
-            events = t.events.order_by(AgentEvent.id.asc()).all()
-            results.append({
-                'id': t.id,
-                'task_id': t.task_id,
-                'agent_name': t.agent_name,
-                'status': t.status,
-                'created_at': t.created_at.isoformat() if t.created_at else None,
-                'events': [
-                    {
-                        'id': e.id,
-                        'event_type': e.event_type,
-                        'payload': json.loads(e.payload_json) if e.payload_json and e.payload_json.startswith(('{', '[')) else e.payload_json,
-                        'created_at': e.created_at.isoformat() if e.created_at else None
-                    }
-                    for e in events
-                ]
-            })
         return jsonify({'status': 'success', 'count': len(results), 'tasks': results})
+    return render_template('traces.html', tasks=results)
+
+
+# ============================================================
+# Extension Autofill APIs (Browser Extension & Agent Handshake)
+# ============================================================
+
+def _parse_candidate_profile_blocks():
+    """解析 data/profile.md，返回结构化基础信息字典与分段列表。"""
+    profile_path = os.path.join(BASE_DIR, 'data', 'profile.md')
+    content = ""
+    if os.path.exists(profile_path):
+        with open(profile_path, 'r', encoding='utf-8') as f:
+            content = f.read()
+
+    basics = {
+        'name': '求职者',
+        'gender': '男',
+        'degree': '硕士',
+        'school': '大连交通大学',
+        'major': '机械工程',
+        'grad_year': '2027',
+        'grad_date': '2027-06-30',
+        'education_history': [
+            {
+                'level': '硕士',
+                'school': '大连交通大学',
+                'major': '机械工程',
+                'start_date': '2024-09',
+                'end_date': '2027-06'
+            },
+            {
+                'level': '本科',
+                'school': '河南科技职业大学',
+                'major': '机械设计制造及其自动化',
+                'start_date': '2020-09',
+                'end_date': '2024-06'
+            }
+        ],
+        'tech_stack': [
+            'STM32H7', 'Linux+RK3588', 'C/C++', '模型预测控制(MPC)',
+            '扩展卡尔曼滤波(EKF)', 'PID', 'Klipper/Moonraker', 'EPLAN', 'SolidWorks'
+        ],
+        'target_roles': [
+            '嵌入式工程师', '3D打印研发工程师', '机器人控制工程师', '轨道交通技术工程师'
+        ]
+    }
+
+    # 简单正则提取额外字段
+    for line in content.splitlines():
+        line = line.strip()
+        if '姓名' in line and (':' in line or '：' in line):
+            basics['name'] = line.split(':' if ':' in line else '：')[1].strip()
+        elif '电话' in line and (':' in line or '：' in line):
+            basics['phone'] = line.split(':' if ':' in line else '：')[1].strip()
+        elif '邮箱' in line and (':' in line or '：' in line):
+            basics['email'] = line.split(':' if ':' in line else '：')[1].strip()
+
+    return basics, content
+
+
+@bp.route('/api/agent/applications/<int:application_id>/autofill-payload', methods=['GET'])
+def get_autofill_payload(application_id):
+    """供浏览器插件拉取网申自动填充全量数据包。"""
+    app = Application.query.get(application_id)
+    if not app:
+        return jsonify({'status': 'error', 'message': f'Application {application_id} not found'}), 404
+
+    company = app.company
+    basics, profile_raw = _parse_candidate_profile_blocks()
+
+    # 4 轨简历映射
+    all_resumes = Resume.query.all()
+    tracks_info = {
+        'track_1': {
+            'track_id': 'track_1',
+            'name': '控制算法',
+            'matched_resume': None,
+            'summary': '侧重强化学习、MPC模型预测控制、EKF状态估计与动力学解耦算法'
+        },
+        'track_2': {
+            'track_id': 'track_2',
+            'name': '自动化与嵌入式',
+            'matched_resume': None,
+            'summary': '侧重STM32H7、Linux+RK3588分布式控制、底层驱动、RTOS与固件开发'
+        },
+        'track_3': {
+            'track_id': 'track_3',
+            'name': '机电与电气工程',
+            'matched_resume': None,
+            'summary': '侧重EPLAN电气原理图设计、伺服驱动控制、PLC与整机联调'
+        },
+        'track_4': {
+            'track_id': 'track_4',
+            'name': '机械与结构仿真',
+            'matched_resume': None,
+            'summary': '侧重SolidWorks结构设计、CFD热流固耦合仿真、FDM喷头工艺优化'
+        }
+    }
+
+    # 匹配本地简历路径
+    for r in all_resumes:
+        abs_path = os.path.abspath(r.file_path)
+        r_info = {
+            'id': r.id,
+            'name': r.name,
+            'file_path': r.file_path,
+            'abs_path': abs_path,
+            'file_type': r.file_type
+        }
+        if '算法' in r.name:
+            tracks_info['track_1']['matched_resume'] = r_info
+        elif '嵌入式' in r.name or '自动化' in r.name:
+            tracks_info['track_2']['matched_resume'] = r_info
+        elif '电气' in r.name or '机电' in r.name:
+            tracks_info['track_3']['matched_resume'] = r_info
+        elif '机械' in r.name or '结构' in r.name or '仿真' in r.name:
+            tracks_info['track_4']['matched_resume'] = r_info
+
+    # 如果有特定简历绑定
+    current_resume_info = None
+    if app.resume:
+        current_resume_info = {
+            'id': app.resume.id,
+            'name': app.resume.name,
+            'file_path': app.resume.file_path,
+            'abs_path': os.path.abspath(app.resume.file_path),
+            'file_type': app.resume.file_type
+        }
+
+    # 根据岗位智能推断默认 Track
+    pos_lower = (app.position or '').lower()
+    default_track = 'track_1'
+    if any(k in pos_lower for k in ['嵌入式', '固件', 'linux', 'arm', 'bsp', 'rtos']):
+        default_track = 'track_2'
+    elif any(k in pos_lower for k in ['电气', '硬件', '机电', 'plc', '电路']):
+        default_track = 'track_3'
+    elif any(k in pos_lower for k in ['机械', '结构', '仿真', '工艺', '热', '材料']):
+        default_track = 'track_4'
+    elif any(k in pos_lower for k in ['算法', '规控', '视觉', '运动控制', '控制']):
+        default_track = 'track_1'
+
+    # 生成开放题模板与预置 AnswerBank
+    open_questions = [
+        {
+            'question_id': 'q_project',
+            'pattern': '项目经历/最具挑战经历',
+            'answer': '在大型高温FDM设备与精密温控研发中，针对高速打印下热端非线性时滞与温度波动问题，我设计了基于MPC模型预测控制与EKF状态估计的双层温控架构，并成功移植于嵌入式控制平台，将稳态波动抑制在±0.5℃以内。',
+            'confidence': 0.92,
+            'source': 'AnswerBank + Profile'
+        },
+        {
+            'question_id': 'q_why_company',
+            'pattern': '为什么选择本公司',
+            'answer': f'贵司在{company.industry or "硬科技"}领域的深厚技术积淀与产品创新非常吸引我。我的控制算法与嵌入式工程背景能够快速融入团队并为{app.position or "相关岗位"}提供技术赋能。',
+            'confidence': 0.88,
+            'source': 'Tailored Template'
+        },
+        {
+            'question_id': 'q_strengths',
+            'pattern': '个人优势与特长',
+            'answer': '具备控制理论与嵌入式底层扎实的软硬件复合研发能力，具备独立开展从结构/仿真、电路原理图设计到驱动算法编写的全链路落地经验，学习与攻关能力强。',
+            'confidence': 0.95,
+            'source': 'Profile Core'
+        }
+    ]
+
+    return jsonify({
+        'status': 'success',
+        'application': {
+            'id': app.id,
+            'company_name': company.name if company else '',
+            'position': app.position or '',
+            'status': app.status or '',
+            'match_score': app.match_score or 85,
+            'portal_url': app.url or app.source_url or '',
+            'default_track': default_track,
+            'current_resume': current_resume_info
+        },
+        'candidate': basics,
+        'tracks': tracks_info,
+        'open_questions': open_questions,
+        'profile_raw': profile_raw
+    })
+
+
+@bp.route('/api/agent/applications/match-by-url', methods=['POST'])
+def match_application_by_url():
+    """根据当前浏览器页面 URL 智能反查匹配的 application 记录。"""
+    data = request.get_json(silent=True) or {}
+    page_url = (data.get('url') or '').strip()
+    if not page_url:
+        return jsonify({'status': 'error', 'message': 'url parameter is required'}), 400
+
+    # 1. 精确或前缀匹配
+    app = Application.query.filter(
+        (Application.url == page_url) | (Application.source_url == page_url)
+    ).first()
+
+    # 2. 域名/子路径模糊匹配
+    if not app:
+        # 去掉 query/hash 做模糊匹配
+        clean_url = page_url.split('#')[0].split('?')[0]
+        if clean_url:
+            app = Application.query.filter(
+                (Application.url.like(f"%{clean_url}%")) |
+                (Application.source_url.like(f"%{clean_url}%"))
+            ).first()
+
+    if not app:
+        # 3. 如果没匹配到，返回最近活跃的待投递记录
+        app = Application.query.filter_by(status='待投递', is_archived=False).order_by(Application.updated_at.desc()).first()
+
+    if not app:
+        return jsonify({'status': 'error', 'message': 'No matching application found for URL'}), 404
+
+    return jsonify({
+        'status': 'success',
+        'application_id': app.id,
+        'company_name': app.company.name if app.company else '',
+        'position': app.position
+    })
+
+
+@bp.route('/api/agent/applications/<int:application_id>/sync-submitted', methods=['POST'])
+def sync_application_submitted(application_id):
+    """浏览器插件在用户手动提交网申后，回写已投递状态与记忆。"""
+    app = Application.query.get(application_id)
+    if not app:
+        return jsonify({'status': 'error', 'message': f'Application {application_id} not found'}), 404
+
+    data = request.get_json(silent=True) or {}
+    app.status = '已投递'
+    app.apply_date = datetime.now().date()
+
+    # 如果传回了用户人工润色的开放题回答，同步存入 AnswerBank
+    modified_answers = data.get('open_answers') or []
+    for item in modified_answers:
+        q_pattern = item.get('pattern') or item.get('label') or ''
+        ans_text = item.get('answer') or item.get('value') or ''
+        if q_pattern and ans_text:
+            bank_entry = AnswerBank(
+                question_pattern=q_pattern[:200],
+                answer=ans_text,
+                role_family=data.get('track') or app.position or '通用',
+                needs_review=False,
+                source='extracted'
+            )
+            db.session.add(bank_entry)
+
+    # 记录 submission
+    submission = ApplicationSubmission(
+        application_id=app.id,
+        form_url=data.get('page_url') or app.url or app.source_url or 'extension_direct',
+        prefilled_data=json.dumps(data.get('filled_fields') or {}, ensure_ascii=False),
+        status='submitted',
+        submitted_at=datetime.now()
+    )
+    db.session.add(submission)
+    db.session.commit()
+
+    # 触发 SSE
+    try:
+        from routes.dashboard import trigger_event
+        trigger_event('application_submitted', f"Application {app.id} ({app.position}) submitted via Extension")
+    except Exception:
+        pass
+
+    return jsonify({
+        'status': 'success',
+        'action': 'submitted',
+        'application_id': app.id,
+        'status_text': app.status,
+        'apply_date': app.apply_date.isoformat()
+    })
+
     tasks = AgentTask.query.order_by(AgentTask.id.desc()).limit(50).all()
     return render_template('traces.html', tasks=tasks)
 

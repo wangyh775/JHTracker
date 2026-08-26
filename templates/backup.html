@@ -30,6 +30,82 @@
     </div>
   </div>
 
+  <!-- 外部安全区 Vault 自动化保护 -->
+  <div class="col-12">
+    <div class="card border-info">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <div>
+            <h6 class="card-title text-info mb-1"><i class="bi bi-shield-check me-2"></i>外部安全区保险箱 (External Data Vault)</h6>
+            <span class="text-secondary small">存储物理路径：<code>{{ vault_info.vault_root }}</code>（完全隔离于 Git 仓库，防智能体误删）</span>
+          </div>
+          <div class="d-flex gap-2">
+            <form method="post" action="/backup/vault/snapshot">
+              <button class="btn btn-outline-info btn-sm"><i class="bi bi-camera me-1"></i>制作 DB 快照</button>
+            </form>
+            <form method="post" action="/backup/vault/bundle">
+              <button class="btn btn-info btn-sm text-white"><i class="bi bi-box-seam me-1"></i>制作全量资产包</button>
+            </form>
+          </div>
+        </div>
+
+        <div class="row g-3">
+          <!-- DB 快照列表 -->
+          <div class="col-md-6">
+            <div class="p-3 bg-light rounded border h-100">
+              <h6 class="small fw-bold text-secondary mb-2"><i class="bi bi-file-earmark-diff me-1"></i>最近数据库微快照 (Snapshots)</h6>
+              {% if vault_info.snapshots %}
+              <div class="list-group list-group-flush small" style="max-height: 220px; overflow-y: auto;">
+                {% for s in vault_info.snapshots %}
+                <div class="list-group-item d-flex justify-content-between align-items-center px-2 py-2">
+                  <div>
+                    <span class="fw-bold">{{ s.filename }}</span><br>
+                    <span class="text-muted">{{ s.modified_at }} · {{ s.size_formatted }}</span>
+                  </div>
+                  <form method="post" action="/backup/vault/restore" onsubmit="return confirm('确定从快照 {{ s.filename }} 还原数据库吗？当前已有库将被备份。');">
+                    <input type="hidden" name="filename" value="{{ s.filename }}">
+                    <input type="hidden" name="type" value="db">
+                    <button class="btn btn-outline-secondary btn-sm py-0 px-2" title="一键自愈还原"><i class="bi bi-arrow-counterclockwise me-1"></i>还原</button>
+                  </form>
+                </div>
+                {% endfor %}
+              </div>
+              {% else %}
+              <div class="text-muted small py-3 text-center">暂无外部快照（启动系统后将自动生成）</div>
+              {% endif %}
+            </div>
+          </div>
+
+          <!-- 全量 Bundle 列表 -->
+          <div class="col-md-6">
+            <div class="p-3 bg-light rounded border h-100">
+              <h6 class="small fw-bold text-secondary mb-2"><i class="bi bi-archive me-1"></i>全量冷备资产包 (Bundles: DB + 画像 + 简历)</h6>
+              {% if vault_info.bundles %}
+              <div class="list-group list-group-flush small" style="max-height: 220px; overflow-y: auto;">
+                {% for b in vault_info.bundles %}
+                <div class="list-group-item d-flex justify-content-between align-items-center px-2 py-2">
+                  <div>
+                    <span class="fw-bold">{{ b.filename }}</span><br>
+                    <span class="text-muted">{{ b.modified_at }} · {{ b.size_formatted }}</span>
+                  </div>
+                  <form method="post" action="/backup/vault/restore" onsubmit="return confirm('确定从全量资产包 {{ b.filename }} 还原数据库及用户画像与简历吗？');">
+                    <input type="hidden" name="filename" value="{{ b.filename }}">
+                    <input type="hidden" name="type" value="bundle">
+                    <button class="btn btn-outline-primary btn-sm py-0 px-2" title="一键全量自愈"><i class="bi bi-box-arrow-in-down me-1"></i>全量还原</button>
+                  </form>
+                </div>
+                {% endfor %}
+              </div>
+              {% else %}
+              <div class="text-muted small py-3 text-center">暂无全量资产包</div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- 恢复 -->
   <div class="col-12">
     <div class="card border-warning">

@@ -267,6 +267,8 @@ career-tracker/
 | **MCP 工具下沉 + Skill 编排混合路径** | 稳定数据源（ATS 直连）下沉为 MCP 工具；反爬常变源（BOSS/智联 CDP）保留 skill 编排 | 按数据源稳定性分层：稳定的下沉、易变的保留 skill，反爬变化时改 Markdown 即可 |
 | **分层检索协议 5 层结构** | Layer 0 ATS 直连 → Layer 1 Firecrawl → Layer 2 Exa/Tavily → Layer 3 CDP → Layer 4 webfetch | 免费稳定源优先、高风险源兜底；CDP 仅在前 3 层全空时触发 |
 | **平台路由二维化** | `enterprise_preference × job_scenario`（校招/社招）二维路由 | 校招与社招数据源差异巨大，一维路由会漏源 |
+| **外部安全区备份 (External Data Vault)** | 备份物理隔离至 `~/.career-tracker/backups/`，结合 SQLite 在线快照与画像封包 | 既不推送到 Git 远程保护隐私，又防止 Agent 误删工作区导致全盘丢失 |
+| **非测试环境 drop_all 熔断** | ORM/初始化层禁止非测试环境直接 drop_all | 从代码层杜绝 Agent 误调用清库操作 |
 
 ---
 
@@ -279,4 +281,4 @@ career-tracker/
 
 ---
 
-_最后更新：2026-08-09 · 维护者：JHTracker 项目组_
+_最后更新：2026-08-26 · 维护者：JHTracker 项目组_

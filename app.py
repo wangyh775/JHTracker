@@ -31,6 +31,31 @@ def create_app():
     for bp in ALL_BLUEPRINTS:
         app.register_blueprint(bp)
 
+    # 启动自检：安全区快照与灾难探测（仅在非测试环境执行）
+    if not app.config.get('TESTING', False):
+        try:
+            from services.backup_vault import auto_startup_snapshot, list_available_backups
+            from config import DB_PATH, DATA_DIR, Config
+            
+            db_exists = os.path.isfile(DB_PATH)
+            career_dir = getattr(Config, 'CAREER_DIR', None)
+            
+            if db_exists:
+                auto_startup_snapshot(DB_PATH, DATA_DIR, career_dir=career_dir, throttle_hours=2.0)
+            else:
+                # 灾难探测
+                backups = list_available_backups()
+                if backups.get('snapshots') or backups.get('bundles'):
+                    latest_snap = backups['snapshots'][0]['filename'] if backups['snapshots'] else backups['bundles'][0]['filename']
+                    print("\n" + "="*70)
+                    print(f"⚠️ 【JHTracker 灾难预警】检测到生产数据库 {DB_PATH} 缺失！")
+                    print(f"📦 已在外部安全区 ({backups['vault_root']}) 发现历史快照: {latest_snap}")
+                    print("💡 您可通过访问系统备份管理页面或运行恢复脚本进行一键自愈。")
+                    print("="*70 + "\n")
+        except Exception as e:
+            # 备份服务绝不阻断正常启动流程
+            print(f"[BackupVault] 启动自检提示: {e}")
+
     # 上下文处理器：注入全局变量到模板
     @app.context_processor
     def inject_globals():

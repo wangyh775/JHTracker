@@ -62,9 +62,14 @@
           {% endif %}
         </div>
         {% if a.url or a.source_url %}
-        <a href="{{ a.url or a.source_url }}" target="_blank" class="small text-info text-decoration-none">
-          <i class="bi bi-box-arrow-up-right me-1"></i>查看原始岗位 JD
-        </a>
+        <div class="d-flex align-items-center gap-2">
+          <a href="{{ a.url or a.source_url }}#hermes_app_id={{ a.id }}" target="_blank" class="btn btn-sm btn-primary py-0 px-2 fw-bold" style="font-size:0.8rem;">
+            <i class="bi bi-lightning-charge-fill me-1"></i>一键直达智能网申
+          </a>
+          <a href="{{ a.url or a.source_url }}" target="_blank" class="small text-info text-decoration-none">
+            <i class="bi bi-box-arrow-up-right me-1"></i>查看原始 JD
+          </a>
+        </div>
         {% endif %}
       </div>
     </div>

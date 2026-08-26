@@ -9,6 +9,14 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash,
 from extensions import db
 from models import Company, Application, Note, Timeline, InterviewFeedback, Resume
 from config import Config
+from services.backup_vault import (
+    list_available_backups,
+    create_db_snapshot,
+    create_bundle_backup,
+    restore_from_snapshot,
+    restore_from_bundle,
+    get_backup_root
+)
 
 bp = Blueprint('backup', __name__)
 
@@ -25,7 +33,79 @@ def backup_page():
         'interview_feedbacks': InterviewFeedback.query.count(),
         'resumes': Resume.query.count(),
     }
-    return render_template('backup.html', counts=counts)
+    vault_info = list_available_backups()
+    return render_template('backup.html', counts=counts, vault_info=vault_info)
+
+
+@bp.route('/backup/vault/snapshot', methods=['POST'])
+def trigger_vault_snapshot():
+    """手动触发制作外部安全区 DB 快照。"""
+    try:
+        db_path = Config.SQLALCHEMY_DATABASE_URI.replace('sqlite:///', '')
+        snap_path = create_db_snapshot(db_path, tag="manual")
+        if snap_path:
+            flash(f'成功创建外部安全区快照：{snap_path.name}')
+        else:
+            flash('创建快照失败：源数据库文件不存在')
+    except Exception as e:
+        flash(f'创建快照异常：{str(e)}')
+    return redirect(url_for('backup.backup_page'))
+
+
+@bp.route('/backup/vault/bundle', methods=['POST'])
+def trigger_vault_bundle():
+    """手动触发制作外部安全区全量资产包（DB + 画像 + 简历 + 企业清单）。"""
+    try:
+        db_path = Config.SQLALCHEMY_DATABASE_URI.replace('sqlite:///', '')
+        data_dir = os.path.join(current_app.config['BASE_DIR'], 'data')
+        career_dir = getattr(Config, 'CAREER_DIR', os.path.join(current_app.config['BASE_DIR'], 'career_data'))
+        bundle_path = create_bundle_backup(db_path, data_dir, career_dir=career_dir, tag="manual")
+        if bundle_path:
+            flash(f'成功创建全量安全资产包：{bundle_path.name}')
+        else:
+            flash('创建资产包失败：源文件不存在')
+    except Exception as e:
+        flash(f'创建资产包异常：{str(e)}')
+    return redirect(url_for('backup.backup_page'))
+
+
+@bp.route('/backup/vault/restore', methods=['POST'])
+def restore_from_vault():
+    """从外部安全区快照或全量包一键自愈还原。"""
+    target_filename = request.form.get('filename')
+    backup_type = request.form.get('type', 'db')  # db 或 bundle
+    
+    if not target_filename:
+        flash('未指定恢复目标文件')
+        return redirect(url_for('backup.backup_page'))
+
+    vault_root = get_backup_root()
+    db_path = Config.SQLALCHEMY_DATABASE_URI.replace('sqlite:///', '')
+    data_dir = os.path.join(current_app.config['BASE_DIR'], 'data')
+    career_dir = getattr(Config, 'CAREER_DIR', os.path.join(current_app.config['BASE_DIR'], 'career_data'))
+
+    # 先对当前已有库做临时保留
+    if os.path.isfile(db_path):
+        bak_path = f"{db_path}.before_restore.{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        shutil.copy2(db_path, bak_path)
+
+    try:
+        if backup_type == 'bundle':
+            bundle_file = vault_root / 'bundles' / target_filename
+            success = restore_from_bundle(str(bundle_file), data_dir, target_career_dir=career_dir)
+        else:
+            snap_file = vault_root / 'snapshots' / target_filename
+            success = restore_from_snapshot(str(snap_file), db_path)
+
+        if success:
+            flash(f'成功从安全区还原：{target_filename}')
+        else:
+            flash(f'还原失败：目标文件不存在或解析异常')
+    except Exception as e:
+        flash(f'还原过程中发生异常：{str(e)}')
+
+    return redirect(url_for('backup.backup_page'))
+
 
 
 def _serialize(obj, model):
