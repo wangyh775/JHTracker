@@ -13,7 +13,7 @@
 <p align="center">
   <a href="docs/README_ZH.md"><img src="https://img.shields.io/badge/Language-%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87-blue.svg?style=for-the-badge" alt="简体中文" /></a>
   <a href="README.md"><img src="https://img.shields.io/badge/Language-English-indigo.svg?style=for-the-badge" alt="English" /></a>
-  <a href="https://github.com/diegosouzapw/JHTracker/releases"><img src="https://img.shields.io/badge/Version-v0.1.1_Genesis-cyan.svg?style=for-the-badge&logo=git&logoColor=white" alt="Release Version" /></a>
+  <a href="https://github.com/wangyh775/JHTracker/releases"><img src="https://img.shields.io/badge/Version-v0.1.1_Genesis-cyan.svg?style=for-the-badge&logo=git&logoColor=white" alt="Release Version" /></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-emerald.svg?style=for-the-badge" alt="MIT License" /></a>
   <a href="https://fastapi.tiangolo.com/"><img src="https://img.shields.io/badge/Backend-FastAPI_Python3.10+-009688.svg?style=for-the-badge&logo=fastapi&logoColor=white" alt="FastAPI" /></a>
   <a href="https://react.dev/"><img src="https://img.shields.io/badge/Frontend-React_18_TypeScript-61DAFB.svg?style=for-the-badge&logo=react&logoColor=black" alt="React 18" /></a>
@@ -157,6 +157,8 @@ JHTracker exposes an industrial-grade **FastMCP** (Model Context Protocol) serve
 
 ### Client Configuration
 
+Replace `<PROJECT_ROOT>` with the absolute path to your cloned repository (e.g. `/path/to/JHTracker` or `C:\\path\\to\\JHTracker`).
+
 #### Claude Desktop (`claude_desktop_config.json`)
 ```json
 {
@@ -164,7 +166,7 @@ JHTracker exposes an industrial-grade **FastMCP** (Model Context Protocol) serve
     "jhtracker": {
       "command": "python",
       "args": ["-m", "src.mcp_server"],
-      "cwd": "D:\\DJTU\\HermesWorkspace\\JHTracker\\backend"
+      "cwd": "<PROJECT_ROOT>/backend"
     }
   }
 }
@@ -178,7 +180,7 @@ JHTracker exposes an industrial-grade **FastMCP** (Model Context Protocol) serve
     "jhtracker": {
       "type": "local",
       "command": ["python", "-m", "src.mcp_server"],
-      "cwd": "D:\\DJTU\\HermesWorkspace\\JHTracker\\backend"
+      "cwd": "<PROJECT_ROOT>/backend"
     }
   }
 }
@@ -289,13 +291,6 @@ npm run build
   - Multi-engine AI resume optimizer supporting user-configured OpenAI-compatible APIs (`custom_api`), local CLI agents (`opencode`, `hermes`), and rule-based fallback (`builtin`).
   - FastMCP server exposing 10 audited tools for local AI agent orchestration.
   - Physical dual-DB architecture isolating user data in `~/.JHTracker/user_data.db`.
-- [ ] **v0.2.0 Expansion**:
-  - Direct integration with university career portal scraping pipelines.
-  - Automatic interview schedule calendar synchronization (`.ics` export & calendar alerts).
-  - Multi-modal resume parsing supporting PDF, DOCX, and scanned image OCR.
-- [ ] **v1.0.0 Enterprise**:
-  - Local LLM inference integration (Ollama / vLLM) for fully air-gapped on-device resume optimization.
-  - Multi-agent collaborative interview simulator with dynamic difficulty adjustment.
 
 ---
 

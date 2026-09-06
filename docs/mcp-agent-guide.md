@@ -113,10 +113,10 @@ graph TD
       "jhtracker": {
         "command": "python",
         "args": [
-          "D:\\DJTU\\HermesWorkspace\\JHTracker\\backend\\src\\mcp_server.py"
+          "<PROJECT_ROOT>/backend/src/mcp_server.py"
         ],
         "env": {
-          "PYTHONPATH": "D:\\DJTU\\HermesWorkspace\\JHTracker\\backend"
+          "PYTHONPATH": "<PROJECT_ROOT>/backend"
         }
       }
     }
@@ -139,9 +139,9 @@ graph TD
         "-m",
         "src.mcp_server"
       ],
-      "cwd": "D:\\DJTU\\HermesWorkspace\\JHTracker\\backend",
+      "cwd": "<PROJECT_ROOT>/backend",
       "env": {
-        "PYTHONPATH": "D:\\DJTU\\HermesWorkspace\\JHTracker\\backend"
+        "PYTHONPATH": "<PROJECT_ROOT>/backend"
       }
     }
   }

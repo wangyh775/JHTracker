@@ -13,7 +13,7 @@
 <p align="center">
   <a href="README_ZH.md"><img src="https://img.shields.io/badge/Language-%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87-blue.svg?style=for-the-badge" alt="简体中文" /></a>
   <a href="../README.md"><img src="https://img.shields.io/badge/Language-English-indigo.svg?style=for-the-badge" alt="English" /></a>
-  <a href="https://github.com/diegosouzapw/JHTracker/releases"><img src="https://img.shields.io/badge/Version-v0.1.1_Genesis-cyan.svg?style=for-the-badge&logo=git&logoColor=white" alt="Release Version" /></a>
+  <a href="https://github.com/wangyh775/JHTracker/releases"><img src="https://img.shields.io/badge/Version-v0.1.1_Genesis-cyan.svg?style=for-the-badge&logo=git&logoColor=white" alt="Release Version" /></a>
   <a href="../LICENSE"><img src="https://img.shields.io/badge/License-MIT-emerald.svg?style=for-the-badge" alt="MIT License" /></a>
   <a href="https://fastapi.tiangolo.com/"><img src="https://img.shields.io/badge/Backend-FastAPI_Python3.10+-009688.svg?style=for-the-badge&logo=fastapi&logoColor=white" alt="FastAPI" /></a>
   <a href="https://react.dev/"><img src="https://img.shields.io/badge/Frontend-React_18_TypeScript-61DAFB.svg?style=for-the-badge&logo=react&logoColor=black" alt="React 18" /></a>
@@ -157,6 +157,8 @@ JHTracker 基于标准 **Model Context Protocol (FastMCP)** 实现了跨平台�
 
 ### 客户端配置示例
 
+将配置中的 `<PROJECT_ROOT>` 替换为你克隆项目的实际绝对路径（如 Linux/macOS 的 `/path/to/JHTracker` 或 Windows 的 `C:\\path\\to\\JHTracker`）：
+
 #### Claude Desktop 配置 (`claude_desktop_config.json`)
 ```json
 {
@@ -164,7 +166,7 @@ JHTracker 基于标准 **Model Context Protocol (FastMCP)** 实现了跨平台�
     "jhtracker": {
       "command": "python",
       "args": ["-m", "src.mcp_server"],
-      "cwd": "D:\\DJTU\\HermesWorkspace\\JHTracker\\backend"
+      "cwd": "<PROJECT_ROOT>/backend"
     }
   }
 }
@@ -178,7 +180,7 @@ JHTracker 基于标准 **Model Context Protocol (FastMCP)** 实现了跨平台�
     "jhtracker": {
       "type": "local",
       "command": ["python", "-m", "src.mcp_server"],
-      "cwd": "D:\\DJTU\\HermesWorkspace\\JHTracker\\backend"
+      "cwd": "<PROJECT_ROOT>/backend"
     }
   }
 }
@@ -289,13 +291,6 @@ npm run build
   - 多通道 AI 简历调优引擎（支持直连自定义 OpenAI 兼容 API、本地 CLI 智能体与内置启发式规则）；
   - FastMCP 原生服务与 10 大受控智能体工具封装；
   - 物理双库隔离体系 (`~/.JHTracker/user_data.db`)。
-- [ ] **v0.2.0 Expansion**:
-  - 全国高校就业信息网长尾招聘增量采集管道集成；
-  - 笔试与面试日程一键导出为 `.ics` ics日历订阅与微信告警通知；
-  - 多模态简历解析能力（支持 PDF、DOCX 及扫描件本地 OCR 提取）。
-- [ ] **v1.0.0 Enterprise**:
-  - 集成 Ollama / vLLM 本地大模型推理后端，实现 100% 离线隐私改写；
-  - 多智能体协同模拟面试系统（支持根据 JD 生成深挖技术问题与好坏答案对比）。
 
 ---
 
