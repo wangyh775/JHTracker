@@ -1,0 +1,49 @@
+# Node / Frontend
+node_modules/
+dist/
+build/
+*.log
+*.log.*
+logs/
+.env*
+.vite/
+
+# Python / Backend
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+venv/
+env/
+dist/
+*.egg-info/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Local User Data & SQLite Cache (Private Data Isolation)
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+*.bak
+*_backup_*.db
+data/
+backend/scripts/migrate_from_career_tracker.py
+wcv_cards_cache.json
+
+# System / IDE
+.DS_Store
+Thumbs.db
+*.tmp
+*.swp
+.vscode/
+.idea/
+
+.opencode/
+.specify/
+specs/
+openspec/
+data/
+

@@ -1,0 +1,161 @@
+<svg viewBox="0 0 1200 660" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="JHTracker Physical Dual-DB Isolation and Agent Scheduling Topology">
+  <defs>
+    <radialGradient id="archGlowCyan" cx="20%" cy="15%" r="55%">
+      <stop offset="0%" stop-color="#06b6d4" stop-opacity="0.16"/>
+      <stop offset="60%" stop-color="#3b82f6" stop-opacity="0.04"/>
+      <stop offset="100%" stop-color="#080b11" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="archGlowPurp" cx="80%" cy="15%" r="55%">
+      <stop offset="0%" stop-color="#8b5cf6" stop-opacity="0.16"/>
+      <stop offset="60%" stop-color="#d946ef" stop-opacity="0.04"/>
+      <stop offset="100%" stop-color="#080b11" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="archGridPattern" width="28" height="28" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="0.8" fill="#ffffff" fill-opacity="0.06"/>
+    </pattern>
+
+    <!-- Animated Data Paths -->
+    <path id="flowWebToApi" d="M 300,105 L 300,178"/>
+    <path id="flowAgentToMcp" d="M 900,105 L 900,178"/>
+    <path id="flowApiToPub" d="M 230,340 C 230,400 230,410 230,460"/>
+    <path id="flowApiToPriv" d="M 370,340 C 370,400 780,390 780,460"/>
+    <path id="flowMcpToPub" d="M 830,340 C 830,400 420,390 420,460"/>
+    <path id="flowMcpToPriv" d="M 970,340 C 970,400 970,410 970,460"/>
+  </defs>
+
+  <!-- Background Base -->
+  <rect width="1200" height="660" fill="#080b11"/>
+  <rect width="1200" height="660" fill="url(#archGridPattern)"/>
+  <rect width="1200" height="660" fill="url(#archGlowCyan)"/>
+  <rect width="1200" height="660" fill="url(#archGlowPurp)"/>
+
+  <!-- Outer Frame -->
+  <rect x="20" y="20" width="1160" height="620" rx="16" fill="#0c1018" fill-opacity="0.85" stroke="#1e293b" stroke-width="1.2"/>
+
+  <!-- Top Title Header -->
+  <g transform="translate(45, 48)">
+    <rect x="0" y="0" width="175" height="22" rx="11" fill="#1e1b4b" stroke="#6366f1" stroke-width="1"/>
+    <text x="87" y="15" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#a5b4fc" letter-spacing="1.5">SECURITY ARCHITECTURE</text>
+    <text x="195" y="16" font-family="Inter, -apple-system, sans-serif" font-size="17" font-weight="700" fill="#f1f5f9">
+      Dual-Database Physical Isolation &amp; Agent Scheduling Topology
+    </text>
+    <text x="1115" y="15" text-anchor="end" font-family="'JetBrains Mono', monospace" font-size="11" fill="#64748b">Zero Cloud Telemetry · Safe AI Sandbox</text>
+  </g>
+
+  <!-- ═══════════════ CLIENT LAYER (Top) ═══════════════ -->
+  <!-- Left Box: Web Interactive Lobby -->
+  <g transform="translate(70, 75)">
+    <rect x="0" y="0" width="450" height="52" rx="10" fill="#101725" stroke="#0ea5e9" stroke-width="1.2"/>
+    <circle cx="24" cy="26" r="5" fill="#38bdf8">
+      <animate attributeName="opacity" values="1;0.3;1" dur="2s" repeatCount="indefinite"/>
+    </circle>
+    <text x="40" y="31" font-family="Inter, -apple-system, sans-serif" font-size="13.5" font-weight="700" fill="#f1f5f9">🖥️ Web Interactive Lobby (React 18 + AG Grid + Spline 3D)</text>
+  </g>
+
+  <!-- Right Box: Agent Hub -->
+  <g transform="translate(680, 75)">
+    <rect x="0" y="0" width="450" height="52" rx="10" fill="#1a1228" stroke="#8b5cf6" stroke-width="1.2"/>
+    <circle cx="24" cy="26" r="5" fill="#a855f7">
+      <animate attributeName="opacity" values="1;0.3;1" dur="2s" repeatCount="indefinite"/>
+    </circle>
+    <text x="40" y="31" font-family="Inter, -apple-system, sans-serif" font-size="13.5" font-weight="700" fill="#f1f5f9">🤖 Autonomous Agent Hub (Claude / OpenCode / Cursor)</text>
+  </g>
+
+  <!-- Animated Connection: Client to Middleware -->
+  <use href="#flowWebToApi" stroke="#38bdf8" stroke-width="1.6" stroke-dasharray="3 5" opacity="0.4"/>
+  <use href="#flowAgentToMcp" stroke="#a855f7" stroke-width="1.6" stroke-dasharray="3 5" opacity="0.4"/>
+  <g fill="#38bdf8"><circle r="3.5"><animateMotion dur="1.5s" repeatCount="indefinite"><mpath href="#flowWebToApi"/></animateMotion></circle></g>
+  <g fill="#a855f7"><circle r="3.5"><animateMotion dur="1.5s" repeatCount="indefinite"><mpath href="#flowAgentToMcp"/></animateMotion></circle></g>
+  <text x="312" y="152" font-family="'JetBrains Mono', monospace" font-size="11" font-weight="600" fill="#38bdf8">RESTful / HTTP :8000</text>
+  <text x="912" y="152" font-family="'JetBrains Mono', monospace" font-size="11" font-weight="600" fill="#c084fc">JSON-RPC / stdio</text>
+
+  <!-- ═══════════════ MIDDLEWARE ZONE (Center) ═══════════════ -->
+  <rect x="50" y="175" width="1100" height="175" rx="14" fill="#0d121c" stroke="#1e293b" stroke-width="1.2"/>
+  <text x="75" y="202" font-family="'JetBrains Mono', monospace" font-size="11" letter-spacing="1.5" font-weight="700" fill="#64748b">BACKEND SERVICES MIDDLEWARE (PYTHON 3.10+)</text>
+
+  <!-- FastAPI Server Card -->
+  <g transform="translate(70, 215)">
+    <rect x="0" y="0" width="480" height="120" rx="10" fill="#121824" stroke="#0ea5e9" stroke-width="1"/>
+    <rect x="0" y="0" width="480" height="26" rx="10" fill="#18253a"/>
+    <circle cx="16" cy="13" r="4" fill="#38bdf8"/>
+    <text x="28" y="17" font-family="Inter, sans-serif" font-size="12" font-weight="700" fill="#38bdf8">⚡ FastAPI Web Core Server (:8000)</text>
+    
+    <text x="16" y="48" font-family="Inter, sans-serif" font-size="11.5" fill="#cbd5e1">• High-throughput REST endpoints &amp; Swagger interactive API</text>
+    <text x="16" y="68" font-family="Inter, sans-serif" font-size="11.5" fill="#cbd5e1">• <tspan fill="#38bdf8" font-weight="bold">&lt;50ms FTS5 search</tspan> on 24,000+ campus positions</text>
+    <text x="16" y="88" font-family="Inter, sans-serif" font-size="11.5" fill="#cbd5e1">• ATS precision keywords radar &amp; 6-stage Kanban lifecycle</text>
+    <text x="16" y="108" font-family="Inter, sans-serif" font-size="11.5" fill="#cbd5e1">• Multi-channel recruitment sync &amp; deduplication runner</text>
+  </g>
+
+  <!-- FastMCP Agent Service Card -->
+  <g transform="translate(650, 215)">
+    <rect x="0" y="0" width="480" height="120" rx="10" fill="#181224" stroke="#8b5cf6" stroke-width="1"/>
+    <rect x="0" y="0" width="480" height="26" rx="10" fill="#251a3a"/>
+    <circle cx="16" cy="13" r="4" fill="#a855f7"/>
+    <text x="28" y="17" font-family="Inter, sans-serif" font-size="12" font-weight="700" fill="#c084fc">🔌 FastMCP Agent Service (8 Controlled Tools)</text>
+    
+    <text x="16" y="48" font-family="Inter, sans-serif" font-size="11.5" fill="#cbd5e1">• <tspan fill="#6ee7b7" font-weight="600">job_search / job_recommend / job_feedback</tspan></text>
+    <text x="16" y="68" font-family="Inter, sans-serif" font-size="11.5" fill="#cbd5e1">• <tspan fill="#6ee7b7" font-weight="600">resume_optimize / resume_get_profile</tspan></text>
+    <text x="16" y="88" font-family="Inter, sans-serif" font-size="11.5" fill="#cbd5e1">• <tspan fill="#6ee7b7" font-weight="600">job_get_detail / job_add_external / job_sync_run</tspan></text>
+    <text x="16" y="108" font-family="Inter, sans-serif" font-size="11" fill="#94a3b8">Strict input regex guards prevent SQLi &amp; path traversal</text>
+  </g>
+
+  <!-- Center HITL Engine Badge -->
+  <g transform="translate(565, 245)">
+    <rect x="-42" y="0" width="84" height="60" rx="10" fill="#0c2019" stroke="#10b981" stroke-width="1.5"/>
+    <text x="0" y="24" font-family="Inter, sans-serif" font-size="12" font-weight="bold" fill="#10b981" text-anchor="middle">🧠 HITL</text>
+    <text x="0" y="42" font-family="'JetBrains Mono', monospace" font-size="10" font-weight="bold" fill="#6ee7b7" text-anchor="middle">Engine</text>
+  </g>
+
+  <!-- Animated Stream: Middleware to DBs -->
+  <use href="#flowApiToPub" stroke="#0ea5e9" stroke-width="1.4" stroke-dasharray="3 5" opacity="0.35"/>
+  <use href="#flowApiToPriv" stroke="#38bdf8" stroke-width="1.4" stroke-dasharray="3 5" opacity="0.35"/>
+  <use href="#flowMcpToPub" stroke="#8b5cf6" stroke-width="1.4" stroke-dasharray="3 5" opacity="0.35"/>
+  <use href="#flowMcpToPriv" stroke="#c084fc" stroke-width="1.4" stroke-dasharray="3 5" opacity="0.35"/>
+
+  <g fill="#0ea5e9"><circle r="3.2"><animateMotion dur="2.2s" repeatCount="indefinite"><mpath href="#flowApiToPub"/></animateMotion></circle></g>
+  <g fill="#38bdf8"><circle r="3.2"><animateMotion dur="2.8s" repeatCount="indefinite" begin="0.5s"><mpath href="#flowApiToPriv"/></animateMotion></circle></g>
+  <g fill="#8b5cf6"><circle r="3.2"><animateMotion dur="2.8s" repeatCount="indefinite" begin="1s"><mpath href="#flowMcpToPub"/></animateMotion></circle></g>
+  <g fill="#c084fc"><circle r="3.2"><animateMotion dur="2.2s" repeatCount="indefinite" begin="1.5s"><mpath href="#flowMcpToPriv"/></animateMotion></circle></g>
+
+  <!-- ═══════════════ DATA LAYER: PHYSICAL DUAL-DB ISOLATION ═══════════════ -->
+  <!-- Public DB Container (Left) -->
+  <g transform="translate(70, 460)">
+    <rect x="0" y="0" width="470" height="165" rx="12" fill="#0d141e" stroke="#0ea5e9" stroke-width="1.5"/>
+    <rect x="0" y="0" width="470" height="32" rx="12" fill="#142234"/>
+    <circle cx="16" cy="16" r="4" fill="#38bdf8"/>
+    <text x="28" y="21" font-family="Inter, sans-serif" font-size="12.5" font-weight="700" fill="#38bdf8">🌐 Public Open Data Repository</text>
+    <text x="450" y="21" text-anchor="end" font-family="'JetBrains Mono', monospace" font-size="10.5" fill="#6ee7b7">● Open in Repo</text>
+
+    <text x="16" y="55" font-family="'JetBrains Mono', monospace" font-size="12" font-weight="bold" fill="#7dd3fc">📁 data/public_jobs.db</text>
+    <text x="16" y="78" font-family="Inter, sans-serif" font-size="11.5" fill="#cbd5e1">• <tspan fill="#f1f5f9" font-weight="600">jobs table</tspan>: 24,000+ real campus/internship postings</text>
+    <text x="16" y="98" font-family="Inter, sans-serif" font-size="11.5" fill="#cbd5e1">• <tspan fill="#f1f5f9" font-weight="600">jobs_fts virtual table</tspan>: SQLite FTS5 inverted search</text>
+    <text x="16" y="118" font-family="Inter, sans-serif" font-size="11.5" fill="#cbd5e1">• <tspan fill="#f1f5f9" font-weight="600">external_jobs</tspan>: Agent external ingestion with SHA-256 dedup</text>
+    <text x="16" y="145" font-family="Inter, sans-serif" font-size="11" font-weight="600" fill="#38bdf8">✓ Completely trackable in Git, open for collaborative distribution</text>
+  </g>
+
+  <!-- Physical Firewall Barrier in between -->
+  <g transform="translate(565, 470)">
+    <line x1="35" y1="0" x2="35" y2="150" stroke="#f43f5e" stroke-width="2.5" stroke-dasharray="6 4">
+      <animate attributeName="stroke-opacity" values="1;0.4;1" dur="2s" repeatCount="indefinite"/>
+    </line>
+    <circle cx="35" cy="72" r="24" fill="#200d11" stroke="#ef4444" stroke-width="1.6"/>
+    <text x="35" y="77" font-family="Inter, sans-serif" font-size="18" text-anchor="middle">🛡️</text>
+    <text x="35" y="112" font-family="'JetBrains Mono', monospace" font-size="9" font-weight="bold" fill="#fda4af" text-anchor="middle">PHYSICAL</text>
+    <text x="35" y="125" font-family="'JetBrains Mono', monospace" font-size="9" font-weight="bold" fill="#fda4af" text-anchor="middle">AIRGAP</text>
+  </g>
+
+  <!-- Private DB Container (Right) -->
+  <g transform="translate(660, 460)">
+    <rect x="0" y="0" width="470" height="165" rx="12" fill="#081812" stroke="#10b981" stroke-width="1.5"/>
+    <rect x="0" y="0" width="470" height="32" rx="12" fill="#0f2b20"/>
+    <circle cx="16" cy="16" r="4" fill="#10b981"/>
+    <text x="28" y="21" font-family="Inter, sans-serif" font-size="12.5" font-weight="700" fill="#34d399">🔒 User Private Asset Vault</text>
+    <text x="450" y="21" text-anchor="end" font-family="'JetBrains Mono', monospace" font-size="10.5" fill="#f43f5e">● Never Cloud</text>
+
+    <text x="16" y="55" font-family="'JetBrains Mono', monospace" font-size="12" font-weight="bold" fill="#6ee7b7">📁 ~/.JHTracker/user_data.db (OS User Home)</text>
+    <text x="16" y="78" font-family="Inter, sans-serif" font-size="11.5" fill="#cbd5e1">• <tspan fill="#f1f5f9" font-weight="600">resumes</tspan>: Read-only master resume &amp; tailored branch tree</text>
+    <text x="16" y="98" font-family="Inter, sans-serif" font-size="11.5" fill="#cbd5e1">• <tspan fill="#f1f5f9" font-weight="600">applications</tspan>: 6-stage lifecycle tracking &amp; retro notes</text>
+    <text x="16" y="118" font-family="Inter, sans-serif" font-size="11.5" fill="#cbd5e1">• <tspan fill="#f1f5f9" font-weight="600">hitl_weights</tspan>: Dynamic preference matrix across tags/cities</text>
+    <text x="16" y="145" font-family="Inter, sans-serif" font-size="11" font-weight="600" fill="#34d399">✓ Physically detached from repo, zero git leak risk, never exported</text>
+  </g>
+</svg>

@@ -1,0 +1,264 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --bg-main: #0a0a0e;
+    --bg-card: #0e1017;
+    --border-color: #1e2235;
+    --accent-cyan: #06b6d4;
+    --accent-emerald: #10b981;
+    --accent-violet: #8b5cf6;
+  }
+
+  *,
+  ::before,
+  ::after {
+    border-color: #1e2235;
+  }
+
+  body {
+    background-color: var(--bg-main);
+    color: #e2e8f0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    -webkit-font-smoothing: antialiased;
+  }
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #0a0a0e;
+}
+::-webkit-scrollbar-thumb {
+  background: #1e2235;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #06b6d4;
+}
+
+/* =========================================================
+   AG Grid Cyber-Dark Customized Theme
+   ========================================================= */
+
+.ag-theme-alpine-dark.ag-theme-custom-dark,
+.ag-theme-custom-dark {
+  /* Dimensions & Base Fonts */
+  --ag-font-size: 12px;
+  --ag-font-family: inherit;
+  --ag-grid-size: 6px;
+  --ag-row-height: 48px;
+  --ag-header-height: 42px;
+
+  /* Global Colors aligned to JHTracker Cyber-Dark (Scheme A: Low-key subtle borders) */
+  --ag-background-color: #0e1017 !important;
+  --ag-data-background-color: #0e1017 !important;
+  --ag-foreground-color: #cbd5e1 !important;
+  --ag-data-color: #e2e8f0 !important;
+  --ag-border-color: #1e2235 !important;
+  --ag-secondary-border-color: #161926 !important;
+  --ag-row-border-color: #161926 !important;
+  --ag-cell-horizontal-border: solid transparent !important;
+
+  /* Header */
+  --ag-header-background-color: #131520 !important;
+  --ag-header-foreground-color: #94a3b8 !important;
+  --ag-header-cell-hover-background-color: #1a1d2d !important;
+  --ag-header-cell-moving-background-color: #22273d !important;
+  --ag-header-column-separator-display: block;
+  --ag-header-column-separator-color: #1e2235 !important;
+  --ag-header-column-resize-handle-color: #06b6d4 !important;
+
+  /* Rows */
+  --ag-odd-row-background-color: #0b0d14 !important;
+  --ag-row-hover-color: #161a29 !important;
+  --ag-selected-row-background-color: rgba(6, 182, 212, 0.15) !important;
+  --ag-control-panel-background-color: #0e1017 !important;
+  --ag-subheader-background-color: #131520 !important;
+  --ag-modal-overlay-background-color: rgba(14, 16, 23, 0.85) !important;
+
+  /* Active & Accent & Focus Range (eliminate bright white borders) */
+  --ag-active-color: #06b6d4 !important;
+  --ag-icon-font-color: #94a3b8 !important;
+  --ag-range-selection-border-color: rgba(6, 182, 212, 0.45) !important;
+  --ag-input-focus-border-color: rgba(6, 182, 212, 0.5) !important;
+  --ag-focus-shadow: 0 0 0 1px rgba(6, 182, 212, 0.25) !important;
+
+  /* Menus & Popups */
+  --ag-menu-background-color: #131520 !important;
+  --ag-menu-border-color: #1e2235 !important;
+  --ag-popup-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.7);
+  --ag-card-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.7);
+}
+
+.ag-theme-custom-dark .ag-root-wrapper,
+.ag-theme-custom-dark .ag-root-wrapper-body,
+.ag-theme-custom-dark .ag-root {
+  border: none !important;
+  border-radius: 0 !important;
+  overflow: hidden;
+  background-color: #0e1017 !important;
+}
+
+.ag-theme-custom-dark .ag-header {
+  background-color: #131520 !important;
+  border-bottom: 1px solid #1e2235 !important;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.ag-theme-custom-dark .ag-header-row {
+  background-color: #131520 !important;
+}
+
+.ag-theme-custom-dark .ag-header-cell {
+  background-color: #131520 !important;
+}
+
+.ag-theme-custom-dark .ag-pinned-left-header,
+.ag-theme-custom-dark .ag-cell.ag-cell-last-left-pinned {
+  border-right: 1px solid #1f2438 !important;
+  box-shadow: 4px 0 12px -2px rgba(0, 0, 0, 0.7);
+  background-color: #0e1017 !important;
+}
+
+.ag-theme-custom-dark .ag-pinned-right-header,
+.ag-theme-custom-dark .ag-cell.ag-cell-first-right-pinned {
+  border-left: 1px solid #1f2438 !important;
+  box-shadow: -4px 0 12px -2px rgba(0, 0, 0, 0.7);
+  background-color: #0e1017 !important;
+}
+
+.ag-theme-custom-dark .ag-grid-pinned-left-cells,
+.ag-theme-custom-dark .ag-grid-pinned-right-cells,
+.ag-theme-custom-dark .ag-grid-scrolling-cells,
+.ag-theme-custom-dark .ag-grid-container-wrapper,
+.ag-theme-custom-dark .ag-spanned-cell-wrapper {
+  background-color: inherit !important;
+  background-image: none !important;
+}
+
+.ag-theme-custom-dark .ag-row:not(.ag-header-row) > .ag-grid-pinned-left-cells,
+.ag-theme-custom-dark .ag-row:not(.ag-header-row) > .ag-grid-pinned-right-cells {
+  background-color: inherit !important;
+  background-image: none !important;
+}
+
+.ag-theme-custom-dark .ag-header-row > .ag-grid-pinned-left-cells,
+.ag-theme-custom-dark .ag-header-row > .ag-grid-pinned-right-cells {
+  background-color: #131520 !important;
+  background-image: none !important;
+}
+
+.ag-theme-custom-dark .ag-row {
+  background-color: #0e1017 !important;
+  border-bottom: 1px solid #161926 !important;
+  color: #e2e8f0 !important;
+  transition: background-color 0.15s ease;
+}
+
+.ag-theme-custom-dark .ag-row-odd {
+  background-color: #0b0d14 !important;
+}
+
+.ag-theme-custom-dark .ag-row-hover,
+.ag-theme-custom-dark .ag-row:hover {
+  background-color: #161a29 !important;
+}
+
+.ag-theme-custom-dark .ag-row-hover .ag-cell,
+.ag-theme-custom-dark .ag-row:hover .ag-cell {
+  background-color: #161a29 !important;
+}
+
+.ag-theme-custom-dark .ag-cell {
+  display: flex;
+  align-items: center;
+  color: #e2e8f0 !important;
+  border-right-color: transparent !important;
+  overflow: hidden !important;
+}
+
+/* Eliminate white cell focus outline and replace with subtle glowing border */
+.ag-theme-custom-dark .ag-cell-focus:not(.ag-cell-range-selected):focus-within,
+.ag-theme-custom-dark .ag-cell-focus:focus {
+  border: 1px solid rgba(6, 182, 212, 0.45) !important;
+  outline: none !important;
+}
+
+.ag-theme-custom-dark .ag-header-cell:focus-visible::after {
+  border-color: rgba(6, 182, 212, 0.5) !important;
+}
+
+.ag-theme-custom-dark .ag-header-cell-text {
+  font-size: 11px;
+  text-transform: uppercase;
+  color: #94a3b8 !important;
+  font-weight: 600;
+}
+
+/* AG Grid Scrollbar and Loading Overlay */
+.ag-theme-custom-dark .ag-overlay-loading-wrapper,
+.ag-theme-custom-dark .ag-overlay-no-rows-wrapper {
+  background-color: rgba(14, 16, 23, 0.95) !important;
+  color: #94a3b8 !important;
+}
+
+.ag-theme-custom-dark .ag-body-viewport,
+.ag-theme-custom-dark .ag-body-horizontal-scroll-viewport,
+.ag-theme-custom-dark .ag-body-vertical-scroll-viewport,
+.ag-theme-custom-dark .ag-center-cols-viewport,
+.ag-theme-custom-dark .ag-center-cols-container,
+.ag-theme-custom-dark .ag-center-cols-clipper,
+.ag-theme-custom-dark .ag-pinned-left-cols-container,
+.ag-theme-custom-dark .ag-pinned-right-cols-container,
+.ag-theme-custom-dark .ag-root,
+.ag-theme-custom-dark .ag-body,
+.ag-theme-custom-dark .ag-horizontal-left-spacer,
+.ag-theme-custom-dark .ag-horizontal-right-spacer,
+.ag-theme-custom-dark .ag-body-horizontal-scroll,
+.ag-theme-custom-dark .ag-body-horizontal-scroll-end-spacer,
+.ag-theme-custom-dark .ag-body-vertical-scroll,
+.ag-theme-custom-dark .ag-body-vertical-scroll-container,
+.ag-theme-custom-dark .ag-body-vertical-scroll-start-spacer {
+  background-color: #0e1017 !important;
+  background-image: none !important;
+}
+
+.ag-theme-custom-dark .ag-header-row::after,
+.ag-theme-custom-dark .ag-row:not(.ag-header-row)::after,
+.ag-theme-custom-dark .ag-row.ag-embedded-full-width-row::after,
+.ag-theme-custom-dark .ag-spanned-row::after {
+  background-color: #0e1017 !important;
+  background-image: none !important;
+}
+
+/* ==========================================================================
+   Kanban High-Performance Native Virtualization (content-visibility + GPU)
+   ========================================================================== */
+.kanban-column-scroll {
+  contain: strict;
+  will-change: scroll-position;
+  scroll-behavior: smooth;
+  overscroll-behavior-y: contain;
+}
+
+.kanban-card-optimized {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 178px;
+  contain: layout style;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+.kanban-card-optimized[data-expanded="true"] {
+  contain-intrinsic-size: auto 340px;
+}
+

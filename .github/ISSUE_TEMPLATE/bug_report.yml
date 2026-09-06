@@ -1,0 +1,45 @@
+name: 🐛 Bug 报告 (Bug Report)
+description: 提交系统运行中的异常报错或未符合预期的行为
+title: "[BUG] <简短描述问题>"
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        感谢提交 Bug 报告！请尽可能详尽地填写以下信息，以帮助我们快速定位和修复问题。
+  - type: textarea
+    id: description
+    attributes:
+      label: 问题现象描述
+      description: 请清晰描述发生了什么，以及它应该呈现的正确预期。
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: 复现步骤
+      description: 触发该问题的步骤
+      placeholder: |
+        1. 启动后端和前端服务
+        2. 进入推荐看板或网申大厅
+        3. 点击 ... 触发操作
+        4. 出现错误 ...
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: 错误日志与终端输出
+      description: 请粘贴后端报错 Traceback 或浏览器控制台错误信息
+      render: shell
+  - type: dropdown
+    id: environment
+    attributes:
+      label: 运行操作系统
+      options:
+        - Windows 10/11
+        - macOS
+        - Linux (Ubuntu/Debian)
+        - 其他
+    validations:
+      required: true

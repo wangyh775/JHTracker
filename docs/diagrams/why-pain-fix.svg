@@ -1,0 +1,149 @@
+<svg viewBox="0 0 1200 580" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Why JHTracker — 6 Key Realities &amp; Engineering Solutions">
+  <defs>
+    <radialGradient id="painGlowTop" cx="80%" cy="10%" r="50%">
+      <stop offset="0%" stop-color="#06b6d4" stop-opacity="0.10"/>
+      <stop offset="60%" stop-color="#8b5cf6" stop-opacity="0.03"/>
+      <stop offset="100%" stop-color="#080b11" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="painGlowBot" cx="20%" cy="90%" r="50%">
+      <stop offset="0%" stop-color="#10b981" stop-opacity="0.08"/>
+      <stop offset="100%" stop-color="#080b11" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="gridDotP" width="28" height="28" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="0.8" fill="#ffffff" fill-opacity="0.05"/>
+    </pattern>
+    <linearGradient id="painPill" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#f43f5e" stop-opacity="0.18"/>
+      <stop offset="100%" stop-color="#ef4444" stop-opacity="0.04"/>
+    </linearGradient>
+    <linearGradient id="fixPill" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#10b981" stop-opacity="0.16"/>
+      <stop offset="100%" stop-color="#06b6d4" stop-opacity="0.05"/>
+    </linearGradient>
+    <linearGradient id="sweepGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#10b981" stop-opacity="0"/>
+      <stop offset="30%" stop-color="#10b981" stop-opacity="0.12"/>
+      <stop offset="70%" stop-color="#06b6d4" stop-opacity="0.12"/>
+      <stop offset="100%" stop-color="#06b6d4" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background Base -->
+  <rect width="1200" height="580" fill="#080b11"/>
+  <rect width="1200" height="580" fill="url(#gridDotP)"/>
+  <rect width="1200" height="580" fill="url(#painGlowTop)"/>
+  <rect width="1200" height="580" fill="url(#painGlowBot)"/>
+
+  <!-- Outer Border Frame -->
+  <rect x="20" y="20" width="1160" height="540" rx="14" fill="#0c1018" fill-opacity="0.88" stroke="#1e293b" stroke-width="1.2"/>
+
+  <!-- Top Title Bar -->
+  <g transform="translate(45, 46)">
+    <rect x="0" y="0" width="145" height="22" rx="11" fill="#1e1b4b" stroke="#6366f1" stroke-width="1"/>
+    <text x="72" y="15" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#a5b4fc" letter-spacing="1.5">WHY JHTRACKER</text>
+    <text x="165" y="16" font-family="Inter, -apple-system, sans-serif" font-size="16.5" font-weight="700" fill="#f1f5f9">
+      From scattered spreadsheets &amp; commercial black-boxes to <tspan fill="#38bdf8">an autonomous local-first engine</tspan>
+    </text>
+    <text x="1115" y="15" text-anchor="end" font-family="'JetBrains Mono', monospace" font-size="11" fill="#64748b">6 Core Engineering Architectural Shifts</text>
+  </g>
+
+  <!-- Column Header Bar -->
+  <g transform="translate(40, 84)">
+    <rect x="0" y="0" width="545" height="34" rx="8" fill="url(#painPill)" stroke="#f43f5e" stroke-width="0.8"/>
+    <circle cx="20" cy="17" r="4.5" fill="#f43f5e"/>
+    <text x="35" y="22" font-family="'JetBrains Mono', monospace" font-size="12" font-weight="700" fill="#fda4af" letter-spacing="1.2">TRADITIONAL WORKFLOW LIMITATIONS</text>
+
+    <rect x="575" y="0" width="545" height="34" rx="8" fill="url(#fixPill)" stroke="#10b981" stroke-width="0.8"/>
+    <circle cx="595" cy="17" r="4.5" fill="#10b981"/>
+    <text x="610" y="22" font-family="'JetBrains Mono', monospace" font-size="12" font-weight="700" fill="#6ee7b7" letter-spacing="1.2">HOW JHTRACKER ARCHITECTS IT</text>
+  </g>
+
+  <!-- Continuous Soft Sweeping Scanner Bar -->
+  <rect x="40" y="130" width="1120" height="56" rx="6" fill="url(#sweepGrad)">
+    <animate attributeName="y" calcMode="discrete" values="128;194;260;326;392;458" keyTimes="0;0.166;0.333;0.5;0.666;0.833" dur="12s" repeatCount="indefinite"/>
+    <animate attributeName="opacity" values="0;0.9;0.9;0" keyTimes="0;0.02;0.98;1" dur="12s" repeatCount="indefinite"/>
+  </rect>
+
+  <!-- ════════════════ 6 EXPANDED, BREATHABLE ROWS (Height 56px, Gap 10px) ════════════════ -->
+
+  <!-- Row 1: Job Discovery -->
+  <g transform="translate(40, 128)">
+    <rect x="0" y="0" width="545" height="56" rx="8" fill="#121722" stroke="#1e293b" stroke-width="0.8"/>
+    <rect x="14" y="18" width="20" height="20" rx="4" fill="#2d151c"/><text x="24" y="32" text-anchor="middle" font-family="monospace" font-size="12" font-weight="bold" fill="#f43f5e">✕</text>
+    <text x="44" y="26" font-family="Inter, sans-serif" font-size="12.5" font-weight="600" fill="#f1f5f9">Manual tracking across tabs &amp; static spreadsheets</text>
+    <text x="44" y="44" font-family="Inter, sans-serif" font-size="11" fill="#94a3b8">Spreadsheets become outdated quickly; no integrated full-text retrieval</text>
+
+    <rect x="575" y="0" width="545" height="56" rx="8" fill="#0f1922" stroke="#164e63" stroke-width="0.9"/>
+    <rect x="589" y="18" width="20" height="20" rx="4" fill="#06322b"/><text x="599" y="32" text-anchor="middle" font-family="monospace" font-size="11" font-weight="bold" fill="#10b981">✓</text>
+    <text x="619" y="26" font-family="Inter, sans-serif" font-size="12.5" font-weight="600" fill="#e2e8f0"><tspan fill="#38bdf8">24,000+ Job Lobby</tspan> with AG Grid Virtual Scrolling</text>
+    <text x="619" y="44" font-family="Inter, sans-serif" font-size="11" fill="#94a3b8">Pinned columns, sub-50ms SQLite FTS5 inverted search &amp; SHA-256 dedup</text>
+  </g>
+
+  <!-- Row 2: Privacy &amp; Data Ownership -->
+  <g transform="translate(40, 194)">
+    <rect x="0" y="0" width="545" height="56" rx="8" fill="#121722" stroke="#1e293b" stroke-width="0.8"/>
+    <rect x="14" y="18" width="20" height="20" rx="4" fill="#2d151c"/><text x="24" y="32" text-anchor="middle" font-family="monospace" font-size="12" font-weight="bold" fill="#f43f5e">✕</text>
+    <text x="44" y="26" font-family="Inter, sans-serif" font-size="12.5" font-weight="600" fill="#f1f5f9">Cloud-hosted storage &amp; centralized data custody</text>
+    <text x="44" y="44" font-family="Inter, sans-serif" font-size="11" fill="#94a3b8">Personal career records &amp; sensitive profile details hosted on 3rd-party servers</text>
+
+    <rect x="575" y="0" width="545" height="56" rx="8" fill="#0f1922" stroke="#164e63" stroke-width="0.9"/>
+    <rect x="589" y="18" width="20" height="20" rx="4" fill="#06322b"/><text x="599" y="32" text-anchor="middle" font-family="monospace" font-size="11" font-weight="bold" fill="#10b981">✓</text>
+    <text x="619" y="26" font-family="Inter, sans-serif" font-size="12.5" font-weight="600" fill="#e2e8f0"><tspan fill="#10b981">Physical Dual-DB Isolation</tspan> Architecture</text>
+    <text x="619" y="44" font-family="Inter, sans-serif" font-size="11" fill="#94a3b8">Private vault locked in <tspan fill="#c084fc" font-family="'JetBrains Mono', monospace">~/.JHTracker</tspan>; completely detached from repository code</text>
+  </g>
+
+  <!-- Row 3: Recommendation &amp; Re-ranking -->
+  <g transform="translate(40, 260)">
+    <rect x="0" y="0" width="545" height="56" rx="8" fill="#121722" stroke="#1e293b" stroke-width="0.8"/>
+    <rect x="14" y="18" width="20" height="20" rx="4" fill="#2d151c"/><text x="24" y="32" text-anchor="middle" font-family="monospace" font-size="12" font-weight="bold" fill="#f43f5e">✕</text>
+    <text x="44" y="26" font-family="Inter, sans-serif" font-size="12.5" font-weight="600" fill="#f1f5f9">Opaque algorithmic ranking with commercial weighting</text>
+    <text x="44" y="44" font-family="Inter, sans-serif" font-size="11" fill="#94a3b8">Commercial feed priorities often conflict with authentic candidate relevance</text>
+
+    <rect x="575" y="0" width="545" height="56" rx="8" fill="#0f1922" stroke="#164e63" stroke-width="0.9"/>
+    <rect x="589" y="18" width="20" height="20" rx="4" fill="#06322b"/><text x="599" y="32" text-anchor="middle" font-family="monospace" font-size="11" font-weight="bold" fill="#10b981">✓</text>
+    <text x="619" y="26" font-family="Inter, sans-serif" font-size="12.5" font-weight="600" fill="#e2e8f0"><tspan fill="#38bdf8">Transparent HITL Dynamic Loop</tspan> (Accept/Reject)</text>
+    <text x="619" y="44" font-family="Inter, sans-serif" font-size="11" fill="#94a3b8">Accept (+15% boost) / Reject (×0.70 decay floor &amp; permanent exclusion)</text>
+  </g>
+
+  <!-- Row 4: ATS Matching &amp; Resume Customization -->
+  <g transform="translate(40, 326)">
+    <rect x="0" y="0" width="545" height="56" rx="8" fill="#121722" stroke="#1e293b" stroke-width="0.8"/>
+    <rect x="14" y="18" width="20" height="20" rx="4" fill="#2d151c"/><text x="24" y="32" text-anchor="middle" font-family="monospace" font-size="12" font-weight="bold" fill="#f43f5e">✕</text>
+    <text x="44" y="26" font-family="Inter, sans-serif" font-size="12.5" font-weight="600" fill="#f1f5f9">Guessing ATS match rates without gap visibility</text>
+    <text x="44" y="44" font-family="Inter, sans-serif" font-size="11" fill="#94a3b8">Difficult to know missing skill keywords across high-volume postings</text>
+
+    <rect x="575" y="0" width="545" height="56" rx="8" fill="#0f1922" stroke="#164e63" stroke-width="0.9"/>
+    <rect x="589" y="18" width="20" height="20" rx="4" fill="#06322b"/><text x="599" y="32" text-anchor="middle" font-family="monospace" font-size="11" font-weight="bold" fill="#10b981">✓</text>
+    <text x="619" y="26" font-family="Inter, sans-serif" font-size="12.5" font-weight="600" fill="#e2e8f0"><tspan fill="#10b981">ATS Diagnostics &amp; Read-Only Master Protection</tspan></text>
+    <text x="619" y="44" font-family="Inter, sans-serif" font-size="11" fill="#94a3b8">Targeted skill gap recommendations without mutating candidate primary master</text>
+  </g>
+
+  <!-- Row 5: Lifecycle Tracking &amp; Kanban -->
+  <g transform="translate(40, 392)">
+    <rect x="0" y="0" width="545" height="56" rx="8" fill="#121722" stroke="#1e293b" stroke-width="0.8"/>
+    <rect x="14" y="18" width="20" height="20" rx="4" fill="#2d151c"/><text x="24" y="32" text-anchor="middle" font-family="monospace" font-size="12" font-weight="bold" fill="#f43f5e">✕</text>
+    <text x="44" y="26" font-family="Inter, sans-serif" font-size="12.5" font-weight="600" fill="#f1f5f9">Disjointed records across email, notes &amp; calendars</text>
+    <text x="44" y="44" font-family="Inter, sans-serif" font-size="11" fill="#94a3b8">Application progress, interview stages &amp; company portals lost in chaos</text>
+
+    <rect x="575" y="0" width="545" height="56" rx="8" fill="#0f1922" stroke="#164e63" stroke-width="0.9"/>
+    <rect x="589" y="18" width="20" height="20" rx="4" fill="#06322b"/><text x="599" y="32" text-anchor="middle" font-family="monospace" font-size="11" font-weight="bold" fill="#10b981">✓</text>
+    <text x="619" y="26" font-family="Inter, sans-serif" font-size="12.5" font-weight="600" fill="#e2e8f0"><tspan fill="#38bdf8">Unified 6-Stage Kanban Pipeline</tspan></text>
+    <text x="619" y="44" font-family="Inter, sans-serif" font-size="11" fill="#94a3b8">Integrated timeline, portal logins, interview schedules &amp; interview retro notes</text>
+  </g>
+
+  <!-- Row 6: AI Agent Integration -->
+  <g transform="translate(40, 458)">
+    <rect x="0" y="0" width="545" height="56" rx="8" fill="#121722" stroke="#1e293b" stroke-width="0.8"/>
+    <rect x="14" y="18" width="20" height="20" rx="4" fill="#2d151c"/><text x="24" y="32" text-anchor="middle" font-family="monospace" font-size="12" font-weight="bold" fill="#f43f5e">✕</text>
+    <text x="44" y="26" font-family="Inter, sans-serif" font-size="12.5" font-weight="600" fill="#f1f5f9">AI tools isolated in generic chat windows</text>
+    <text x="44" y="44" font-family="Inter, sans-serif" font-size="11" fill="#94a3b8">LLMs cannot directly query local job corpora, record pipelines, or sync state</text>
+
+    <rect x="575" y="0" width="545" height="56" rx="8" fill="#0f1922" stroke="#164e63" stroke-width="0.9"/>
+    <rect x="589" y="18" width="20" height="20" rx="4" fill="#06322b"/><text x="599" y="32" text-anchor="middle" font-family="monospace" font-size="11" font-weight="bold" fill="#10b981">✓</text>
+    <text x="619" y="26" font-family="Inter, sans-serif" font-size="12.5" font-weight="600" fill="#e2e8f0"><tspan fill="#a855f7">Native FastMCP Standard Hub</tspan> (8 Tools)</text>
+    <text x="619" y="44" font-family="Inter, sans-serif" font-size="11" fill="#94a3b8">Claude Code, Cursor, OpenCode seamlessly query, recommend &amp; track jobs</text>
+  </g>
+
+  <!-- Bottom Footer Line -->
+  <line x1="40" y1="535" x2="1160" y2="535" stroke="#1e293b" stroke-width="1"/>
+</svg>

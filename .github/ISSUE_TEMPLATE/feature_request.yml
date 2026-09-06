@@ -1,0 +1,28 @@
+name: 💡 功能建议或新爬虫适配 (Feature Request)
+description: 为 JHTracker 提出新功能构想、算法优化或新增招聘平台爬虫
+title: "[FEAT] <简短描述建议>"
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        欢迎提出您的创新想法与功能需求！
+  - type: textarea
+    id: problem
+    attributes:
+      label: 需求背景 / 遇到的痛点
+      description: 当前系统缺少什么能力，或者现有体验有什么不足？
+    validations:
+      required: true
+  - type: textarea
+    id: solution
+    attributes:
+      label: 期望的解决方案
+      description: 您希望实现什么样的交互、架构或算法机制？若涉及新网站爬虫，请附带目标站点与招聘专栏 URL。
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: 其他备选方案或参考
+      description: 是否有同类工具的良好实践或参考依据？
