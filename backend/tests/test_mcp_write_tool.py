@@ -9,9 +9,13 @@ sys.path.insert(0, os.path.abspath("backend"))
 from src.mcp_server import job_add_external, job_sync_run
 from src.repositories.job_repository import JobRepository
 from src.config import settings
+from src.db import init_public_db
 
 @pytest.mark.asyncio
 async def test_job_add_external_mapping():
+    # 确保 public_db 结构已初始化（尤其是全新 CI 环境下）
+    await init_public_db(settings.public_db_path)
+
     result = await job_add_external(
         title="AI研发工程师",
         company="测试科技有限公司",
