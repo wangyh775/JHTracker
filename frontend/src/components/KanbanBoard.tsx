@@ -25,7 +25,6 @@ import {
   FileCheck,
   Users,
   Award,
-  XCircle,
   Building2,
   Calendar,
   Sparkles,
@@ -109,16 +108,6 @@ export const STAGES: {
     badge: 'bg-emerald-950/60 text-emerald-400 border-emerald-500/40',
     border: 'border-emerald-500/30 hover:border-emerald-500/60',
     bg: 'bg-emerald-950/15',
-  },
-  {
-    id: 'REJECTED',
-    label: '已结束 / 归档',
-    shortLabel: '归档',
-    icon: XCircle,
-    color: 'text-rose-400',
-    badge: 'bg-rose-950/60 text-rose-400 border-rose-500/40',
-    border: 'border-rose-500/20 hover:border-rose-500/40',
-    bg: 'bg-rose-950/10',
   },
 ];
 

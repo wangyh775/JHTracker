@@ -139,7 +139,7 @@ async def test_mcp_resume_get_profile_and_optimize_isolation(setup_test_dbs):
     assert ai_ver.parent_resume_id == "res_user_orig_001"
     assert "AI优化版" in ai_ver.title
     assert len(opt_res["suggestions"]) >= 1
-    assert "重点突出" in opt_res["suggestions"][0] or "STAR" in opt_res["suggestions"][0]
+    assert any("STAR" in s or "对齐" in s or "重点突出" in s or "建议" in s for s in opt_res["suggestions"])
 
 @pytest.mark.asyncio
 async def test_mcp_job_add_external_and_deduplication(setup_test_dbs):

@@ -31,7 +31,7 @@ mcp = FastMCP("JHTracker-Engine")
 job_repo = JobRepository(settings.public_db_path)
 user_repo = UserRepository(settings.user_db_path)
 rec_service = RecommendationService(job_repo, user_repo)
-resume_service = ResumeService(job_repo, user_repo)
+resume_service = ResumeService(user_repo=user_repo, job_repo=job_repo)
 
 @mcp.tool()
 @audit_mcp_tool(tool_name="job_search")
@@ -201,6 +201,25 @@ async def resume_get_profile(
     if not resume:
         return {"found": False, "error": "No resume found"}
 
+    # 获取全量数据库与 HITL 学习权重矩阵的受控本体词表 (Ontology Context)
+    all_weights = await user_repo.get_all_feature_weights()
+    valid_categories = ["机械制造类", "软件研发类", "硬件/电子类", "算法/AI类", "产品/设计类", "运营/市场类", "职能/管理类", "其他专业技术"]
+    top_industries = [
+        k.replace("industry:", "") 
+        for k in all_weights.keys() 
+        if k.startswith("industry:")
+    ][:60]
+    preferred_cities = [
+        k.replace("city:", "") 
+        for k, w in all_weights.items() 
+        if k.startswith("city:") and w > 1.15
+    ]
+    preferred_industries = [
+        k.replace("industry:", "") 
+        for k, w in all_weights.items() 
+        if k.startswith("industry:") and w > 1.15
+    ]
+
     return {
         "found": True,
         "resume_id": resume.id,
@@ -211,7 +230,17 @@ async def resume_get_profile(
         "skills": resume.parsed_skills or [],
         "content_preview": (resume.content_md[:500] + "...") if resume.content_md and len(resume.content_md) > 500 else (resume.content_md or ""),
         "is_default": bool(resume.is_default),
-        "is_read_only_original": getattr(resume, "version_type", "ORIGINAL") == "ORIGINAL"
+        "is_read_only_original": getattr(resume, "version_type", "ORIGINAL") == "ORIGINAL",
+        "current_matrix": resume.keywords_matrix.dict() if getattr(resume, "keywords_matrix", None) and hasattr(resume.keywords_matrix, "dict") else getattr(resume, "keywords_matrix", None),
+        "ontology_context": {
+            "instruction": "请严格基于以下全量岗位库真实存在的本体词表进行投影映射，禁止捏造生僻无效词汇",
+            "valid_categories": valid_categories,
+            "top_industries_in_db": top_industries,
+            "hitl_user_preferences": {
+                "preferred_cities": preferred_cities,
+                "preferred_industries": preferred_industries
+            }
+        }
     }
 
 @mcp.tool()
@@ -244,6 +273,53 @@ async def resume_optimize(
             **res
         }
     except ValueError as e:
+        return {"success": False, "error": str(e)}
+
+@mcp.tool()
+@audit_mcp_tool(tool_name="resume_update_keywords_matrix")
+async def resume_update_keywords_matrix(
+    resume_id: str,
+    categories: Dict[str, Any]
+) -> Dict[str, Any]:
+    """
+    外部智能体提炼出的简历关键词矩阵回填工具。
+    智能体分析完用户的课题背景、项目与技能后，将带权重和分类的关键词矩阵存入用户画像中，
+    驱动本地双塔打分引擎实现毫米级高精度推荐。
+    
+    categories 参数结构:
+    {
+      "core": [{"keyword": "FastAPI", "weight": 2.5, "source": "毕业设计项目", "enabled": true}],
+      "domain": [{"keyword": "具身智能", "weight": 2.0, "source": "研究课题", "enabled": true}],
+      "base": [{"keyword": "Docker", "weight": 1.0, "source": "工程工具", "enabled": true}],
+      "negative": [{"keyword": "销售", "weight": 0.1, "source": "职业规划排斥", "enabled": true}]
+    }
+    """
+    clean_resume_id = sanitize_identifier(resume_id)
+    if not clean_resume_id:
+        return {"success": False, "error": f"Invalid resume_id format: '{resume_id}'"}
+        
+    try:
+        from src.models import KeywordMatrix, KeywordMatrixCategories
+        matrix_obj = KeywordMatrix(
+            categories=KeywordMatrixCategories(**categories),
+            updated_by="AGENT_INIT"
+        )
+        # 执行全量数据库真实命中率探测 (Pre-flight FTS Grounding)
+        grounded_result = await rec_service.validate_and_ground_matrix(matrix_obj)
+        grounded_matrix = KeywordMatrix(**grounded_result["matrix"])
+
+        updated = await user_repo.update_resume_keywords_matrix(clean_resume_id, grounded_matrix)
+        if not updated:
+            return {"success": False, "error": "Resume not found"}
+        return {
+            "success": True,
+            "resume_id": clean_resume_id,
+            "message": "关键词矩阵已通过全量库真实性探测并成功注入推荐引擎",
+            "zero_hit_keywords_disabled": grounded_result["zero_hit_keywords"],
+            "grounded_complete": grounded_result["grounded"],
+            "keywords_matrix": updated.keywords_matrix.model_dump() if updated.keywords_matrix else None
+        }
+    except Exception as e:
         return {"success": False, "error": str(e)}
 
 @mcp.tool()

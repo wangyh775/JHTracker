@@ -29,6 +29,10 @@ import {
   RefreshCw,
   Bot,
   AlertCircle,
+  Wand2,
+  Plus,
+  Save,
+  Tag,
 } from 'lucide-react';
 
 interface WeightDetail {
@@ -74,6 +78,14 @@ export const RecommendationPanel: React.FC<RecommendationPanelProps> = ({
   const [rejectModalJob, setRejectModalJob] = useState<{ id: string; company: string; title: string } | null>(null);
   const [selectedRejectReasons, setSelectedRejectReasons] = useState<string[]>([]);
   
+  // Keyword Matrix Editor State
+  const [showMatrixEditor, setShowMatrixEditor] = useState<boolean>(false);
+  const [isSavingMatrix, setIsSavingMatrix] = useState<boolean>(false);
+  const [newKeywordInput, setNewKeywordInput] = useState<{ category: 'core' | 'domain' | 'base' | 'negative'; text: string }>({
+    category: 'core',
+    text: '',
+  });
+
   // AbortController ref to prevent race conditions on concurrent fetches
   const recsAbortControllerRef = useRef<AbortController | null>(null);
 
@@ -308,8 +320,8 @@ export const RecommendationPanel: React.FC<RecommendationPanelProps> = ({
     <div className="space-y-4 font-sans text-[#f3f4f6]">
       {/* Dynamic Learning Feedback Toast */}
       {learningNotice && (
-        <div className="fixed top-6 right-6 z-50 flex items-center gap-3 px-4 py-3 rounded-xl bg-[#0e111a] border border-cyan-500/60 shadow-[0_0_25px_rgba(6,182,212,0.3)] text-xs text-cyan-200 animate-fade-in backdrop-blur-md">
-          <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0 animate-pulse" />
+        <div className="fixed top-6 right-6 z-50 flex items-center gap-3 px-4 py-3 rounded-xl bg-[#0e111a] border border-cyan-500/60 shadow-xl text-xs text-cyan-200 animate-fade-in backdrop-blur-md">
+          <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
           <span>{learningNotice}</span>
           {onNavigateToKanban && (
             <button
@@ -325,18 +337,14 @@ export const RecommendationPanel: React.FC<RecommendationPanelProps> = ({
 
       {/* Main Top Hub: Engine Profile & Lens */}
       <div className="relative overflow-hidden rounded-2xl border border-[#24283b] bg-gradient-to-r from-[#0d101a] via-[#121624] to-[#0f131f] p-5 shadow-xl">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-cyan-500/5 rounded-full blur-3xl pointer-events-none" />
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 relative z-10">
           <div className="space-y-1.5">
             <div className="flex items-center gap-2.5 flex-wrap">
-              <div className="p-1.5 rounded-lg bg-cyan-950/80 border border-cyan-500/40 text-cyan-400 shadow-[0_0_12px_rgba(6,182,212,0.4)]">
-                <Sparkles className="w-4 h-4 animate-spin-slow" />
+              <div className="p-1.5 rounded-lg bg-cyan-950/80 border border-cyan-500/40 text-cyan-400 shadow-sm">
+                <Sparkles className="w-4 h-4" />
               </div>
               <h1 className="text-lg font-bold tracking-tight text-white flex items-center gap-2">
                 智能协同推荐决策工作台
-                <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-cyan-950/70 border border-cyan-500/30 text-cyan-300 font-mono flex items-center gap-1">
-                  <Cpu className="w-3 h-3" /> HITL 强化闭环 v2.4
-                </span>
               </h1>
             </div>
             <p className="text-xs text-[#9ca3af] max-w-4xl leading-relaxed">
@@ -400,7 +408,7 @@ export const RecommendationPanel: React.FC<RecommendationPanelProps> = ({
             <div className="flex items-center gap-2 self-end md:self-auto flex-shrink-0">
               <button
                 onClick={() => handleFeedback(focusedInitialJob.id, 'ACCEPT', focusedInitialJob.company)}
-                className="px-3 py-1.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-medium inline-flex items-center gap-1 shadow-md shadow-cyan-900/40 transition-all"
+                className="px-3 py-1.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-medium inline-flex items-center gap-1 shadow-sm transition-all"
               >
                 <ThumbsUp className="w-3.5 h-3.5" />
                 加入待投递
@@ -432,7 +440,7 @@ export const RecommendationPanel: React.FC<RecommendationPanelProps> = ({
                   <div className="flex items-center gap-2">
                     <h3 className="text-xs font-bold text-white tracking-wide uppercase flex items-center gap-1.5">
                       AI 智能体特选直推专区
-                      <Sparkles className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
+                      <Sparkles className="w-3.5 h-3.5 text-amber-400" />
                     </h3>
                     <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
                       MCP 协同发现 ({agentPushes.length})
@@ -549,7 +557,7 @@ export const RecommendationPanel: React.FC<RecommendationPanelProps> = ({
                             className={`px-3 py-1.5 text-xs rounded-lg font-medium inline-flex items-center gap-1 shadow-sm transition-all ${
                               isAccepted
                                 ? 'bg-emerald-950/70 border border-emerald-500/40 text-emerald-300 cursor-default'
-                                : 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-indigo-950/50'
+                                : 'bg-indigo-600 hover:bg-indigo-500 text-white'
                             }`}
                           >
                             <ThumbsUp className="w-3.5 h-3.5" />
@@ -647,7 +655,7 @@ export const RecommendationPanel: React.FC<RecommendationPanelProps> = ({
             </div>
           ) : filteredRecs.length === 0 ? (
             <div className="py-20 text-center text-[#9ca3af] bg-[#0e111a] rounded-xl border border-[#24283b] text-xs space-y-3">
-              <Compass className="w-8 h-8 text-[#4b5563] mx-auto animate-bounce" />
+              <Compass className="w-8 h-8 text-[#4b5563] mx-auto" />
               <p className="text-sm font-medium text-white">当前筛选条件下暂无推荐岗位</p>
               <p className="text-[#6b7280] max-w-md mx-auto">
                 可尝试调低匹配度阈值（如设为 ≥50%）、重置城市筛选，或在右侧重置模型特征偏好。
@@ -691,15 +699,10 @@ export const RecommendationPanel: React.FC<RecommendationPanelProps> = ({
                     key={job.id}
                     className={`flex flex-col justify-between p-4 rounded-xl border transition-all duration-200 bg-[#0e111a] hover:bg-[#121624] relative group ${
                       isHighMatch
-                        ? 'border-cyan-500/40 hover:border-cyan-400/80 shadow-[0_0_15px_rgba(6,182,212,0.08)]'
+                        ? 'border-cyan-500/50 hover:border-cyan-400/80 shadow-sm'
                         : 'border-[#24283b] hover:border-[#384161]'
                     }`}
                   >
-                    {/* High match accent light */}
-                    {isHighMatch && (
-                      <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-cyan-400 to-transparent rounded-t-xl" />
-                    )}
-
                     <div className="space-y-2.5">
                       {/* Title & Score Indicator */}
                       <div className="flex items-start justify-between gap-2">
@@ -712,7 +715,7 @@ export const RecommendationPanel: React.FC<RecommendationPanelProps> = ({
                         <div
                           className={`flex-shrink-0 px-2 py-0.5 rounded-full text-[11px] font-mono font-bold border flex items-center gap-1 ${
                             isHighMatch
-                              ? 'bg-emerald-950/60 text-emerald-300 border-emerald-500/40 shadow-[0_0_10px_rgba(16,185,129,0.2)]'
+                              ? 'bg-emerald-950/60 text-emerald-300 border-emerald-500/40 shadow-sm'
                               : 'bg-cyan-950/40 text-cyan-300 border-cyan-500/30'
                           }`}
                         >
@@ -832,7 +835,7 @@ export const RecommendationPanel: React.FC<RecommendationPanelProps> = ({
                           className={`px-3 py-1.5 text-xs rounded-lg font-medium inline-flex items-center gap-1 shadow-sm transition-all ${
                             isAccepted
                               ? 'bg-emerald-950/70 border border-emerald-500/40 text-emerald-300 cursor-default'
-                              : 'bg-cyan-600 hover:bg-cyan-500 text-white shadow-cyan-950/50'
+                              : 'bg-cyan-600 hover:bg-cyan-500 text-white'
                           }`}
                         >
                           <ThumbsUp className="w-3.5 h-3.5" />
@@ -977,7 +980,7 @@ export const RecommendationPanel: React.FC<RecommendationPanelProps> = ({
                         <div
                           className={`h-full rounded-full transition-all duration-300 ${
                             isBoosted
-                              ? 'bg-gradient-to-r from-cyan-500 to-emerald-400 shadow-[0_0_8px_rgba(16,185,129,0.5)]'
+                              ? 'bg-gradient-to-r from-cyan-500 to-emerald-400'
                               : isDamped
                               ? 'bg-gradient-to-r from-rose-500 to-amber-500'
                               : 'bg-[#4b5563]'

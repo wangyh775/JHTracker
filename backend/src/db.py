@@ -75,6 +75,7 @@ CREATE TABLE IF NOT EXISTS resumes (
     content_md TEXT,
     target_job_id TEXT,
     parsed_skills TEXT,
+    keywords_matrix TEXT,
     is_default INTEGER DEFAULT 0,
     version_type TEXT DEFAULT 'ORIGINAL',
     parent_resume_id TEXT,
@@ -141,6 +142,12 @@ CREATE TABLE IF NOT EXISTS agent_pushes (
     match_score REAL DEFAULT 0.95,
     pushed_at TEXT DEFAULT (datetime('now', 'localtime'))
 );
+
+CREATE TABLE IF NOT EXISTS user_settings (
+    setting_key TEXT PRIMARY KEY,
+    setting_value TEXT NOT NULL,
+    updated_at TEXT DEFAULT (datetime('now', 'localtime'))
+);
 """
 
 async def init_public_db(db_path: Optional[Path] = None):
@@ -175,12 +182,27 @@ async def init_user_db(db_path: Optional[Path] = None):
         except Exception:
             pass
         try:
+            await db.execute("ALTER TABLE resumes ADD COLUMN keywords_matrix TEXT")
+        except Exception:
+            pass
+        try:
             await db.execute("ALTER TABLE applications ADD COLUMN is_archived INTEGER DEFAULT 0")
         except Exception:
             pass
         # Step 3: Run indexes that depend on migrated columns
         try:
             await db.execute("CREATE INDEX IF NOT EXISTS idx_applications_archived ON applications(is_archived)")
+        except Exception:
+            pass
+        # Step 4: Ensure user_settings table exists
+        try:
+            await db.execute("""
+                CREATE TABLE IF NOT EXISTS user_settings (
+                    setting_key TEXT PRIMARY KEY,
+                    setting_value TEXT NOT NULL,
+                    updated_at TEXT DEFAULT (datetime('now', 'localtime'))
+                )
+            """)
         except Exception:
             pass
         await db.commit()

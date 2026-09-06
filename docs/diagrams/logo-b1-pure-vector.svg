@@ -1,0 +1,204 @@
+<svg viewBox="0 0 1200 680" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="JHTracker Logo B1 - Pure Crisp Vector (Zero Glow)">
+  <defs>
+    <!-- Background Grid -->
+    <pattern id="cleanGrid" width="24" height="24" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#ffffff" fill-opacity="0.04"/>
+    </pattern>
+
+    <!-- Precise Flat Gradients (No Gaussian Blurs, No Shadows) -->
+    <linearGradient id="crispCyanBlue" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#22d3ee"/>
+      <stop offset="60%" stop-color="#0284c7"/>
+      <stop offset="100%" stop-color="#0369a1"/>
+    </linearGradient>
+
+    <linearGradient id="crispPurpleViolet" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#c084fc"/>
+      <stop offset="60%" stop-color="#7e22ce"/>
+      <stop offset="100%" stop-color="#581c87"/>
+    </linearGradient>
+
+    <linearGradient id="streamGradL" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8"/>
+      <stop offset="100%" stop-color="#6366f1"/>
+    </linearGradient>
+
+    <linearGradient id="streamGradR" x1="100%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#c084fc"/>
+      <stop offset="100%" stop-color="#38bdf8"/>
+    </linearGradient>
+
+    <!-- Card Background -->
+    <linearGradient id="cleanCardDark" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#111726"/>
+      <stop offset="100%" stop-color="#0a0e1a"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Base Dark Canvas (Zero Glow) -->
+  <rect width="1200" height="680" fill="#07090e"/>
+  <rect width="1200" height="680" fill="url(#cleanGrid)"/>
+
+  <!-- Top Title Banner -->
+  <g transform="translate(60, 40)">
+    <rect x="0" y="0" width="170" height="26" rx="6" fill="#0284c7" fill-opacity="0.18" stroke="#0284c7" stroke-width="1"/>
+    <text x="85" y="17" fill="#38bdf8" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" font-weight="700" text-anchor="middle" letter-spacing="1.5">ZERO-GLOW REFACTOR</text>
+    <text x="188" y="19" fill="#ffffff" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="22" font-weight="800" letter-spacing="0.5">方案 B1 极简高精重构：无微光纯矢量工业质感</text>
+    <text x="0" y="48" fill="#94a3b8" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="13">完全剥离模糊与光晕特效，采用精密几何刻度、纯色切线、高对比轨道与双环离子网格，干净硬朗</text>
+  </g>
+
+  <!-- ════════ PANEL 1: HERO DISPLAY (512x512 HIGH RES SCALE) ════════ -->
+  <g transform="translate(60, 115)">
+    <rect width="480" height="520" rx="16" fill="url(#cleanCardDark)" stroke="#1e293b" stroke-width="1.5"/>
+    <!-- Top badge -->
+    <rect x="20" y="20" width="130" height="24" rx="4" fill="#0284c7" fill-opacity="0.2"/>
+    <text x="85" y="36" fill="#38bdf8" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" font-weight="700" text-anchor="middle">512px / 视网膜主标展示</text>
+
+    <!-- Master Logo Container (320x320) -->
+    <g transform="translate(80, 80)">
+      <!-- Outer Solid Bezel (No blur, crisp chamfer) -->
+      <rect width="320" height="320" rx="64" fill="#0a0e18" stroke="#1e293b" stroke-width="2"/>
+      <rect x="8" y="8" width="304" height="304" rx="56" fill="#070a12" stroke="#334155" stroke-width="1" stroke-opacity="0.6"/>
+
+      <!-- Tech Calibration Hairlines & Crosshairs (Crisp 1px lines) -->
+      <circle cx="160" cy="160" r="128" fill="none" stroke="#1e293b" stroke-width="1"/>
+      <circle cx="160" cy="160" r="142" fill="none" stroke="#334155" stroke-width="1" stroke-dasharray="2 6"/>
+
+      <!-- Precision Axis Ticks -->
+      <line x1="160" y1="18" x2="160" y2="30" stroke="#38bdf8" stroke-width="2"/>
+      <line x1="160" y1="290" x2="160" y2="302" stroke="#38bdf8" stroke-width="2"/>
+      <line x1="18" y1="160" x2="30" y2="160" stroke="#38bdf8" stroke-width="2"/>
+      <line x1="290" y1="160" x2="302" y2="160" stroke="#38bdf8" stroke-width="2"/>
+
+      <!-- Sub-degree Calibration ticks (Angle 45, 135, 225, 315) -->
+      <line x1="60" y1="60" x2="68" y2="68" stroke="#475569" stroke-width="1.5"/>
+      <line x1="260" y1="60" x2="252" y2="68" stroke="#475569" stroke-width="1.5"/>
+      <line x1="60" y1="260" x2="68" y2="252" stroke="#475569" stroke-width="1.5"/>
+      <line x1="260" y1="260" x2="252" y2="252" stroke="#475569" stroke-width="1.5"/>
+
+      <!-- ════════ MAIN MÖBIUS ACCELERATOR LOOPS (CRISP VECTOR) ════════ -->
+      <!-- Left Track (Public Pool Accelerator - Cyan) -->
+      <path d="M 160 160 C 130 96, 68 96, 68 160 C 68 224, 130 224, 160 160" fill="none" stroke="url(#crispCyanBlue)" stroke-width="12" stroke-linecap="round"/>
+
+      <!-- Right Track (Private User Loop - Violet) with Pure Cutout Depth -->
+      <path d="M 160 160 C 190 224, 252 224, 252 160 C 252 96, 190 96, 160 160" fill="none" stroke="url(#crispPurpleViolet)" stroke-width="12" stroke-linecap="round"/>
+
+      <!-- Crisp Segmented Pulse Overlay (High contrast white & teal ticks) -->
+      <path d="M 160 160 C 130 96, 68 96, 68 160" fill="none" stroke="#ffffff" stroke-width="4" stroke-dasharray="10 14" stroke-linecap="round"/>
+      <path d="M 252 160 C 252 96, 190 96, 160 160" fill="none" stroke="#ffffff" stroke-width="4" stroke-dasharray="10 14" stroke-linecap="round"/>
+
+      <!-- Physical Cross Bridge Notch (Clear vector gap to establish Z-depth) -->
+      <circle cx="160" cy="160" r="22" fill="#070a12" stroke="#1e293b" stroke-width="1.5"/>
+
+      <!-- HITL Core Diamond & Pin-sharp Target Reticle (Zero Blur) -->
+      <polygon points="160,146 174,160 160,174 146,160" fill="#38bdf8"/>
+      <polygon points="160,151 169,160 160,169 151,160" fill="#ffffff"/>
+      <circle cx="160" cy="160" r="3" fill="#070a12"/>
+
+      <!-- Precise Data Nodes (Anchor Vertices) -->
+      <!-- J anchor (Bottom-Left) -->
+      <circle cx="86" cy="192" r="5" fill="#38bdf8" stroke="#070a12" stroke-width="2"/>
+      <path d="M 86 192 L 86 210 C 86 218 78 222 70 222" fill="none" stroke="#38bdf8" stroke-width="3" stroke-linecap="round"/>
+
+      <!-- H anchor (Top-Right) -->
+      <circle cx="234" cy="128" r="5" fill="#c084fc" stroke="#070a12" stroke-width="2"/>
+      <line x1="234" y1="128" x2="234" y2="106" stroke="#c084fc" stroke-width="3" stroke-linecap="round"/>
+      <line x1="244" y1="128" x2="244" y2="106" stroke="#c084fc" stroke-width="3" stroke-linecap="round"/>
+      <line x1="234" y1="117" x2="244" y2="117" stroke="#c084fc" stroke-width="2"/>
+    </g>
+
+    <!-- Bottom Caption -->
+    <text x="240" y="475" fill="#cbd5e1" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="13" font-weight="600" text-anchor="middle">JHTracker Quantum Loop · Industrial Edition</text>
+    <text x="240" y="496" fill="#64748b" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" text-anchor="middle">纯几何向量构建 | 0% 光晕模糊滤镜 | 100% 像素锐利级边缘</text>
+  </g>
+
+  <!-- ════════ PANEL 2: MULTI-SCALE PRACTICAL ADAPTATION ════════ -->
+  <g transform="translate(570, 115)">
+    <rect width="570" height="520" rx="16" fill="url(#cleanCardDark)" stroke="#1e293b" stroke-width="1.5"/>
+    
+    <!-- Top Header -->
+    <text x="24" y="38" fill="#e2e8f0" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="15" font-weight="700">实际工程场景实测 (Multi-Scale Testing)</text>
+    <text x="24" y="58" fill="#94a3b8" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12">验证无光晕方案在 Web 顶栏、浏览器标签页、移动端/桌面应用中的表现</text>
+
+    <!-- ── SCENE 1: APP TOPBAR (36px height) ── -->
+    <g transform="translate(24, 85)">
+      <rect width="522" height="64" rx="10" fill="#0a0a0e" stroke="#1e293b" stroke-width="1"/>
+      <text x="16" y="-8" fill="#64748b" font-family="monospace" font-size="11">SCENE 1: Web App Header Navigation (36px)</text>
+      
+      <!-- Logo in Topbar -->
+      <g transform="translate(16, 14)">
+        <rect width="36" height="36" rx="8" fill="#0f172a" stroke="#334155" stroke-width="1"/>
+        <!-- Scaled Mini Loop -->
+        <path d="M 18 18 C 14 10, 8 10, 8 18 C 8 26, 14 26, 18 18" fill="none" stroke="#38bdf8" stroke-width="3" stroke-linecap="round"/>
+        <path d="M 18 18 C 22 26, 28 26, 28 18 C 28 10, 22 10, 18 18" fill="none" stroke="#a855f7" stroke-width="3" stroke-linecap="round"/>
+        <!-- Core Reticle -->
+        <circle cx="18" cy="18" r="2.2" fill="#ffffff"/>
+      </g>
+      <!-- App Brand Text -->
+      <text x="62" y="31" fill="#f8fafc" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="16" font-weight="800" letter-spacing="0.5">JHTracker</text>
+      <rect x="156" y="22" width="76" height="18" rx="4" fill="#0369a1" fill-opacity="0.3"/>
+      <text x="194" y="34" fill="#38bdf8" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10" font-weight="700" text-anchor="middle">v0.1.0 内部态</text>
+
+      <!-- Dummy Nav Pills -->
+      <rect x="256" y="20" width="60" height="24" rx="6" fill="#1e293b"/>
+      <text x="286" y="35" fill="#94a3b8" font-size="11" text-anchor="middle">求职大厅</text>
+      <rect x="326" y="20" width="60" height="24" rx="6" fill="#1e293b"/>
+      <text x="356" y="35" fill="#94a3b8" font-size="11" text-anchor="middle">投递看板</text>
+      <rect x="396" y="20" width="60" height="24" rx="6" fill="#0284c7" fill-opacity="0.25" stroke="#0284c7" stroke-width="1"/>
+      <text x="426" y="35" fill="#38bdf8" font-size="11" text-anchor="middle">推荐中台</text>
+    </g>
+
+    <!-- ── SCENE 2: BROWSER TAB / FAVICON (16x16 & 32x32) ── -->
+    <g transform="translate(24, 195)">
+      <rect width="522" height="74" rx="10" fill="#0a0a0e" stroke="#1e293b" stroke-width="1"/>
+      <text x="16" y="-8" fill="#64748b" font-family="monospace" font-size="11">SCENE 2: Browser Tab / Favicon (16x16 / 32x32)</text>
+      
+      <!-- Fake Chrome Tab Bar -->
+      <g transform="translate(16, 16)">
+        <path d="M 0 38 L 16 8 L 180 8 L 196 38 Z" fill="#1e293b"/>
+        
+        <!-- Favicon 16px Box -->
+        <g transform="translate(24, 15)">
+          <rect width="18" height="18" rx="4" fill="#0a0e18"/>
+          <path d="M 9 9 C 7 5, 4 5, 4 9 C 4 13, 7 13, 9 9" fill="none" stroke="#38bdf8" stroke-width="2" stroke-linecap="round"/>
+          <path d="M 9 9 C 11 13, 14 13, 14 9 C 14 5, 11 5, 9 9" fill="none" stroke="#c084fc" stroke-width="2" stroke-linecap="round"/>
+          <circle cx="9" cy="9" r="1.2" fill="#ffffff"/>
+        </g>
+        <text x="48" y="28" fill="#e2e8f0" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" font-weight="600">JHTracker - 智能求职...</text>
+        <text x="175" y="27" fill="#64748b" font-size="12">×</text>
+      </g>
+
+      <!-- 32px Favicon enlarged view -->
+      <g transform="translate(250, 16)">
+        <rect width="42" height="42" rx="8" fill="#0a0e18" stroke="#334155" stroke-width="1"/>
+        <path d="M 21 21 C 16 11, 8 11, 8 21 C 8 31, 16 31, 21 21" fill="none" stroke="#38bdf8" stroke-width="3" stroke-linecap="round"/>
+        <path d="M 21 21 C 26 31, 34 31, 34 21 C 34 11, 26 11, 21 21" fill="none" stroke="#c084fc" stroke-width="3" stroke-linecap="round"/>
+        <circle cx="21" cy="21" r="2.5" fill="#ffffff"/>
+        <text x="54" y="26" fill="#cbd5e1" font-size="12" font-weight="600">32×32 纯矢量特写</text>
+        <text x="54" y="38" fill="#64748b" font-size="10">极高锐利度，无模糊像素污染</text>
+      </g>
+    </g>
+
+    <!-- ── SCENE 3: SPECIFICATIONS & ADVANTAGES ── -->
+    <g transform="translate(24, 305)">
+      <rect width="522" height="195" rx="10" fill="#0e1320" stroke="#1e293b" stroke-width="1"/>
+      <text x="16" y="-8" fill="#64748b" font-family="monospace" font-size="11">DESIGN SPECIFICATIONS & SUMMARY</text>
+      
+      <g transform="translate(18, 22)">
+        <text x="0" y="0" fill="#38bdf8" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="700">【去微光后的核心优势】</text>
+        <text x="0" y="22" fill="#cbd5e1" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12">
+          <tspan x="0" dy="0">1. <tspan font-weight="700" fill="#ffffff">与看板代码深度呼应</tspan>：彻底贯彻了之前去除卡片发光、高斯模糊的重构方针。</tspan>
+          <tspan x="0" dy="20">2. <tspan font-weight="700" fill="#ffffff">极致清晰的边缘</tspan>：小尺寸（16px / 32px）绝不发糊，高 PPI 屏幕上如手术刀般精准。</tspan>
+          <tspan x="0" dy="20">3. <tspan font-weight="700" fill="#ffffff">工业硬核机械美学</tspan>：通过 1px 细发丝刻度线、45° 斜角坐标、切槽交错营造科技感。</tspan>
+          <tspan x="0" dy="20">4. <tspan font-weight="700" fill="#ffffff">SVG 体积精简 80%</tspan>：无需庞大的 feGaussianBlur / feDropShadow 滤镜，渲染零性能损耗。</tspan>
+        </text>
+
+        <line x1="0" y1="110" x2="486" y2="110" stroke="#1e293b" stroke-width="1"/>
+        <text x="0" y="130" fill="#c084fc" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="700">【调色系统】</text>
+        <text x="0" y="148" fill="#94a3b8" font-family="monospace" font-size="11">
+          主轨道: #22d3ee (Cyan) → #0284c7 (Sky) | 副轨道: #c084fc (Purple) → #7e22ce (Violet) | 晶核: #ffffff
+        </text>
+      </g>
+    </g>
+  </g>
+</svg>

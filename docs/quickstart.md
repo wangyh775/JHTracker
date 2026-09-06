@@ -111,7 +111,7 @@ npm run dev
 cd backend
 python -m pytest
 ```
-看到 `39 passed` 即表示系统一切就绪！
+看到 `43 passed` 即表示系统一切就绪！
 
 ---
 

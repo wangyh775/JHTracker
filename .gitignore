@@ -41,6 +41,9 @@ Thumbs.db
 .vscode/
 .idea/
 
+# Windows unexpanded env var artifact
+*%HOMEDRIVE%*
+
 .opencode/
 .specify/
 specs/

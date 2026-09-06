@@ -64,7 +64,7 @@
 
     <rect x="370" y="0" width="165" height="22" rx="11" fill="#201335" stroke="#7c3aed" stroke-width="0.8"/>
     <circle cx="382" cy="11" r="3.5" fill="#c084fc"/>
-    <text x="392" y="15" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="600" fill="#d8b4fe">FastMCP 8 Tools</text>
+    <text x="392" y="15" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="600" fill="#d8b4fe">FastMCP 10 Tools</text>
   </g>
 
   <!-- Right Telemetry Meta -->
@@ -295,7 +295,7 @@
     <text x="325" y="474" fill="#334155">•</text>
     <text x="345" y="474" font-weight="bold" fill="#10b981">100% Vault Isolation (~/.JHTracker)</text>
     <text x="640" y="474" fill="#334155">•</text>
-    <text x="660" y="474" font-weight="bold" fill="#a855f7">8 FastMCP Tools</text>
+    <text x="660" y="474" font-weight="bold" fill="#a855f7">10 FastMCP Tools</text>
     <text x="800" y="474" fill="#334155">•</text>
     <text x="820" y="474" font-weight="bold" fill="#f59e0b">Human-in-the-Loop Feedback</text>
     <text x="1145" y="474" text-anchor="end" font-weight="bold" fill="#38bdf8">ZERO TELEMETRY</text>

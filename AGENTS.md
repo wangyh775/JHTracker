@@ -43,13 +43,13 @@
     ```bash
     python scripts/check_all.py
     ```
-    *(默认 5 秒内完成：后端 pytest 41+ 测试 + 前端 tsc 类型校验 + 版本一致性)*
+    *(纯净无副作用：版本一致性检查 + 后端 pytest 43+ 测试通过 + 前端 tsc 类型校验通过)*
   - 准备发版或完整打包验证时才运行全量模式：
     ```bash
     python scripts/check_all.py --full
     ```
 - **质量防线底线（Quality Baseline）**:
-  - 严禁擅自删除既有测试用例以“掩盖报错”；测试用例总数只许增加或持平，严禁产生新增失败。
+  - 严禁擅自删除既有测试用例以“掩盖报错”；确保所有单元测试 100% 绿灯，严禁产生新增失败。
 - **更新日志**:
   - 单人日常开发无需额外流程；正式打 tag 发版时可通过 `changelog.d/` 配合 `compile_changelog.py` 归档。
 
@@ -73,7 +73,7 @@
   - Action `ACCEPT`: increases feature weights, records interaction, and automatically creates an `ApplicationItem` with status `PENDING_APPLY`.
   - Action `REJECT`: suppresses feature weights down to a minimum decay floor (0.05), dampens related industry weights, and hides job from future recommendations.
 - **FastMCP Tools**:
-  - Defined in `backend/src/mcp_server.py`: `job_search`, `job_recommend`, `job_feedback`, `resume_optimize`, `job_sync_run` (trigger spider sync into public DB), `job_get_detail` (fetch full JD and application links), `job_add_external` (safely upsert discovered jobs with deduplication hash).
+  - Defined in `backend/src/mcp_server.py` (10 tools total): `job_search`, `job_recommend`, `job_feedback`, `job_agent_push`, `job_get_detail`, `resume_get_profile`, `resume_optimize`, `resume_update_keywords_matrix`, `job_add_external`, `job_sync_run`.
 - **Agent Skills**:
   - `skills/job-sourcing/SKILL.md`: Comprehensive skill for intelligent domestic job scraping, long-tail campus network recruitment sourcing, and deduplicated external job ingestion.
   - `skills/job-advisor/SKILL.md`: Dedicated career advisor skill for deep resume/thesis profiling, domain-gated multi-channel retrieval, strict frequency capping (applied company exclusion + max 3 pending jobs per company), and FastMCP direct agent push.

@@ -95,6 +95,27 @@ class ApplicationItem(BaseModel):
     recommend_reason: Optional[str] = None
     is_archived: bool = False
 
+class KeywordItem(BaseModel):
+    keyword: str
+    weight: float = 1.0
+    source: Optional[str] = ""
+    enabled: bool = True
+
+class KeywordCategories(BaseModel):
+    core: List[KeywordItem] = Field(default_factory=list)
+    domain: List[KeywordItem] = Field(default_factory=list)
+    base: List[KeywordItem] = Field(default_factory=list)
+    negative: List[KeywordItem] = Field(default_factory=list)
+
+# Alias for compatibility
+KeywordMatrixCategories = KeywordCategories
+
+class KeywordMatrix(BaseModel):
+    version: int = 1
+    updated_at: Optional[str] = None
+    updated_by: str = "AGENT_INIT"  # "AGENT_INIT" | "USER_MANUAL" | "AUTO_EXTRACT"
+    categories: KeywordCategories = Field(default_factory=KeywordCategories)
+
 class ResumeItem(BaseModel):
     id: str
     title: str
@@ -103,6 +124,7 @@ class ResumeItem(BaseModel):
     content_md: Optional[str] = None
     target_job_id: Optional[str] = None
     parsed_skills: Optional[List[str]] = Field(default_factory=list)
+    keywords_matrix: Optional[KeywordMatrix] = None
     is_default: bool = False
     version_type: str = "ORIGINAL"  # "ORIGINAL" | "AI_OPTIMIZED"
     parent_resume_id: Optional[str] = None  # 关联的原始简历 ID (针对 AI 优化版)
@@ -112,13 +134,14 @@ class ResumeItem(BaseModel):
 class ResumeUpdateRequest(BaseModel):
     title: Optional[str] = None
     category: Optional[str] = None
-    content_markdown: Optional[str] = None
     content_md: Optional[str] = None
-    skills: Optional[List[str]] = None
+    content_markdown: Optional[str] = None
     parsed_skills: Optional[List[str]] = None
+    skills: Optional[List[str]] = None
     is_default: Optional[bool] = None
     version_type: Optional[str] = None
     parent_resume_id: Optional[str] = None
+    keywords_matrix: Optional[KeywordMatrix] = None
 
 class StatusUpdateRequest(BaseModel):
     status: str
@@ -128,13 +151,23 @@ class StatusUpdateRequest(BaseModel):
 class ArchiveUpdateRequest(BaseModel):
     is_archived: bool
 
+class LLMConfig(BaseModel):
+    base_url: str = "http://127.0.0.1:8045/v1"
+    api_key: Optional[str] = ""
+    model: str = "claude-3-5-sonnet-20241022"
+    temperature: Optional[float] = 0.3
+
 class ResumeOptimizeRequest(BaseModel):
     job_id: Optional[str] = None
     job_description: Optional[str] = None
     resume_id: Optional[str] = None
     resume_content_md: Optional[str] = None
-    mode: str = "CUSTOMIZED"  # "CUSTOMIZED" | "GENERAL"
-    save_as_version: bool = False  # 是否保存为独立的 AI 优化版本简历记录 (不覆写原始简历)
+    mode: str = "GENERAL"  # "GENERAL" (通用) | "TARGETED" (专岗) | "CUSTOMIZED" (兼容旧参数)
+    target_company: Optional[str] = None  # 专岗-目标企业 (如: "腾讯")
+    target_position: Optional[str] = None # 专岗-目标岗位 (如: "前端开发")
+    engine: str = "auto"                  # "auto" | "custom_api" | "opencode" | "hermes" | "builtin"
+    save_as_version: bool = False         # 是否保存为独立的 AI 优化版本简历记录 (不覆写原始简历)
+    llm_config: Optional[LLMConfig] = None # 用户自定义/本地 OpenAI 兼容端点配置
 
 class AgentPushItem(BaseModel):
     id: str

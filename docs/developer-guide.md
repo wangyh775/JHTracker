@@ -30,7 +30,7 @@ JHTracker/
 ├── backend/                       # Python 后端工程
 │   ├── src/                       # 核心业务源码
 │   │   ├── main.py                # FastAPI Web API 服务入口、路由与生命周期挂载
-│   │   ├── mcp_server.py          # FastMCP 智能体工具暴露协议入口 (8大受控工具)
+│   │   ├── mcp_server.py          # FastMCP 智能体工具暴露协议入口 (10大受控工具)
 │   │   ├── models.py              # Pydantic 数据模型定义（JobItem, ResumeItem, ApplicationItem 等）
 │   │   ├── db.py                  # 数据库连接池初始化、表迁移与会话管理
 │   │   ├── security.py            # 安全防线（SQL 注入防护、安全标识符正则校验）
@@ -44,12 +44,13 @@ JHTracker/
 │   │       └── spiders/                  # 招聘渠道定向爬虫适配器集合
 │   │           ├── base_spider.py        # 爬虫抽象基类与清洗标准
 │   │           └── qiuzhifangzhou_spider.py # 求职方舟定向数据采集适配器
-│   ├── tests/                     # 自动化单元与集成测试套件 (39 项全绿)
+│   ├── tests/                     # 自动化单元与集成测试套件 (43 项全绿)
 │   │   ├── test_recommendations.py# 推荐算法与反馈闭环测试
 │   │   ├── test_spider_qiuzhifangzhou.py # 爬虫解析与幂等性测试
 │   │   ├── test_mcp_tools.py      # MCP 工具集权限与安全测试
 │   │   ├── test_resume.py         # 简历 CRUD 与版本流转测试
-│   │   └── test_api.py            # FastAPI 接口全生命周期回归测试
+│   │   ├── test_api.py            # FastAPI 接口全生命周期回归测试
+│   │   └── test_kanban_archival.py# 看板卡片归档、删除与筛选测试
 │   └── requirements.txt           # Python 依赖清单
 ├── frontend/                      # React 前端工程
 │   ├── src/
@@ -121,7 +122,7 @@ npm run dev
 
 ```mermaid
 graph LR
-    Code["💻 代码修改"] --> PyTest["🧪 python -m pytest (全套 39 项后端单元测试)"]
+    Code["💻 代码修改"] --> PyTest["🧪 python -m pytest (全套 43 项后端单元测试)"]
     PyTest --> FrontendBuild["📦 npm run build (TypeScript 类型检查 + Vite 构建)"]
     FrontendBuild --> Pass["✅ 验证通过，可提交合并"]
 ```

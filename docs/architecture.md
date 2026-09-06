@@ -210,39 +210,44 @@ flowchart TD
 
     Agent <==>|FastMCP 协议| MCPGate
 
-    subgraph Allowed ["✅ 允许调用的 8 大安全工具"]
-        T1["job_search: 岗位多维检索"]
-        T2["job_get_detail: 获取 JD 与官网链接"]
-        T3["job_recommend: 智能匹配打分"]
-        T4["job_feedback: 记录用户意向"]
-        T5["job_add_external: 录入外部新发现岗位"]
-        T6["job_sync_run: 触发定时爬虫同步"]
-        T7["resume_get_profile: 只读获取简历画像"]
-        T8["resume_optimize: 生成独立优化建议"]
+    subgraph Allowed ["✅ 允许调用的 10 大安全工具池"]
+        T1["job_search: 岗位多维全文检索"]
+        T2["job_get_detail: 获取 JD 与官网直达链接"]
+        T3["job_recommend: 智能双路召回打分"]
+        T4["job_feedback: 记录用户正负向意向"]
+        T5["job_agent_push: 智能体合规直推至看板"]
+        T6["job_add_external: 录入外部新发现岗位"]
+        T7["job_sync_run: 触发多源爬虫增量同步"]
+        T8["resume_get_profile: 只读获取简历画像"]
+        T9["resume_optimize: 生成独立 ATS 优化版本"]
+        T10["resume_update_keywords_matrix: 动态同步关键词矩阵"]
     end
 
     subgraph Forbidden ["❌ 严苛禁止越权的红线操作"]
-        F1["🚫 禁止修改投递看板阶段 (application_update_status)"]
-        F2["🚫 禁止删除或清空求职记录 (application_delete)"]
-        F3["🚫 禁止覆写或修改原始简历 (overwrite_original_resume)"]
-        F4["🚫 禁止直接执行任意原生 SQL 语句"]
+        F1["🚫 禁止直接修改投递看板阶段 (无 application_update_status 接口)"]
+        F2["🚫 禁止删除或清空求职记录 (无 application_delete 接口)"]
+        F3["🚫 禁止覆写或修改原始简历 (原始主版本只读保护)"]
+        F4["🚫 禁止直接执行任意原生 SQL 语句 (SQL Injection 熔断)"]
     end
 
     MCPGate -->|合法参数校验 & 审计入日志| Allowed
     MCPGate -.->|无接口暴露 / 权限熔断拦截| Forbidden
 ```
 
-### 5.1 八大公开安全工具
+### 5.1 十大公开安全工具
 
-1. **`job_search`**：按关键词、公司、城市、时效窗口快速检索岗位。
+1. **`job_search`**：按关键词、公司、城市、时效窗口全文检索公共岗位库。
 2. **`job_get_detail`**：获取指定岗位的完整职责、任职要求与原网页投递链接。
-3. **`job_recommend`**：基于指定简历画像调用推荐引擎获取契合岗位推荐。
-4. **`job_feedback`**：提交对岗位的感兴趣（ACCEPT）或跳过（REJECT）反馈。
-5. **`job_add_external`**：将外部社交平台、论坛发现的招聘信息去重录入公共库。
-6. **`job_sync_run`**：触发指定站点的增量网络爬虫。
-7. **`resume_get_profile`**：只读获取用户的简历技能与摘要，禁止获取未授权信息。
-8. **`resume_optimize`**：针对特定岗位输出 ATS 量化修改建议并独立存为新版本。
+3. **`job_recommend`**：基于指定简历画像调用双路召回引擎获取契合岗位推荐。
+4. **`job_feedback`**：提交对岗位的感兴趣（ACCEPT）或跳过（REJECT）反馈，驱动权重自学习。
+5. **`job_agent_push`**：智能体直接向用户界面推送高价值职位，内置已投递拦截与同公司上限限制。
+6. **`job_add_external`**：将外部社交平台、论坛发现的招聘信息去重录入公共库（MD5 安全散列）。
+7. **`job_sync_run`**：触发指定站点的增量网络爬虫（支持 `qiuzhifangzhou`, `wondercv`, `nowcoder`）。
+8. **`resume_get_profile`**：只读获取用户的简历技能与摘要画像，禁止获取未授权信息。
+9. **`resume_optimize`**：针对特定岗位输出 ATS 量化修改建议并独立存为新版本。
+10. **`resume_update_keywords_matrix`**：增量更新简历的技能关键词矩阵并触发特征池演进。
 
 ### 5.2 安全权限红线
 - **决策主权在人**：投递状态（投递/筛选/笔试/面试/Offer）是高严肃度的求职进程，智能体**严禁操作看板状态**。
-- **输入强校验与审计**：所有入参均经过 `SAFE_IDENTIFIER_PATTERN` 正则与字符串安全清洗，拦截 SQL 注入与路径穿越，每次调用均记录审计日志。
+- **智能体推送合规门禁**：对已投递过的企业进行 100% 推荐拦截；同一企业在未决推荐池中最多容纳 3 个岗位，防止职位挤兑与信息轰炸。
+- **输入强校验与审计**：所有入参均经过 `SAFE_IDENTIFIER_PATTERN` 正则与字符串安全清洗，支持中文后缀并拦截 SQL 注入与路径穿越，每次调用均记录审计日志。

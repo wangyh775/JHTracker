@@ -12,5 +12,17 @@ export default defineConfig({
         changeOrigin: true
       }
     }
+  },
+  build: {
+    chunkSizeWarningLimit: 700,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          spline: ['@splinetool/react-spline', '@splinetool/runtime'],
+          aggrid: ['ag-grid-community', 'ag-grid-react'],
+          dnd: ['@dnd-kit/core', '@dnd-kit/sortable', '@dnd-kit/utilities'],
+        }
+      }
+    }
   }
 })

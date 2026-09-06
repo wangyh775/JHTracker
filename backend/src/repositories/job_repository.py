@@ -254,6 +254,35 @@ class JobRepository:
 
             return jobs, total
 
+    async def count_jobs_by_keyword(self, keyword: str) -> int:
+        """
+        探测全量数据库中包含该关键词的岗位真实数量 (支持标题与描述)
+        用于关键词矩阵的接地性校验 (Grounding Check)
+        """
+        if not keyword or len(keyword.strip()) == 0:
+            return 0
+        clean_kw = keyword.strip()
+        async with get_public_db(self.db_path) as db:
+            try:
+                # 优先使用 jobs_fts 极速探测
+                async with db.execute(
+                    "SELECT count(*) as cnt FROM jobs_fts WHERE jobs_fts MATCH ?", 
+                    (clean_kw,)
+                ) as cursor:
+                    row = await cursor.fetchone()
+                    if row and row["cnt"] > 0:
+                        return row["cnt"]
+            except Exception:
+                pass
+            
+            # 回退到标准 LIKE 探测
+            async with db.execute(
+                "SELECT count(*) as cnt FROM jobs WHERE title LIKE ? OR description LIKE ?",
+                (f"%{clean_kw}%", f"%{clean_kw}%")
+            ) as cursor:
+                row = await cursor.fetchone()
+                return row["cnt"] if row else 0
+
     def _row_to_job(self, row: aiosqlite.Row) -> JobItem:
         type_tags = []
         if row["type_tags"]:

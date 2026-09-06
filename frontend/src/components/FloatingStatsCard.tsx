@@ -83,7 +83,7 @@ export const FloatingStatsCard: React.FC<FloatingStatsCardProps> = ({
     <div className="fixed bottom-6 right-6 z-40 font-sans text-gray-200">
       {/* Collapsed Pill Button & Quick Run Trigger */}
       {!isOpen && (
-        <div className="flex items-center gap-1.5 p-1 bg-[#11131c]/95 hover:bg-[#141724] backdrop-blur-md border border-cyan-500/40 hover:border-cyan-400 rounded-full shadow-[0_4px_24px_rgba(0,0,0,0.6)] transition-all duration-300 hover:shadow-[0_0_16px_rgba(6,182,212,0.3)]">
+        <div className="flex items-center gap-1.5 p-1 bg-[#11131c]/95 hover:bg-[#141724] backdrop-blur-md border border-[#24283b] hover:border-cyan-500/40 rounded-full shadow-lg transition-all duration-200">
           {/* Main Pill: Click to expand settings */}
           <button
             type="button"
@@ -92,8 +92,7 @@ export const FloatingStatsCard: React.FC<FloatingStatsCardProps> = ({
             title="点击展开采集配置"
           >
             <div className="relative flex items-center justify-center">
-              <span className={`w-2 h-2 rounded-full bg-cyan-400 ${spiderRunning ? 'animate-ping' : ''}`}></span>
-              <span className="absolute w-2 h-2 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(6,182,212,0.8)]"></span>
+              <span className="w-2 h-2 rounded-full bg-cyan-400"></span>
             </div>
             <div className="flex items-center gap-1.5">
               <Sliders className="w-3.5 h-3.5 text-cyan-400" />
@@ -122,7 +121,7 @@ export const FloatingStatsCard: React.FC<FloatingStatsCardProps> = ({
                   ? 'bg-cyan-950/70 text-cyan-300 border border-cyan-500/50 cursor-wait'
                   : selectedSources.length === 0
                   ? 'bg-gray-800 text-gray-500 cursor-not-allowed'
-                  : 'bg-cyan-500 hover:bg-cyan-400 text-black font-semibold shadow-[0_0_12px_rgba(6,182,212,0.4)] cursor-pointer active:scale-95'
+                  : 'bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/40 font-semibold cursor-pointer active:scale-95 shadow-sm'
               }`}
               title={`直接开始同步当前选中的 ${selectedSources.length} 个渠道 (近${syncDays}天)`}
             >
@@ -135,11 +134,11 @@ export const FloatingStatsCard: React.FC<FloatingStatsCardProps> = ({
 
       {/* Expanded Panel */}
       {isOpen && (
-        <div className="bg-[#11131c]/95 backdrop-blur-md border border-cyber rounded-2xl p-4 shadow-[0_12px_40px_rgba(0,0,0,0.7)] w-84 text-gray-200 transition-all duration-300 hover:border-cyan-500/40 animate-in fade-in zoom-in-95">
+        <div className="bg-[#11131c]/95 backdrop-blur-md border border-[#24283b] rounded-2xl p-4 shadow-xl w-84 text-gray-200 transition-all duration-200">
           {/* Header */}
           <div className="flex items-center justify-between border-b border-cyber pb-2.5 mb-3">
             <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(6,182,212,0.8)]"></div>
+              <div className="w-2 h-2 rounded-full bg-cyan-400"></div>
               <span className="text-xs font-semibold text-gray-100">全网岗位智能采集配置</span>
             </div>
             <div className="flex items-center gap-1.5">
@@ -189,7 +188,7 @@ export const FloatingStatsCard: React.FC<FloatingStatsCardProps> = ({
                     onClick={() => !spiderRunning && toggleSource(source.id)}
                     className={`flex items-center justify-between px-2.5 py-1.5 rounded-md border text-xs cursor-pointer transition-all ${
                       isSelected
-                        ? 'bg-cyan-950/40 border-cyan-500/50 text-gray-100 shadow-[0_0_8px_rgba(6,182,212,0.15)]'
+                        ? 'bg-cyan-950/40 border-cyan-500/50 text-gray-100 shadow-sm'
                         : 'bg-[#151722]/60 border-cyber text-gray-400 hover:text-gray-300 hover:border-gray-700'
                     } ${spiderRunning ? 'opacity-60 cursor-not-allowed' : ''}`}
                   >
@@ -234,7 +233,7 @@ export const FloatingStatsCard: React.FC<FloatingStatsCardProps> = ({
                   onClick={() => onSyncDaysChange(opt.value)}
                   className={`py-1 text-[10px] rounded transition-all text-center ${
                     syncDays === opt.value
-                      ? 'bg-cyan-500 text-black font-bold shadow-[0_0_8px_rgba(6,182,212,0.4)]'
+                      ? 'bg-cyan-600 text-white font-semibold shadow-sm'
                       : 'bg-[#151722] hover:bg-[#1f2233] text-gray-400 hover:text-gray-200 border border-cyber'
                   } ${spiderRunning ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
@@ -253,7 +252,7 @@ export const FloatingStatsCard: React.FC<FloatingStatsCardProps> = ({
                 className={`w-full flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg text-xs font-medium transition-all ${
                   spiderRunning || selectedSources.length === 0
                     ? 'bg-slate-800 text-gray-400 cursor-not-allowed border border-cyber'
-                    : 'bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/40 hover:border-cyan-400 shadow-sm shadow-cyan-500/10'
+                    : 'bg-cyan-500/15 hover:bg-cyan-500/25 text-cyan-300 border border-cyan-500/40 hover:border-cyan-400 shadow-sm'
                 }`}
               >
                 <Activity className={`w-3.5 h-3.5 ${spiderRunning ? 'animate-spin text-cyan-400' : ''}`} />

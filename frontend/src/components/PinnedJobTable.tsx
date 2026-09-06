@@ -268,7 +268,7 @@ export const PinnedJobTable: React.FC<PinnedJobTableProps> = ({
           );
         } else if (diffDays <= 3) {
           badge = (
-            <span className="text-[10px] px-1.5 py-0.5 rounded bg-rose-950/60 text-rose-300 border border-rose-500/40 flex items-center gap-0.5 font-medium animate-pulse">
+            <span className="text-[10px] px-1.5 py-0.5 rounded bg-rose-950/60 text-rose-300 border border-rose-500/40 flex items-center gap-0.5 font-medium">
               <AlertCircle className="w-2.5 h-2.5 text-rose-400 flex-shrink-0" />
               剩{diffDays === 0 ? '今天' : `${diffDays}天`}
             </span>
@@ -402,7 +402,7 @@ export const PinnedJobTable: React.FC<PinnedJobTableProps> = ({
       {/* Table Sub-header status */}
       <div className="flex items-center justify-between px-4 py-2.5 bg-[#131520] border-b border-cyber text-xs text-gray-400">
         <div className="flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(6,182,212,0.8)]" />
+          <span className="w-2 h-2 rounded-full bg-cyan-400" />
           <span className="text-gray-300 text-xs">
             网申大厅实时同步已就绪
           </span>
@@ -418,12 +418,13 @@ export const PinnedJobTable: React.FC<PinnedJobTableProps> = ({
         </div>
       </div>
 
-      {/* Grid Container */}
-      <div className="ag-theme-alpine-dark ag-theme-custom-dark w-full h-[calc(100vh-270px)] min-h-[740px] bg-[#0e1017]">
+      {/* Grid Container - Auto Height (No Inner Vertical Scroll) */}
+      <div className="ag-theme-alpine-dark ag-theme-custom-dark w-full bg-[#0e1017]">
         <AgGridReact
           rowData={jobs}
           columnDefs={columnDefs}
           defaultColDef={defaultColDef}
+          domLayout="autoHeight"
           animateRows={false}
           rowSelection="single"
           loading={loading}
@@ -447,10 +448,10 @@ export const PinnedJobTable: React.FC<PinnedJobTableProps> = ({
             onChange={(e) => onPageSizeChange(Number(e.target.value))}
             className="bg-[#181a26] border border-cyber text-gray-200 rounded px-2.5 py-1 outline-none focus:border-cyan-500 cursor-pointer font-medium"
           >
+            <option value={20}>20 条</option>
+            <option value={30}>30 条 (推荐)</option>
             <option value={50}>50 条</option>
-            <option value={100}>100 条 (推荐)</option>
-            <option value={200}>200 条</option>
-            <option value={500}>500 条</option>
+            <option value={100}>100 条</option>
           </select>
           <span className="text-gray-500 ml-2">
             第 {((currentPage - 1) * pageSize) + (total > 0 ? 1 : 0)} - {Math.min(currentPage * pageSize, total)} 条 (共 {total} 条)

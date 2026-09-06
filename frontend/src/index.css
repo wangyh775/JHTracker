@@ -262,3 +262,38 @@
   contain-intrinsic-size: auto 340px;
 }
 
+/* ==========================================================================
+   JHTracker Kinetic Logo Hardware-Accelerated Stream Pulses
+   ========================================================================== */
+@keyframes jhtStreamPulseL {
+  0% {
+    stroke-dashoffset: 0;
+  }
+  100% {
+    stroke-dashoffset: -120;
+  }
+}
+
+@keyframes jhtStreamPulseR {
+  0% {
+    stroke-dashoffset: 0;
+  }
+  100% {
+    stroke-dashoffset: 120;
+  }
+}
+
+.jht-pulse-l {
+  animation: jhtStreamPulseL 3.2s linear infinite;
+}
+
+.jht-pulse-r {
+  animation: jhtStreamPulseR 3.2s linear infinite;
+}
+
+.group:hover .jht-pulse-l,
+.group:hover .jht-pulse-r {
+  animation-duration: 1.2s;
+}
+
+

@@ -74,7 +74,7 @@ export const FangzhouTableHeader: React.FC<FangzhouTableHeaderProps> = ({
                 onClick={() => onSelectCategory(tab.key)}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
                   isActive
-                    ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 shadow-sm shadow-cyan-500/10'
+                    ? 'bg-cyan-500/15 text-cyan-200 border border-cyan-500/40 shadow-sm font-semibold'
                     : 'text-gray-400 hover:text-gray-200 hover:bg-slate-800/40 border border-transparent'
                 }`}
               >

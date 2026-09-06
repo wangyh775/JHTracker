@@ -65,7 +65,7 @@ export const CompanyCell: React.FC<CompanyCellProps> = ({ company, popularLevel 
         </span>
         {popularLevel >= 3 && (
           <span title="热门大厂/标杆企业" className="flex items-center text-amber-400 flex-shrink-0">
-            <Flame className="w-3 h-3 fill-amber-400 animate-pulse" />
+            <Flame className="w-3 h-3 fill-amber-400" />
           </span>
         )}
       </div>
@@ -93,7 +93,7 @@ export const ActionsCell: React.FC<ActionsCellProps> = ({
           e.stopPropagation();
           onApplyClick(job);
         }}
-        className="flex items-center gap-1 px-2.5 py-1 rounded bg-cyan-500/15 hover:bg-cyan-500/25 text-cyan-300 border border-cyan-500/40 hover:border-cyan-400 text-xs font-medium transition-all shadow-[0_0_8px_rgba(6,182,212,0.15)]"
+        className="flex items-center gap-1 px-2.5 py-1 rounded bg-cyan-500/15 hover:bg-cyan-500/25 text-cyan-300 border border-cyan-500/40 hover:border-cyan-400 text-xs font-medium transition-all shadow-sm"
       >
         <span>网申</span>
         <ExternalLink className="w-3 h-3" />

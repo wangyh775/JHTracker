@@ -89,13 +89,18 @@ async def test_resumes_crud_and_optimize_api(test_client):
     assert created_data["resume"]["content_md"] == create_payload["content_markdown"]
     assert created_data["resume"]["is_default"] is True
 
-    # 2. 查询简历列表
+    # 2. 查询简历列表并验证 skills 与 keywords_matrix.categories.core 自动关联
     list_res = await client.get("/api/resumes")
     assert list_res.status_code == 200
     res_list = list_res.json()
     assert len(res_list) == 1
     assert res_list[0]["content_md"] == create_payload["content_markdown"]
     assert res_list[0]["id"] == res_id
+    # 验证 core 技能与 parsed_skills 同步
+    assert res_list[0]["parsed_skills"] == create_payload["skills"]
+    assert res_list[0]["keywords_matrix"] is not None
+    core_kw = [item["keyword"] for item in res_list[0]["keywords_matrix"]["categories"]["core"]]
+    assert core_kw == create_payload["skills"]
 
     # 3. 更新简历 (PUT /api/resumes/{id})
     update_payload = {
@@ -108,6 +113,10 @@ async def test_resumes_crud_and_optimize_api(test_client):
     updated_data = update_res.json()
     assert updated_data["title"] == "资深全栈工程师简历"
     assert updated_data["content_md"] == update_payload["content_markdown"]
+    assert updated_data["parsed_skills"] == update_payload["skills"]
+    assert updated_data["keywords_matrix"] is not None
+    updated_core = [item["keyword"] for item in updated_data["keywords_matrix"]["categories"]["core"]]
+    assert updated_core == update_payload["skills"]
 
     # 4. 优化简历 (/api/resumes/{id}/optimize)
     opt_res = await client.post(f"/api/resumes/{res_id}/optimize", json={"mode": "GENERAL", "save_as_version": True})
@@ -262,8 +271,8 @@ async def test_get_system_version_api(test_client):
     assert res.status_code == 200
     data = res.json()
     assert "version" in data
-    assert data["version"] == "0.1.0"
-    assert data["release_tag"] == "v0.1.0"
+    assert data["version"] == "0.1.1"
+    assert data["release_tag"] == "v0.1.1"
     assert data["app_name"] == "JHTracker"
     assert data["status"] == "online"
 

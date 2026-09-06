@@ -38,7 +38,7 @@ export const FilterPillsBar: React.FC<FilterPillsBarProps> = ({
                 onClick={() => onSelectCity(city)}
                 className={`px-2.5 py-0.5 rounded-full text-[11px] transition-all whitespace-nowrap ${
                   isSelected
-                    ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/50 shadow-[0_0_8px_rgba(6,182,212,0.2)]'
+                    ? 'bg-cyan-500/15 text-cyan-200 border border-cyan-500/40 shadow-sm font-semibold'
                     : 'bg-[#0a0a0e] text-gray-400 border border-cyber hover:text-gray-200 hover:border-slate-700'
                 }`}
               >
@@ -64,7 +64,7 @@ export const FilterPillsBar: React.FC<FilterPillsBarProps> = ({
                 onClick={() => onSelectBatch(batch)}
                 className={`px-2.5 py-0.5 rounded-full text-[11px] transition-all whitespace-nowrap ${
                   isSelected
-                    ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/50 shadow-[0_0_8px_rgba(6,182,212,0.2)]'
+                    ? 'bg-cyan-500/15 text-cyan-200 border border-cyan-500/40 shadow-sm font-semibold'
                     : 'bg-[#0a0a0e] text-gray-400 border border-cyber hover:text-gray-200 hover:border-slate-700'
                 }`}
               >

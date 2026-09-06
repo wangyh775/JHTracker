@@ -13,7 +13,7 @@
 <p align="center">
   <a href="docs/README_ZH.md"><img src="https://img.shields.io/badge/Language-%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87-blue.svg?style=for-the-badge" alt="简体中文" /></a>
   <a href="README.md"><img src="https://img.shields.io/badge/Language-English-indigo.svg?style=for-the-badge" alt="English" /></a>
-  <a href="https://github.com/diegosouzapw/JHTracker/releases"><img src="https://img.shields.io/badge/Version-v0.1.0_Genesis-cyan.svg?style=for-the-badge&logo=git&logoColor=white" alt="Release Version" /></a>
+  <a href="https://github.com/diegosouzapw/JHTracker/releases"><img src="https://img.shields.io/badge/Version-v0.1.1_Genesis-cyan.svg?style=for-the-badge&logo=git&logoColor=white" alt="Release Version" /></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-emerald.svg?style=for-the-badge" alt="MIT License" /></a>
   <a href="https://fastapi.tiangolo.com/"><img src="https://img.shields.io/badge/Backend-FastAPI_Python3.10+-009688.svg?style=for-the-badge&logo=fastapi&logoColor=white" alt="FastAPI" /></a>
   <a href="https://react.dev/"><img src="https://img.shields.io/badge/Frontend-React_18_TypeScript-61DAFB.svg?style=for-the-badge&logo=react&logoColor=black" alt="React 18" /></a>
@@ -32,7 +32,7 @@
 
 <div align="center">
 
-| 🏢 **24,180 Real JDs** | 🔒 **100% Private Vault** | ⚡ **&lt;50ms Full-Text Search** | 🤖 **8 FastMCP Tools** |
+| 🏢 **24,180 Real JDs** | 🔒 **100% Private Vault** | ⚡ **&lt;50ms Full-Text Search** | 🤖 **10 FastMCP Tools** |
 | :---: | :---: | :---: | :---: |
 | Full offline campus database ready on first boot with zero scraping lag. | Physical dual-DB isolation (`~/.JHTracker/user_data.db`). Never touches clouds. | SQLite FTS5 inverted index with instant column-pinned AG Grid rendering. | Native agent protocol for Claude Desktop, Cursor, and OpenCode CLI. |
 
@@ -91,7 +91,7 @@ curl -s "http://127.0.0.1:8000/api/jobs/search?q=Python+FastAPI&limit=2" | jq .
 | **Out-of-the-Box Data** | **24,000+ Curated Campus Postings** included in repo | ⚠️ Platform-locked: Fragmented across different silos; requires multiple accounts | ❌ Zero initial data: Requires 100% manual entry row-by-row | ⚠️ Fragile against anti-scraping updates & dynamic web changes |
 | **Recommendation Engine** | **Dual-Recall HITL Adaptive Loop** (Transparent feedback & decay) | ⚠️ Commercial feed priorities: Opaque platform ranking algorithms | ❌ None (Static spreadsheets cannot compute feature weights) | ❌ Simple text filter without continuous learning feedback |
 | **Lifecycle Kanban** | **6-Stage High-Density Board** (120px cards, interview retros, credentials) | ⚠️ Fragmented conversations; difficult to maintain unified cross-platform status | ⚠️ Performance degradation on large sheets; manual status toggling | ❌ None (Terminal outputs or raw tabular rows only) |
-| **AI Agent Integration** | **FastMCP Standard Protocol** (8 audited tools for Claude / Cursor / OpenCode) | ❌ Walled garden: No standard protocol for personal local LLM orchestration | ⚠️ Requires external paid automation services (Zapier/Make) | ⚠️ Ad-hoc CLI scripts lacking standardized JSON-RPC schemas |
+| **AI Agent Integration** | **FastMCP Standard Protocol** (10 audited tools for Claude / Cursor / OpenCode) | ❌ Walled garden: No standard protocol for personal local LLM orchestration | ⚠️ Requires external paid automation services (Zapier/Make) | ⚠️ Ad-hoc CLI scripts lacking standardized JSON-RPC schemas |
 | **ATS Resume Diagnosis** | **Precision Keyword Radar** (Read-only master protects core resume assets) | ⚠️ Broad suggestions; rarely provides transparent JD-skill differential diffs | ❌ None | ❌ None |
 | **Telemetry & Offline** | **Zero Telemetry, Zero Analytics, 100% Offline Capable** | ⚠️ Online dependent: Continuous session analytics & behavioral telemetry | ⚠️ Cloud connectivity required for real-time synchronization | ⚠️ Network dependent on target servers and proxies |
 
@@ -142,16 +142,18 @@ $$\text{FinalScore}(J, U) = 0.50 \cdot S_{\text{skill}}(J, U) + 0.30 \cdot S_{\t
 
 JHTracker exposes an industrial-grade **FastMCP** (Model Context Protocol) server over `stdio` and `JSON-RPC`, allowing local AI assistants to autonomously query, recommend, and track applications without exposing user data to the cloud.
 
-### 8 Audited FastMCP Tools
+### 10 Audited FastMCP Tools
 
 1. `job_search(query, city, limit)`: High-performance SQLite FTS5 full-text search.
 2. `job_recommend(top_k, min_score)`: Dual-recall HITL personalized recommendation stream.
-3. `job_feedback(job_id, action)`: Human decision feedback (`ACCEPT` / `REJECT`).
-4. `job_get_detail(job_id)`: Fetches complete job description, requirements, and official direct application URLs.
-5. `resume_get_profile()`: Safely reads the parsed active user profile (skills, degree, target locations).
-6. `resume_optimize(job_id)`: Analyzes JD-resume keyword gaps and generates tailored resume drafts.
-7. `job_add_external(...)`: Ingests jobs discovered from university portals or forum networks with SHA-256 deduplication.
-8. `job_sync_run(spider_name)`: Triggers background multi-channel recruitment crawler sync.
+3. `job_feedback(job_id, action, feedback_reason)`: Human decision feedback (`ACCEPT` / `REJECT`).
+4. `job_agent_push(job_id, recommend_reason, match_score, agent_name)`: Direct push high-matching positions with deduplication and frequency capping.
+5. `job_get_detail(job_id)`: Fetches complete job description, requirements, and official direct application URLs.
+6. `resume_get_profile()`: Safely reads the parsed active user profile (skills, degree, target locations).
+7. `resume_optimize(job_id)`: Analyzes JD-resume keyword gaps and generates tailored resume drafts.
+8. `resume_update_keywords_matrix(skills, target_roles)`: Incrementally synchronizes updated skills and keyword matrices into HITL features.
+9. `job_add_external(...)`: Ingests jobs discovered from university portals or forum networks with SHA-256 / MD5 deduplication.
+10. `job_sync_run(spider_name)`: Triggers background multi-channel recruitment crawler sync (supports `qiuzhifangzhou`, `wondercv`, `nowcoder`).
 
 ### Client Configuration
 
@@ -266,7 +268,7 @@ Visit **`http://localhost:5173`** in your browser to enter the Cyber-Dark Cockpi
 Run the full automated test suite and production build check before submitting changes:
 
 ```bash
-# Backend verification: 33+ comprehensive pytest suites
+# Backend verification: 43 comprehensive pytest suites
 cd backend
 python -m pytest
 
@@ -279,12 +281,13 @@ npm run build
 
 ## 🗺️ Release Roadmap
 
-- [x] **v0.1.0 Genesis (Current)**:
+- [x] **v0.1.1 Genesis (Current Baseline)**:
   - 24,000+ offline campus job database with SQLite FTS5 full-text indexing.
-  - Cyber-Dark UI cockpit featuring AG Grid v36 virtualization with pinned company columns.
-  - 6-stage high-density application tracking Kanban board with interview retrospective notes.
-  - Multi-version resume workbench with read-only master resume protection.
-  - FastMCP server exposing 8 audited tools for local AI agent orchestration.
+  - Cyber-Dark UI cockpit featuring AG Grid v36 virtualization with pinned company columns and decoupled salary/degree metrics.
+  - 6-stage high-density application tracking Kanban board with interview retrospective notes and compact cards.
+  - Multi-version resume workbench with full-syntax Markdown rendering, skill tag highlighting, and instant persistence.
+  - Multi-engine AI resume optimizer supporting user-configured OpenAI-compatible APIs (`custom_api`), local CLI agents (`opencode`, `hermes`), and rule-based fallback (`builtin`).
+  - FastMCP server exposing 10 audited tools for local AI agent orchestration.
   - Physical dual-DB architecture isolating user data in `~/.JHTracker/user_data.db`.
 - [ ] **v0.2.0 Expansion**:
   - Direct integration with university career portal scraping pipelines.

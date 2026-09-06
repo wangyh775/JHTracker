@@ -16,15 +16,19 @@ description: 专属求职顾问与深度岗位推荐智能体。负责精读用�
 
 当用户提出“帮我推荐岗位”、“筛选合适岗位推送一下”、“根据我的背景找工作”等诉求时，**必须严格按以下四步执行**：
 
-### 步骤 1：深度精读用户画像 (Profile Understanding)
+### 步骤 1：深度简历画像研读与受控本体对齐 (Controlled Profiling & Ontology Grounding)
 严禁跳过此步骤直接检索！
 1. 调用 FastMCP 工具 `resume_get_profile()`；
-2. 提取并理解用户的核心背景要素：
+2. 提取并理解用户的核心背景要素与受控本体上下文：
    - **学历与院校**：最高学历、毕业院校、专业大类（如：大连交通大学，机械工程学术型硕士）；
    - **核心毕业课题/科研方向**：主攻方向与学术成果（如：《面向高速高精度 FDM 3D 打印机的智能挤出热端系统研发》）；
-   - **技能分层划分**：
-     - *Domain Skills（专业硬核）*：SolidWorks、Fluent、CFD、热流耦合、EPLAN、STM32、有限元、增材制造、公差配合；
-     - *General Tools（通用脚本/工具）*：Python、Linux、C++。
+   - **受控本体上下文 (`ontology_context`) 严格约束**：
+     - *Valid Categories*：严格对齐 8 大标准职能大类（机械制造类、软件研发类、硬件/电子类等）；
+     - *Top Industries in DB*：严禁智能体自创生造生僻词，领域词必须向数据库中真实高频存在的行业实体（如高端装备、机器人、增材制造、工业母机、新能源等）对齐；
+     - *HITL User Preferences*：充分吸纳用户当前在 HITL 矩阵中高频点赞的城市与行业偏好；
+   - **关键词矩阵生成与回填（可选且推荐）**：
+     - 若用户的 `current_matrix` 为空或需要重构，调用 FastMCP 工具 `resume_update_keywords_matrix(resume_id, categories)` 回填四分类矩阵（Core/Domain/Base/Negative）；
+     - 系统后端将自动执行 Pre-flight FTS Grounding 校验，全库 0 命中的词汇会被自动软禁用；
    - **行业红线**：严禁仅因命中通用工具（如 Python），就向工科生推荐金融、证券、销售、纯文职等非对口岗位！
 
 ### 步骤 2：多路专业关键词定向检索 (Targeted Retrieval)

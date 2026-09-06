@@ -105,6 +105,7 @@ graph TB
 | `priority` | `INTEGER` | 默认 `3` | 关注优先级（1~5 星级） |
 | `account_memo` | `TEXT` | 可为空 | 网申账号、内推码或流程备注 |
 | `interview_notes` | `TEXT` | 可为空 | 笔试复盘、面试真题与考点笔记 |
+| `is_archived` | `INTEGER` | 默认 `0` | 是否归档标记（`1`: 已归档/主看板隐藏, `0`: 活跃进行中） |
 
 ### 2.4 人在环路特征权重表 (`hitl_weights`)
 - **存储文件**：`~/.JHTracker/user_data.db`
@@ -113,6 +114,16 @@ graph TB
   - `feature_key`: 特征名称（如 `"北京"`、`"人工智能"`）。
   - `weight`: 浮点型乘数（初始 `1.0`，衰减下限底线 `0.05`，上限 `2.0`）。
   - `updated_at`: 动态反馈调整时间戳。
+
+### 2.5 智能体推送候选表 (`agent_pushes`)
+- **存储文件**：`~/.JHTracker/user_data.db`
+- **字段规范**：
+  - `id`: 推送记录唯一标识符。
+  - `job_id`: 关联的岗位唯一 ID。
+  - `recommend_reason`: AI 智能体提炼的个性化推荐依据。
+  - `match_score`: 智能体评估的技能契合度（0.0 ~ 1.0）。
+  - `agent_name`: 推荐来源智能体名称（如 `JobSourcingAgent`）。
+  - `created_at`: 推送入库时间戳。
 
 ---
 

@@ -1,42 +1,29 @@
-from typing import List, Dict, Any, Optional, Set
+from typing import List, Dict, Any, Optional, Set, Union
 from datetime import datetime
 import json
 import math
+import re
 import uuid
 from collections import defaultdict
 from src.logger import get_logger
-from src.models import JobItem, FeedbackRequest, ApplicationItem
+from src.models import JobItem, FeedbackRequest, ApplicationItem, KeywordMatrix
 from src.repositories.job_repository import JobRepository
 from src.repositories.user_repository import UserRepository
 from src.classifier import extract_job_categories, extract_primary_city
 
 logger = get_logger("jhtracker.service.recommendation")
 
-# 技能特异度权重（IDF 近似字典）
-SKILL_WEIGHTS: Dict[str, float] = {
-    # 核心专业硬技能 (高权重 2.0 ~ 2.5)
+# 默认基础 IDF 近似权重表（仅当简历未生成结构化关键词矩阵时作为兜底冷启动）
+DEFAULT_FALLBACK_SKILL_WEIGHTS: Dict[str, float] = {
     "solidworks": 2.5, "eplan": 2.5, "ansys": 2.5, "fluent": 2.5,
     "cfd": 2.4, "有限元": 2.4, "热流耦合": 2.5, "fdm": 2.5,
     "3d打印": 2.5, "增材制造": 2.5, "mpc": 2.2, "温控": 2.2,
     "机电一体化": 2.0, "stm32": 2.0, "单片机": 2.0, "机械设计": 2.0,
     "机械工程": 2.0, "结构设计": 2.0, "结构工程师": 2.0, "热设计": 2.2,
     "热管理": 2.2, "散热": 2.0, "嵌入式": 1.8, "cad": 1.6, "cam": 1.6,
-    # 通用编程/工具语言 (降权，防止反客为主污染工科推荐 0.4 ~ 0.8)
-    "c++": 0.8, "c": 0.6, "python": 0.5, "linux": 0.5, "git": 0.3,
-}
-
-# 专业领域门控词库（机械/机电/硬件/制造/仿真实体词）
-DOMAIN_POSITIVE_KEYWORDS: Set[str] = {
-    "机械", "结构", "机电", "制造", "热", "散热", "仿真", "流体", "增材",
-    "3d打印", "打印", "硬件", "设备", "工艺", "电机", "电气", "自动化",
-    "机器人", "汽车", "装备", "智能制造", "有限元", "嵌入式", "材料", "力学", "测控"
-}
-
-# 强负相关行业与职能（若无工科硬词则严加惩罚）
-NON_ENGINEERING_DISCIPLINE_KEYWORDS: Set[str] = {
-    "金融", "证券", "银行", "基金", "期货", "信托", "保险", "量化",
-    "销售", "客户经理", "营销", "文案", "人力资源", "hr", "行政",
-    "教务", "导购", "客服", "外贸业务员"
+    "c++": 1.2, "c": 1.0, "python": 1.0, "linux": 1.0, "git": 0.5,
+    "pytorch": 2.2, "tensorflow": 2.0, "ros": 2.2, "ros2": 2.4,
+    "fastapi": 2.0, "django": 1.8, "spring": 2.0, "vue": 1.8, "react": 1.8
 }
 
 class RecommendationService:
@@ -52,39 +39,30 @@ class RecommendationService:
         since_date: Optional[str] = None,
         max_jobs_per_company: int = 3
     ) -> List[Dict[str, Any]]:
-        # 1. 获取简历技能池
+        # 1. 获取简历对象及关键词矩阵/技能池
+        target_resume = None
+        keywords_matrix = None
         user_skills = set()
+
         if resume_id:
-            resume = await self.user_repo.get_resume(resume_id)
-            if resume and resume.parsed_skills:
-                user_skills = set([s.lower() for s in resume.parsed_skills])
+            target_resume = await self.user_repo.get_resume(resume_id)
+        else:
+            target_resume = await self.user_repo.get_default_resume()
+
+        if target_resume:
+            keywords_matrix = target_resume.keywords_matrix
+            if target_resume.parsed_skills:
+                user_skills = set([s.lower() for s in target_resume.parsed_skills])
         else:
             resumes = await self.user_repo.list_resumes()
             for r in resumes:
+                if not keywords_matrix and r.keywords_matrix:
+                    keywords_matrix = r.keywords_matrix
                 if r.parsed_skills:
                     for s in r.parsed_skills:
                         user_skills.add(s.lower())
 
-        # 2. 获取候选岗位：结合用户技能搜索与最新岗位双路召回
-        candidate_map = {}
-        # 优先选择特异度高的硬核技能检索
-        sorted_skills = sorted(list(user_skills), key=lambda s: SKILL_WEIGHTS.get(s, 1.0), reverse=True)
-        if sorted_skills:
-            for skill in sorted_skills[:8]:
-                try:
-                    s_jobs, _ = await self.job_repo.search_jobs(keyword=skill, since_date=since_date, limit=60)
-                    for j in s_jobs:
-                        candidate_map[j.id] = j
-                except Exception:
-                    pass
-
-        recent_jobs, _ = await self.job_repo.search_jobs(since_date=since_date, limit=150)
-        for j in recent_jobs:
-            candidate_map[j.id] = j
-
-        jobs = list(candidate_map.values())
-
-        # 3. 获取已有的反馈、权重与企业投递/频控状态
+        # 2. 获取已有的反馈与 HITL 权重
         weights = await self.user_repo.get_feature_weights()
         feedback_list = await self.user_repo.list_feedback()
         handled_job_ids = {f["job_id"] if isinstance(f, dict) else f.job_id for f in feedback_list}
@@ -95,7 +73,72 @@ class RecommendationService:
         capped_pending_companies = app_status.get("capped_pending_companies", set())
         pending_counts = app_status.get("pending_counts", {})
 
+        # 3. 多路动态召回（关键词矩阵核心/领域词 + 偏好高权城市/行业 + 最新时效）
+        candidate_map = {}
+
+        # 准备关键词哈希表 (运行时编译)
+        core_keywords_map = {}
+        domain_keywords_map = {}
+        base_keywords_map = {}
+        negative_keywords_map = {}
+
+        if keywords_matrix and keywords_matrix.categories:
+            for item in keywords_matrix.categories.core:
+                if item.enabled and item.keyword.strip():
+                    core_keywords_map[item.keyword.strip().lower()] = float(item.weight)
+            for item in keywords_matrix.categories.domain:
+                if item.enabled and item.keyword.strip():
+                    domain_keywords_map[item.keyword.strip().lower()] = float(item.weight)
+            for item in keywords_matrix.categories.base:
+                if item.enabled and item.keyword.strip():
+                    base_keywords_map[item.keyword.strip().lower()] = float(item.weight)
+            for item in keywords_matrix.categories.negative:
+                if item.enabled and item.keyword.strip():
+                    negative_keywords_map[item.keyword.strip().lower()] = float(item.weight)
+
+        # 召回路 1: 核心技能 / 领域词检索
+        search_terms = []
+        if core_keywords_map:
+            sorted_cores = sorted(core_keywords_map.items(), key=lambda x: x[1], reverse=True)
+            search_terms.extend([k for k, _ in sorted_cores[:6]])
+        if domain_keywords_map:
+            sorted_domains = sorted(domain_keywords_map.items(), key=lambda x: x[1], reverse=True)
+            search_terms.extend([k for k, _ in sorted_domains[:3]])
+
+        # 兜底：若无关键词矩阵，退化使用原始技能召回
+        if not search_terms and user_skills:
+            sorted_skills = sorted(list(user_skills), key=lambda s: DEFAULT_FALLBACK_SKILL_WEIGHTS.get(s, 1.0), reverse=True)
+            search_terms = sorted_skills[:6]
+
+        for term in search_terms:
+            try:
+                s_jobs, _ = await self.job_repo.search_jobs(keyword=term, since_date=since_date, limit=60)
+                for j in s_jobs:
+                    candidate_map[j.id] = j
+            except Exception:
+                pass
+
+        # 召回路 2: 偏好高权城市与行业召回 (权重 > 1.25)
+        high_weight_cities = [k.replace("city:", "") for k, v in weights.items() if k.startswith("city:") and v >= 1.25]
+        for c in high_weight_cities[:2]:
+            try:
+                c_jobs, _ = await self.job_repo.search_jobs(location=c, since_date=since_date, limit=40)
+                for j in c_jobs:
+                    candidate_map[j.id] = j
+            except Exception:
+                pass
+
+        # 召回路 3: 最新时效岗位兜底
+        recent_jobs, _ = await self.job_repo.search_jobs(since_date=since_date, limit=120)
+        for j in recent_jobs:
+            candidate_map[j.id] = j
+
+        jobs = list(candidate_map.values())
+
+        # 4. 双塔精排与打分
         candidates = []
+        ideal_core_weight = max(1.0, sum(core_keywords_map.values()) * 0.5) if core_keywords_map else 5.0
+
         for job in jobs:
             # 跳过用户已经明确接受或拒绝过的岗位
             if job.id in handled_job_ids:
@@ -109,35 +152,66 @@ class RecommendationService:
             if job.company in capped_pending_companies:
                 continue
 
-            # 基础文本匹配分数与特异度加权
             job_text = f"{job.title} {job.description or ''}".lower()
             job_title_lower = job.title.lower()
 
-            # 专业领域门控：检查岗位是否属于工科实体方向
-            has_domain_positive = any(kw in job_title_lower or kw in job_text for kw in DOMAIN_POSITIVE_KEYWORDS)
-            has_discipline_negative = any(kw in job_title_lower or (job.industry and kw in job.industry) for kw in NON_ENGINEERING_DISCIPLINE_KEYWORDS)
+            # --- 塔 1: 能力基准分计算 (Base Ability) ---
+            matched_cores = []
+            matched_domains = []
+            matched_bases = []
 
-            if user_skills:
-                # 基于技能 IDF/特异度加权打分
-                total_skill_weight = sum(SKILL_WEIGHTS.get(s, 1.0) for s in user_skills)
-                matched_skill_weight = sum(SKILL_WEIGHTS.get(s, 1.0) for s in user_skills if s in job_text)
-                
+            if core_keywords_map or domain_keywords_map or base_keywords_map:
+                # 具备关键词矩阵时的结构化打分
+                score_core = 0.0
+                for kw, w in core_keywords_map.items():
+                    if kw in job_text:
+                        score_core += w
+                        matched_cores.append(kw)
+
+                score_domain = 0.0
+                for kw, w in domain_keywords_map.items():
+                    if kw in job_text:
+                        score_domain += w
+                        matched_domains.append(kw)
+
+                score_base = 0.0
+                for kw, w in base_keywords_map.items():
+                    if kw in job_text:
+                        score_base += w
+                        matched_bases.append(kw)
+
+                raw_ability = score_core * 1.0 + score_domain * 0.75 + score_base * 0.3
+                if raw_ability > 0:
+                    ability_ratio = min(1.0, raw_ability / ideal_core_weight)
+                    base_ability = 0.45 + 0.45 * ability_ratio
+                else:
+                    base_ability = 0.40
+            elif user_skills:
+                # 兼容旧版纯技能列表兜底
+                total_skill_weight = sum(DEFAULT_FALLBACK_SKILL_WEIGHTS.get(s, 1.0) for s in user_skills)
+                matched_skill_weight = sum(DEFAULT_FALLBACK_SKILL_WEIGHTS.get(s, 1.0) for s in user_skills if s in job_text)
                 if matched_skill_weight > 0:
                     weighted_ratio = min(1.0, matched_skill_weight / max(1.0, total_skill_weight * 0.45))
-                    score = 0.50 + 0.40 * weighted_ratio
+                    base_ability = 0.50 + 0.40 * weighted_ratio
                 else:
-                    score = 0.40
+                    base_ability = 0.40
             else:
-                score = 0.50  # 无简历技能时基准分
+                base_ability = 0.50  # 无任何简历输入时的基准分
 
-            # 门控衰减：若岗位命中纯金融/文职且无工科实体词，则施加严厉惩罚
-            if has_discipline_negative and not has_domain_positive:
-                score *= 0.20
-            elif has_domain_positive:
-                # 工科相关领域给予 1.15 倍正向激励
-                score = min(1.0, score * 1.15)
+            # 负向词一票否决与惩罚（由矩阵 negative 动态判定）
+            negative_penalty = 1.0
+            negative_hit = None
+            if negative_keywords_map:
+                for neg_kw, penalty in negative_keywords_map.items():
+                    if neg_kw in job_title_lower:
+                        negative_penalty = min(negative_penalty, penalty)
+                        negative_hit = neg_kw
+                        break
+                    elif neg_kw in job_text:
+                        negative_penalty = min(negative_penalty, min(1.0, penalty + 0.35))
+                        negative_hit = neg_kw
 
-            # 4. 平滑线性加权公式（职能大类、垂直行业、核心城市）
+            # --- 塔 2: 意向偏好乘数计算 (Preference Multiplier) ---
             categories = extract_job_categories(job.title, job.description)
             cat_weights = [weights.get(f"category:{c}", 1.0) for c in categories]
             w_cat = (sum(cat_weights) / len(cat_weights)) if cat_weights else 1.0
@@ -148,27 +222,35 @@ class RecommendationService:
                 w_ind = 1.0
 
             city = extract_primary_city(job.location)
-            if city:
-                w_city = weights.get(f"city:{city}", 1.0)
-            else:
-                w_city = 1.0
+            w_city = weights.get(f"city:{city}", 1.0) if city else 1.0
 
-            # 综合线性乘子: Multiplier = 0.50 * W_cat + 0.25 * W_ind + 0.25 * W_city
-            composite_multiplier = 0.50 * w_cat + 0.25 * w_ind + 0.25 * w_city
-            score = score * composite_multiplier
+            # 线性复合权重: 职能 50% + 行业 25% + 城市 25%
+            raw_multiplier = 0.50 * w_cat + 0.25 * w_ind + 0.25 * w_city
 
-            # 职能类目硬惩罚：如果命中销售/营销/职能行政/文职，但没有命中机械制造/硬件电子类，强力降权
-            non_tech_cats = {"营销/销售类", "职能/HR/行政", "运营/新媒体"}
-            if any(c in non_tech_cats for c in categories) and "机械制造类" not in categories and "硬件电子类" not in categories:
-                score *= 0.3
+            # 双曲正切平滑防过冲: 1.0 + 0.35 * tanh(raw_multiplier - 1.0)
+            preference_bonus = 1.0 + 0.35 * math.tanh(raw_multiplier - 1.0)
 
-            # 保留精度并过滤与极值/NaN 防御
+            # 最终复合得分
+            score = base_ability * preference_bonus * negative_penalty
+
+            # 极值安全防护
             if math.isnan(score) or math.isinf(score):
                 score = 0.40
             final_score = round(min(1.0, max(0.0, score)), 2)
+
             if final_score >= min_score:
-                category_desc = " / ".join(categories)
-                reason = f"契合【{category_desc}】方向，符合技能与偏好画像" if categories else "符合近期活跃招聘趋势"
+                # 动态生成富有解释性的推荐理由
+                reason_parts = []
+                if matched_cores:
+                    reason_parts.append(f"命中核心技能 [{', '.join(matched_cores[:3])}]")
+                if matched_domains:
+                    reason_parts.append(f"契合研究方向 [{', '.join(matched_domains[:2])}]")
+                if not reason_parts and categories:
+                    reason_parts.append(f"契合【{' / '.join(categories)}】职能")
+                if not reason_parts:
+                    reason_parts.append("符合近期活跃招聘画像")
+
+                reason = "；".join(reason_parts)
                 candidates.append({
                     "job": job.model_dump(),
                     "score": final_score,
@@ -176,7 +258,9 @@ class RecommendationService:
                     "reason": reason,
                     "recommend_reason": reason,
                     "categories": categories,
-                    "city": city
+                    "city": city,
+                    "matched_skills": matched_cores + matched_domains,
+                    "negative_hit": negative_hit
                 })
 
         # 按得分从高到低排序
@@ -333,4 +417,72 @@ class RecommendationService:
             "categories_count": len(JOB_CATEGORY_RULES),
             "industries_count": sum(1 for f in unique_features if f[1] == "industry"),
             "cities_count": sum(1 for f in unique_features if f[1] == "city")
+        }
+
+    async def validate_and_ground_matrix(self, matrix: Union[KeywordMatrix, dict]) -> Dict[str, Any]:
+        """
+        全量数据库接地性校验 (Pre-flight FTS Grounding)：
+        探测智能体提炼的每个关键词在全量岗位库中的真实存在量，
+        如果全库查无此词 (hit_count == 0)，则自动将其标注并禁用，
+        保证最终进入推荐引擎的每个词汇都能 100% 击中真实岗位。
+        """
+        if isinstance(matrix, dict):
+            categories = matrix.get("categories", {})
+        else:
+            categories = matrix.categories.dict() if hasattr(matrix.categories, "dict") else {}
+
+        verified_categories = {
+            "core": [],
+            "domain": [],
+            "base": [],
+            "negative": []
+        }
+        zero_hit_keywords = []
+
+        for cat_name in ["core", "domain", "base", "negative"]:
+            items = categories.get(cat_name, [])
+            for item in items:
+                kw = item.get("keyword") if isinstance(item, dict) else getattr(item, "keyword", "")
+                if not kw:
+                    continue
+                
+                # 负向排斥词无需校验存在性（即使数据库没有也可作为过滤防御）
+                if cat_name == "negative":
+                    verified_categories[cat_name].append(item)
+                    continue
+
+                # 探测在全量数据库中的命中数
+                hits = await self.job_repo.count_jobs_by_keyword(kw)
+                
+                # 探测并注册在 HITL 特征字典中的权重条目
+                f_type = "domain" if cat_name == "domain" else "skill"
+                f_key = f"{f_type}:{kw}"
+                await self.user_repo.batch_register_feature_metadata([(f_key, f_type)])
+                
+                # 规范化对象
+                item_dict = item if isinstance(item, dict) else item.dict()
+                if hits == 0:
+                    # 自动软禁用并提示
+                    item_dict["enabled"] = False
+                    orig_source = item_dict.get("source", "")
+                    if "(全库0命中)" not in orig_source:
+                        item_dict["source"] = f"{orig_source} [全库0命中,已自动禁用]".strip()
+                    zero_hit_keywords.append(kw)
+                else:
+                    orig_source = item_dict.get("source", "")
+                    if "(全库" not in orig_source:
+                        item_dict["source"] = f"{orig_source} (全库{hits}岗对齐)".strip()
+                
+                verified_categories[cat_name].append(item_dict)
+
+        result_matrix = {
+            "version": 1,
+            "updated_at": datetime.now().isoformat(),
+            "updated_by": "GROUNDING_VERIFIED",
+            "categories": verified_categories
+        }
+        return {
+            "matrix": result_matrix,
+            "zero_hit_keywords": zero_hit_keywords,
+            "grounded": len(zero_hit_keywords) == 0
         }

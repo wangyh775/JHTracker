@@ -1,0 +1,136 @@
+<svg viewBox="0 0 320 320" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="JHTracker Dynamic Kinetic Logo">
+  <style>
+    /* Continuous Keyframe Animations */
+    @keyframes spinClockwise {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    @keyframes spinCounter {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(-360deg); }
+    }
+    @keyframes streamPulseL {
+      0% { stroke-dashoffset: 0; }
+      100% { stroke-dashoffset: -120; }
+    }
+    @keyframes streamPulseR {
+      0% { stroke-dashoffset: 0; }
+      100% { stroke-dashoffset: 120; }
+    }
+    @keyframes diamondBreathe {
+      0%, 100% { transform: scale(1) rotate(0deg); }
+      50% { transform: scale(1.15) rotate(45deg); }
+    }
+
+    .rot-clockwise {
+      transform-origin: 160px 160px;
+      animation: spinClockwise 24s linear infinite;
+    }
+    .rot-counter {
+      transform-origin: 160px 160px;
+      animation: spinCounter 36s linear infinite;
+    }
+    .pulse-stream-l {
+      stroke-dasharray: 12 18;
+      animation: streamPulseL 3.2s linear infinite;
+    }
+    .pulse-stream-r {
+      stroke-dasharray: 12 18;
+      animation: streamPulseR 3.2s linear infinite;
+    }
+    .core-diamond {
+      transform-origin: 160px 160px;
+      animation: diamondBreathe 4s ease-in-out infinite;
+    }
+    
+    /* Interactive Hover Acceleration */
+    svg:hover .rot-clockwise {
+      animation-duration: 8s;
+    }
+    svg:hover .pulse-stream-l,
+    svg:hover .pulse-stream-r {
+      animation-duration: 1.2s;
+    }
+  </style>
+
+  <defs>
+    <!-- Crisp High-Tech Gradients (Zero Glow) -->
+    <linearGradient id="streamCyan" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8"/>
+      <stop offset="50%" stop-color="#0284c7"/>
+      <stop offset="100%" stop-color="#6366f1"/>
+    </linearGradient>
+
+    <linearGradient id="streamPurple" x1="100%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#c084fc"/>
+      <stop offset="50%" stop-color="#7e22ce"/>
+      <stop offset="100%" stop-color="#0284c7"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Solid Outer Chassis (No Blur) -->
+  <rect width="320" height="320" rx="64" fill="#080c16" stroke="#1e293b" stroke-width="2.5"/>
+  <rect x="8" y="8" width="304" height="304" rx="56" fill="#060911" stroke="#334155" stroke-width="1.2" stroke-opacity="0.8"/>
+
+  <!-- ── LAYER 1: ROTATING TACTICAL CALIBRATION DIAL (Outer Counter) ── -->
+  <g class="rot-counter">
+    <circle cx="160" cy="160" r="142" fill="none" stroke="#334155" stroke-width="1.2" stroke-dasharray="3 7"/>
+    <!-- 8 Directional Polar Notches -->
+    <circle cx="160" cy="18" r="2.5" fill="#38bdf8"/>
+    <circle cx="160" cy="302" r="2.5" fill="#38bdf8"/>
+    <circle cx="18" cy="160" r="2.5" fill="#38bdf8"/>
+    <circle cx="302" cy="160" r="2.5" fill="#38bdf8"/>
+    <circle cx="60" cy="60" r="2" fill="#64748b"/>
+    <circle cx="260" cy="60" r="2" fill="#64748b"/>
+    <circle cx="60" cy="260" r="2" fill="#64748b"/>
+    <circle cx="260" cy="260" r="2" fill="#64748b"/>
+  </g>
+
+  <!-- ── LAYER 2: ROTATING INNER RADAR COMPASS (Clockwise) ── -->
+  <g class="rot-clockwise">
+    <circle cx="160" cy="160" r="126" fill="none" stroke="#1e293b" stroke-width="1.5"/>
+    <line x1="160" y1="34" x2="160" y2="44" stroke="#38bdf8" stroke-width="2"/>
+    <line x1="160" y1="276" x2="160" y2="286" stroke="#38bdf8" stroke-width="2"/>
+    <line x1="34" y1="160" x2="44" y2="160" stroke="#38bdf8" stroke-width="2"/>
+    <line x1="276" y1="160" x2="286" y2="160" stroke="#38bdf8" stroke-width="2"/>
+  </g>
+
+  <!-- ── LAYER 3: STATIC BASE DUAL TRACKS (Physical Guide Rails) ── -->
+  <!-- Left static rail (Dark Blue Channel) -->
+  <path d="M 160 160 C 130 96, 68 96, 68 160 C 68 224, 130 224, 160 160" fill="none" stroke="#0f172a" stroke-width="14" stroke-linecap="round"/>
+  <path d="M 160 160 C 130 96, 68 96, 68 160 C 68 224, 130 224, 160 160" fill="none" stroke="url(#streamCyan)" stroke-width="10" stroke-linecap="round" opacity="0.6"/>
+
+  <!-- Right static rail (Dark Purple Channel) -->
+  <path d="M 160 160 C 190 224, 252 224, 252 160 C 252 96, 190 96, 160 160" fill="none" stroke="#0f172a" stroke-width="14" stroke-linecap="round"/>
+  <path d="M 160 160 C 190 224, 252 224, 252 160 C 252 96, 190 96, 160 160" fill="none" stroke="url(#streamPurple)" stroke-width="10" stroke-linecap="round" opacity="0.6"/>
+
+  <!-- ── LAYER 4: HIGH-SPEED KINETIC PULSE STREAMS (Animated) ── -->
+  <!-- Left Track Kinetic Pulse -->
+  <path class="pulse-stream-l" d="M 160 160 C 130 96, 68 96, 68 160 C 68 224, 130 224, 160 160" fill="none" stroke="#ffffff" stroke-width="3.5" stroke-linecap="round"/>
+  <path class="pulse-stream-l" d="M 160 160 C 130 96, 68 96, 68 160 C 68 224, 130 224, 160 160" fill="none" stroke="#38bdf8" stroke-width="6" stroke-linecap="round" opacity="0.8"/>
+
+  <!-- Right Track Kinetic Pulse -->
+  <path class="pulse-stream-r" d="M 160 160 C 190 224, 252 224, 252 160 C 252 96, 190 96, 160 160" fill="none" stroke="#ffffff" stroke-width="3.5" stroke-linecap="round"/>
+  <path class="pulse-stream-r" d="M 160 160 C 190 224, 252 224, 252 160 C 252 96, 190 96, 160 160" fill="none" stroke="#c084fc" stroke-width="6" stroke-linecap="round" opacity="0.8"/>
+
+  <!-- ── LAYER 5: PHYSICAL BRIDGE NOTCH (Z-Index Isolation) ── -->
+  <circle cx="160" cy="160" r="23" fill="#060911" stroke="#1e293b" stroke-width="2"/>
+
+  <!-- ── LAYER 6: CORE QUANTUM TARGET (Breathing Diamond) ── -->
+  <g class="core-diamond">
+    <polygon points="160,146 174,160 160,174 146,160" fill="#38bdf8"/>
+    <polygon points="160,150 170,160 160,170 150,160" fill="#ffffff"/>
+    <circle cx="160" cy="160" r="3.5" fill="#060911"/>
+  </g>
+
+  <!-- ── LAYER 7: SUBTLE MONOGRAM ACCENTS (J & H Vertices) ── -->
+  <!-- J Hook Node -->
+  <circle cx="86" cy="192" r="4.5" fill="#38bdf8" stroke="#060911" stroke-width="2"/>
+  <path d="M 86 192 L 86 212 C 86 220 78 224 70 224" fill="none" stroke="#38bdf8" stroke-width="3" stroke-linecap="round"/>
+
+  <!-- H Post Node -->
+  <circle cx="234" cy="128" r="4.5" fill="#c084fc" stroke="#060911" stroke-width="2"/>
+  <line x1="234" y1="128" x2="234" y2="104" stroke="#c084fc" stroke-width="3" stroke-linecap="round"/>
+  <line x1="245" y1="128" x2="245" y2="104" stroke="#c084fc" stroke-width="3" stroke-linecap="round"/>
+  <line x1="234" y1="116" x2="245" y2="116" stroke="#c084fc" stroke-width="2"/>
+</svg>

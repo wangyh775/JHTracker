@@ -23,7 +23,7 @@ graph TB
         APIs["RESTful API 引擎<br/>(/api/jobs, /api/recommendations, /api/applications, /api/resumes)"]
         RecEngine["HITL 推荐引擎<br/>(双路召回 + TF-IDF/Tag + 动态权重修正)"]
         Spiders["多源定向爬虫矩阵<br/>(求职方舟 / 牛客网 / 外部录入 / 智能去重)"]
-        MCP["FastMCP 安全服务<br/>(8大沙箱工具 / 审计日志 / 输入脱敏与防越权)"]
+        MCP["FastMCP 安全服务<br/>(10大沙箱工具 / 审计日志 / 输入脱敏与防越权)"]
     end
 
     subgraph Storage ["💾 物理双库隔离体系 (SQLite + FTS5)"]
@@ -65,7 +65,7 @@ graph TB
 | **系统设计** | **[系统总体架构设计](./architecture.md)** | 双库隔离模型、HITL 闭环算法数学公式、生命周期时序图 | 架构师 / 高级开发者 |
 | **数据隐私** | **[数据存储与隐私隔离规范](./data-storage-and-privacy.md)** | 目录安全规范、数据表 DDL、FTS5 检索机制、防越权防篡改模型 | 安全审计 / 数据库管理 |
 | **API 参考** | **[RESTful API 完整手册](./api-reference.md)** | 20+ 个核心 API 请求规范、响应格式、状态码定义与示例 | 全栈开发 / 接口联调 |
-| **AI 协作** | **[FastMCP 智能体接入指南](./mcp-agent-guide.md)** | 8大开放工具说明、参数约束、JSON 配置范例、安全权限红线守则 | AI 开发者 / Agent 工程师 |
+| **AI 协作** | **[FastMCP 智能体接入指南](./mcp-agent-guide.md)** | 10大开放工具说明、参数约束、JSON 配置范例、安全权限红线守则 | AI 开发者 / Agent 工程师 |
 | **开发贡献** | **[开发者环境与架构指南](./developer-guide.md)** | 工程布局、Python/Node 虚拟环境搭建、全套 pytest 单元测试验证 | 二次开发 / 代码贡献者 |
 | **数据采集** | **[定向爬虫开发与接入指南](./spider-development.md)** | `BaseJobSpider` 抽象基类、数据清洗流水线、哈希防重入库范式 | 爬虫工程师 / 数据集成 |
 
@@ -86,7 +86,7 @@ mindmap
       拒绝动态降权防误杀
       权重透明化与一键重置
     智能体安全协同 (FastMCP)
-      8大标准工具封装
+      10大标准工具封装
       智能体只读用户原始简历
       AI 优化产物独立存库
       严禁 AI 篡改看板关键决策

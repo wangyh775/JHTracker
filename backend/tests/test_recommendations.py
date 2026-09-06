@@ -136,5 +136,65 @@ async def test_recommendation_and_hitl_loop():
         recs_after_apply = await rec_service.get_recommendations(min_score=0.1)
         assert not any(r["job"]["company"] == "拓竹科技" for r in recs_after_apply)
 
+        # 7. 验证关键词矩阵对推荐打分与负向词一票否决的驱动
+        from src.models import ResumeItem, KeywordMatrix, KeywordMatrixCategories, KeywordItem
+        matrix_data = KeywordMatrix(
+            categories=KeywordMatrixCategories(
+                core=[KeywordItem(keyword="FastAPI", weight=2.5, enabled=True)],
+                domain=[KeywordItem(keyword="具身智能", weight=2.0, enabled=True)],
+                base=[KeywordItem(keyword="Docker", weight=1.0, enabled=True)],
+                negative=[KeywordItem(keyword="外包", weight=0.1, enabled=True)]
+            ),
+            updated_by="USER_MANUAL"
+        )
+        test_resume = ResumeItem(
+            id="res-matrix-1",
+            title="具身智能算法简历",
+            is_default=True,
+            keywords_matrix=matrix_data
+        )
+        await user_repo.save_resume(test_resume)
+
+        # 插入具身智能与外包岗位
+        await job_repo.insert_job(JobItem(
+            id="job-embodied-1",
+            title="具身智能算法工程师",
+            company="智元机器人",
+            location="上海",
+            industry="人工智能",
+            type_tags=["独角兽"],
+            publish_date="2026-09-02",
+            description="负责具身大模型与 FastAPI 接口开发"
+        ))
+        await job_repo.insert_job(JobItem(
+            id="job-outsourcing-1",
+            title="外包支持工程师",
+            company="新外包",
+            location="上海",
+            industry="IT服务",
+            type_tags=["外包"],
+            publish_date="2026-09-02",
+            description="驻场外包服务支持"
+        ))
+
+        recs_matrix = await rec_service.get_recommendations(resume_id="res-matrix-1", min_score=0.1)
+        embodied_rec = next((r for r in recs_matrix if r["job"]["id"] == "job-embodied-1"), None)
+        outsourcing_rec = next((r for r in recs_matrix if r["job"]["id"] == "job-outsourcing-1"), None)
+
+        assert embodied_rec is not None
+        assert embodied_rec["score"] >= 0.70  # 核心词与领域词全中，得分应当显著高
+        assert "命中核心技能" in embodied_rec["reason"]
+
+        # 验证矩阵中的关键词已 100% 自动注册到 HITL feature_weights 字典中
+        weights = await user_repo.get_feature_weights()
+        assert "skill:FastAPI" in weights
+        assert "domain:具身智能" in weights
+        assert "skill:Docker" in weights
+
+        if outsourcing_rec:
+            # 标题含外包 negative 词，得分应被压制到极低
+            assert outsourcing_rec["score"] <= 0.20
+            assert outsourcing_rec.get("negative_hit") == "外包"
+
     finally:
         shutil.rmtree(temp_dir)

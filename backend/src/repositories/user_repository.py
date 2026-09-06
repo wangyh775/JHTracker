@@ -1,7 +1,8 @@
 import json
 import aiosqlite
-from typing import List, Optional, Dict, Any, Tuple
-from src.models import ApplicationItem, ResumeItem, FeedbackRequest
+from datetime import datetime
+from typing import List, Optional, Dict, Any, Tuple, Union
+from src.models import ApplicationItem, ResumeItem, FeedbackRequest, KeywordMatrix
 from src.db import get_user_db
 from src.config import config
 
@@ -117,11 +118,45 @@ class UserDataRepository:
         async with get_user_db(self.db_path) as db:
             if resume.is_default:
                 await db.execute("UPDATE resumes SET is_default = 0")
+
+            # 核心技术栈与画像技能统一：若提供了 parsed_skills 但无 keywords_matrix，自动构建 core 矩阵
+            # 若提供了 keywords_matrix，确保 core 包含全部 parsed_skills
+            matrix = resume.keywords_matrix
+            skills = resume.parsed_skills or []
+            if skills and not matrix:
+                from src.models import KeywordCategories, KeywordItem
+                core_items = [
+                    KeywordItem(keyword=s.strip(), weight=1.5, source="简历画像核心技术栈", enabled=True)
+                    for s in skills
+                    if s and s.strip()
+                ]
+                matrix = KeywordMatrix(
+                    version=1,
+                    updated_at=datetime.utcnow().isoformat(),
+                    updated_by="RESUME_PROFILE_SYNC",
+                    categories=KeywordCategories(
+                        core=core_items,
+                        domain=[],
+                        base=[],
+                        negative=[]
+                    )
+                )
+                resume.keywords_matrix = matrix
+            elif matrix and hasattr(matrix, "categories") and matrix.categories:
+                # 矩阵与 skills 保持同步
+                core_list = [k.keyword.strip() for k in (matrix.categories.core or []) if k and k.keyword]
+                if core_list:
+                    skills = core_list
+                    resume.parsed_skills = skills
+
+            matrix_json = None
+            if resume.keywords_matrix:
+                matrix_json = resume.keywords_matrix.model_dump_json() if hasattr(resume.keywords_matrix, "model_dump_json") else json.dumps(resume.keywords_matrix, ensure_ascii=False)
             await db.execute("""
             INSERT INTO resumes (
                 id, title, category, file_path, content_md, target_job_id,
-                parsed_skills, is_default, version_type, parent_resume_id, updated_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now', 'localtime'))
+                parsed_skills, keywords_matrix, is_default, version_type, parent_resume_id, updated_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now', 'localtime'))
             ON CONFLICT(id) DO UPDATE SET
                 title=excluded.title,
                 category=excluded.category,
@@ -129,6 +164,7 @@ class UserDataRepository:
                 content_md=excluded.content_md,
                 target_job_id=excluded.target_job_id,
                 parsed_skills=excluded.parsed_skills,
+                keywords_matrix=excluded.keywords_matrix,
                 is_default=excluded.is_default,
                 version_type=excluded.version_type,
                 parent_resume_id=excluded.parent_resume_id,
@@ -137,11 +173,17 @@ class UserDataRepository:
                 resume.id, resume.title, resume.category, resume.file_path,
                 resume.content_md, resume.target_job_id,
                 json.dumps(resume.parsed_skills, ensure_ascii=False) if resume.parsed_skills else "[]",
+                matrix_json,
                 1 if resume.is_default else 0,
                 getattr(resume, "version_type", "ORIGINAL"),
                 getattr(resume, "parent_resume_id", None)
             ))
             await db.commit()
+
+            # 自动注册矩阵技能到 HITL 特征字典 (保证 100% 包含与约束)
+            if resume.keywords_matrix:
+                await self.auto_register_matrix_features(resume.keywords_matrix)
+
             return True
 
     async def set_default_resume(self, resume_id: str) -> bool:
@@ -155,32 +197,7 @@ class UserDataRepository:
         async with get_user_db(self.db_path) as db:
             async with db.execute("SELECT * FROM resumes ORDER BY is_default DESC, updated_at DESC") as cursor:
                 rows = await cursor.fetchall()
-                res = []
-                for r in rows:
-                    skills = []
-                    if r["parsed_skills"]:
-                        try:
-                            skills = json.loads(r["parsed_skills"])
-                        except:
-                            pass
-                    is_def = bool(r["is_default"]) if "is_default" in r.keys() else False
-                    v_type = r["version_type"] if "version_type" in r.keys() and r["version_type"] else "ORIGINAL"
-                    p_id = r["parent_resume_id"] if "parent_resume_id" in r.keys() else None
-                    res.append(ResumeItem(
-                        id=r["id"],
-                        title=r["title"],
-                        category=r["category"],
-                        file_path=r["file_path"],
-                        content_md=r["content_md"],
-                        target_job_id=r["target_job_id"],
-                        parsed_skills=skills,
-                        is_default=is_def,
-                        version_type=v_type,
-                        parent_resume_id=p_id,
-                        created_at=r["created_at"],
-                        updated_at=r["updated_at"]
-                    ))
-                return res
+                return [self._row_to_resume(r) for r in rows]
 
     async def get_resume_by_id(self, resume_id: str) -> Optional[ResumeItem]:
         async with get_user_db(self.db_path) as db:
@@ -188,29 +205,14 @@ class UserDataRepository:
                 r = await cursor.fetchone()
                 if not r:
                     return None
-                skills = []
-                if r["parsed_skills"]:
-                    try:
-                        skills = json.loads(r["parsed_skills"])
-                    except:
-                        pass
-                is_def = bool(r["is_default"]) if "is_default" in r.keys() else False
-                v_type = r["version_type"] if "version_type" in r.keys() and r["version_type"] else "ORIGINAL"
-                p_id = r["parent_resume_id"] if "parent_resume_id" in r.keys() else None
-                return ResumeItem(
-                    id=r["id"],
-                    title=r["title"],
-                    category=r["category"],
-                    file_path=r["file_path"],
-                    content_md=r["content_md"],
-                    target_job_id=r["target_job_id"],
-                    parsed_skills=skills,
-                    is_default=is_def,
-                    version_type=v_type,
-                    parent_resume_id=p_id,
-                    created_at=r["created_at"],
-                    updated_at=r["updated_at"]
-                )
+                return self._row_to_resume(r)
+
+    # Alias for compatibility with tests
+    get_resume = get_resume_by_id
+
+    async def init_db(self):
+        from src.db import init_user_db
+        await init_user_db(self.db_path)
 
     async def update_resume(
         self,
@@ -219,6 +221,7 @@ class UserDataRepository:
         category: Optional[str] = None,
         content_md: Optional[str] = None,
         skills: Optional[List[str]] = None,
+        keywords_matrix: Optional[Union[KeywordMatrix, dict]] = None,
         is_default: Optional[bool] = None,
         version_type: Optional[str] = None,
         parent_resume_id: Optional[str] = None
@@ -226,6 +229,46 @@ class UserDataRepository:
         async with get_user_db(self.db_path) as db:
             if is_default:
                 await db.execute("UPDATE resumes SET is_default = 0")
+
+            # 核心技术栈与画像技能统一
+            # 1. 若同时或仅传入 skills，同步更新或补齐 keywords_matrix 的 core 象限
+            if skills is not None and keywords_matrix is None:
+                # 获取原简历已有的矩阵进行合并，若无则新建
+                async with db.execute("SELECT keywords_matrix FROM resumes WHERE id = ?", (resume_id,)) as cur:
+                    row = await cur.fetchone()
+                    existing_matrix_str = row[0] if row else None
+                existing_matrix = None
+                if existing_matrix_str:
+                    try:
+                        m_dict = json.loads(existing_matrix_str)
+                        if m_dict:
+                            existing_matrix = KeywordMatrix(**m_dict)
+                    except Exception:
+                        pass
+                
+                from src.models import KeywordCategories, KeywordItem
+                core_items = [
+                    KeywordItem(keyword=s.strip(), weight=1.5, source="简历画像核心技术栈", enabled=True)
+                    for s in skills
+                    if s and s.strip()
+                ]
+                if existing_matrix and existing_matrix.categories:
+                    existing_matrix.categories.core = core_items
+                    existing_matrix.updated_at = datetime.utcnow().isoformat()
+                    existing_matrix.updated_by = "RESUME_SKILLS_UPDATE"
+                    keywords_matrix = existing_matrix
+                else:
+                    keywords_matrix = KeywordMatrix(
+                        version=1,
+                        updated_at=datetime.utcnow().isoformat(),
+                        updated_by="RESUME_SKILLS_UPDATE",
+                        categories=KeywordCategories(core=core_items, domain=[], base=[], negative=[])
+                    )
+            elif keywords_matrix is not None:
+                # 若传入了 keywords_matrix，反向同步 skills 为 core 的关键词列表
+                matrix_obj = keywords_matrix if isinstance(keywords_matrix, KeywordMatrix) else KeywordMatrix(**keywords_matrix)
+                if matrix_obj.categories and matrix_obj.categories.core is not None:
+                    skills = [item.keyword.strip() for item in matrix_obj.categories.core if item and item.keyword]
             
             updates = []
             params = []
@@ -241,6 +284,10 @@ class UserDataRepository:
             if skills is not None:
                 updates.append("parsed_skills = ?")
                 params.append(json.dumps(skills, ensure_ascii=False))
+            if keywords_matrix is not None:
+                updates.append("keywords_matrix = ?")
+                matrix_str = keywords_matrix.model_dump_json() if hasattr(keywords_matrix, "model_dump_json") else json.dumps(keywords_matrix, ensure_ascii=False)
+                params.append(matrix_str)
             if is_default is not None:
                 updates.append("is_default = ?")
                 params.append(1 if is_default else 0)
@@ -259,7 +306,19 @@ class UserDataRepository:
             await db.commit()
             if cursor.rowcount == 0:
                 return None
+
+            # 自动注册矩阵技能到 HITL 特征字典 (保证 100% 包含与约束)
+            if keywords_matrix:
+                await self.auto_register_matrix_features(keywords_matrix)
+
             return await self.get_resume_by_id(resume_id)
+
+    async def update_resume_keywords_matrix(
+        self,
+        resume_id: str,
+        keywords_matrix: Union[KeywordMatrix, dict]
+    ) -> Optional[ResumeItem]:
+        return await self.update_resume(resume_id=resume_id, keywords_matrix=keywords_matrix)
 
     async def delete_resume(self, resume_id: str) -> bool:
         async with get_user_db(self.db_path) as db:
@@ -274,6 +333,44 @@ class UserDataRepository:
                 skills = json.loads(r["parsed_skills"])
             except:
                 pass
+        matrix = None
+        if "keywords_matrix" in r.keys() and r["keywords_matrix"]:
+            try:
+                m_data = json.loads(r["keywords_matrix"])
+                if m_data:
+                    matrix = KeywordMatrix(**m_data)
+            except:
+                pass
+
+        # 核心技术栈与画像技能统一：若已有 keywords_matrix，画像技能以 core 核心技术栈为准
+        if matrix and matrix.categories and matrix.categories.core is not None:
+            core_keywords = [
+                item.keyword.strip()
+                for item in matrix.categories.core
+                if item and item.keyword and item.keyword.strip()
+            ]
+            if core_keywords:
+                skills = core_keywords
+        elif skills and not matrix:
+            # 若已有 skills 但未建立 keywords_matrix，自动缺省投影生成初始 core 矩阵
+            from src.models import KeywordCategories, KeywordItem
+            core_items = [
+                KeywordItem(keyword=s.strip(), weight=1.5, source="简历画像核心技术栈", enabled=True)
+                for s in skills
+                if s and s.strip()
+            ]
+            matrix = KeywordMatrix(
+                version=1,
+                updated_at=datetime.utcnow().isoformat(),
+                updated_by="RESUME_PROFILE_SYNC",
+                categories=KeywordCategories(
+                    core=core_items,
+                    domain=[],
+                    base=[],
+                    negative=[]
+                )
+            )
+
         is_def = bool(r["is_default"]) if "is_default" in r.keys() else False
         v_type = r["version_type"] if "version_type" in r.keys() and r["version_type"] else "ORIGINAL"
         p_id = r["parent_resume_id"] if "parent_resume_id" in r.keys() else None
@@ -285,6 +382,7 @@ class UserDataRepository:
             content_md=r["content_md"],
             target_job_id=r["target_job_id"],
             parsed_skills=skills,
+            keywords_matrix=matrix,
             is_default=is_def,
             version_type=v_type,
             parent_resume_id=p_id,
@@ -464,6 +562,37 @@ class UserDataRepository:
             await db.commit()
             return cursor.rowcount if cursor.rowcount > 0 else 0
 
+    async def auto_register_matrix_features(self, matrix: Union[KeywordMatrix, dict]) -> int:
+        """
+        自动将推荐语义关键词矩阵中的关键词注册到 HITL feature_weights 表，
+        支持 core/domain/base -> skill / domain 命名空间，保证 100% 包含与约束。
+        """
+        if not matrix:
+            return 0
+        if isinstance(matrix, dict):
+            cats_dict = matrix.get("categories") or {}
+            if hasattr(cats_dict, "dict"):
+                cats_dict = cats_dict.dict()
+        elif hasattr(matrix, "categories"):
+            cats_obj = matrix.categories
+            cats_dict = cats_obj.dict() if hasattr(cats_obj, "dict") else vars(cats_obj)
+        else:
+            cats_dict = {}
+
+        features_to_sync = []
+        for cat_name, items in cats_dict.items():
+            f_type = "domain" if cat_name == "domain" else "skill"
+            if isinstance(items, list):
+                for it in items:
+                    kw = it.keyword if hasattr(it, "keyword") else (it.get("keyword") if isinstance(it, dict) else str(it))
+                    if kw and str(kw).strip():
+                        clean_kw = str(kw).strip()
+                        features_to_sync.append((f"{f_type}:{clean_kw}", f_type))
+
+        if features_to_sync:
+            return await self.batch_register_feature_metadata(features_to_sync)
+        return 0
+
     async def reset_feature_weights(self, feature_key: Optional[str] = None) -> bool:
         """
         将权重恢复至 1.0 基准线，同时重置 accept_count 和 reject_count 计数，
@@ -548,7 +677,32 @@ class UserDataRepository:
             "capped_pending_companies": capped_pending_companies
         }
 
+    async def get_setting(self, key: str, default: Optional[str] = None) -> Optional[str]:
+        """获取用户系统设置"""
+        async with get_user_db(self.db_path) as db:
+            async with db.execute("SELECT setting_value FROM user_settings WHERE setting_key = ?", (key,)) as cursor:
+                row = await cursor.fetchone()
+                if row and row["setting_value"] is not None:
+                    return str(row["setting_value"])
+        return default
+
+    async def set_setting(self, key: str, value: str) -> None:
+        """保存用户系统设置"""
+        async with get_user_db(self.db_path) as db:
+            await db.execute(
+                """
+                INSERT INTO user_settings (setting_key, setting_value, updated_at)
+                VALUES (?, ?, datetime('now', 'localtime'))
+                ON CONFLICT(setting_key) DO UPDATE SET
+                    setting_value = excluded.setting_value,
+                    updated_at = excluded.updated_at
+                """,
+                (key, value)
+            )
+            await db.commit()
+
 
 # Alias
 UserRepository = UserDataRepository
+
 

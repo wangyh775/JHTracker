@@ -44,7 +44,7 @@ export interface VisitedRecord {
 
 export type VisitedRecordMap = Record<string, VisitedRecord>;
 
-export type ApplicationStatus = 'PENDING_APPLY' | 'APPLIED' | 'OA_SCREENING' | 'INTERVIEW_STAGE' | 'OFFER_RECEIVED' | 'REJECTED';
+export type ApplicationStatus = 'PENDING_APPLY' | 'APPLIED' | 'OA_SCREENING' | 'INTERVIEW_STAGE' | 'OFFER_RECEIVED';
 
 export interface ApplicationItem {
   id: string;
@@ -84,6 +84,27 @@ export interface RecommendationItem {
   recommend_reason?: string;
 }
 
+export interface KeywordItem {
+  keyword: string;
+  weight: number;
+  source?: string;
+  enabled: boolean;
+}
+
+export interface KeywordCategories {
+  core: KeywordItem[];
+  domain: KeywordItem[];
+  base: KeywordItem[];
+  negative: KeywordItem[];
+}
+
+export interface KeywordMatrix {
+  version: number;
+  updated_at: string;
+  updated_by: 'AGENT_INIT' | 'USER_MANUAL' | 'FEEDBACK_AUTO' | string;
+  categories: KeywordCategories;
+}
+
 export interface ResumeItem {
   id: string;
   title: string;
@@ -94,6 +115,7 @@ export interface ResumeItem {
   is_default?: boolean;
   version_type?: 'ORIGINAL' | 'AI_OPTIMIZED' | string;
   parent_resume_id?: string;
+  keywords_matrix?: KeywordMatrix;
   updated_at?: string;
 }
 

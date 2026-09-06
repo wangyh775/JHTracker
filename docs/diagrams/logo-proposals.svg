@@ -1,0 +1,237 @@
+<svg viewBox="0 0 1200 680" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="JHTracker Logo Proposals Matrix">
+  <defs>
+    <!-- Background Grid -->
+    <pattern id="protoGrid" width="24" height="24" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#ffffff" fill-opacity="0.04"/>
+    </pattern>
+
+    <!-- Linear Gradients for Badges & Accents -->
+    <linearGradient id="cyanPurpleGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#06b6d4"/>
+      <stop offset="50%" stop-color="#3b82f6"/>
+      <stop offset="100%" stop-color="#a855f7"/>
+    </linearGradient>
+
+    <linearGradient id="cyanTealGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8"/>
+      <stop offset="100%" stop-color="#06b6d4"/>
+    </linearGradient>
+
+    <linearGradient id="purplePinkGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#a855f7"/>
+      <stop offset="100%" stop-color="#ec4899"/>
+    </linearGradient>
+
+    <linearGradient id="emeraldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#10b981"/>
+      <stop offset="100%" stop-color="#06b6d4"/>
+    </linearGradient>
+
+    <!-- Card Backgrounds -->
+    <linearGradient id="cardDark" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#111728" stop-opacity="0.95"/>
+      <stop offset="100%" stop-color="#0c101d" stop-opacity="0.98"/>
+    </linearGradient>
+
+    <!-- Glow Filters -->
+    <filter id="glowCyan" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+    <filter id="glowPurple" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="7" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+    <filter id="softShadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#000000" flood-opacity="0.6"/>
+    </filter>
+  </defs>
+
+  <!-- ════════ BASE BACKGROUND ════════ -->
+  <rect width="1200" height="680" fill="#07090e"/>
+  <rect width="1200" height="680" fill="url(#protoGrid)"/>
+
+  <!-- Top Title Banner -->
+  <g transform="translate(60, 40)">
+    <rect x="0" y="0" width="120" height="26" rx="13" fill="#06b6d4" fill-opacity="0.12" stroke="#06b6d4" stroke-opacity="0.35"/>
+    <text x="60" y="17" fill="#38bdf8" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" font-weight="700" text-anchor="middle" letter-spacing="1.5">VISUAL COMPANION</text>
+    <text x="135" y="18" fill="#ffffff" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="22" font-weight="800" letter-spacing="0.5">JHTracker 应用 Logo 概念提案设计矩阵</text>
+    <text x="0" y="48" fill="#94a3b8" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="13">基于“雷达追踪 × 几何单体 J/H 构型 × HITL 人机回环”，专为暗色极客中台量身定制的三套备选架构方案</text>
+  </g>
+
+  <!-- ════════ CARD 1: OPTION A (RECOMMENDED) ════════ -->
+  <!-- 双环共鸣·准星重构 (Radar Nexus & Crosshair) -->
+  <g transform="translate(60, 120)" filter="url(#softShadow)">
+    <rect width="340" height="500" rx="16" fill="url(#cardDark)" stroke="#06b6d4" stroke-opacity="0.4" stroke-width="1.5"/>
+    <!-- Top badge -->
+    <rect x="16" y="16" width="92" height="22" rx="6" fill="#06b6d4" fill-opacity="0.18"/>
+    <text x="62" y="31" fill="#38bdf8" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" font-weight="700" text-anchor="middle">方案 A · 推荐</text>
+    <text x="120" y="32" fill="#e2e8f0" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="15" font-weight="700">双环共鸣 · 准星聚焦</text>
+
+    <!-- Canvas Box for Logo (160x160) -->
+    <g transform="translate(90, 60)">
+      <rect width="160" height="160" rx="28" fill="#0c101a" stroke="#1e293b" stroke-width="1.5"/>
+      <!-- Inner Ambient Glow -->
+      <circle cx="80" cy="80" r="50" fill="#06b6d4" fill-opacity="0.08"/>
+
+      <!-- Radar Pulse Ring 1 (Inner continuous) -->
+      <circle cx="80" cy="80" r="42" fill="none" stroke="#06b6d4" stroke-opacity="0.35" stroke-width="1.5" stroke-dasharray="4 3"/>
+      <!-- Radar Pulse Ring 2 (Outer Accent) -->
+      <circle cx="80" cy="80" r="58" fill="none" stroke="#8b5cf6" stroke-opacity="0.25" stroke-width="1"/>
+
+      <!-- Dynamic Crosshair ticks -->
+      <line x1="80" y1="16" x2="80" y2="26" stroke="#38bdf8" stroke-width="2" stroke-linecap="round"/>
+      <line x1="80" y1="134" x2="80" y2="144" stroke="#38bdf8" stroke-width="2" stroke-linecap="round"/>
+      <line x1="16" y1="80" x2="26" y2="80" stroke="#38bdf8" stroke-width="2" stroke-linecap="round"/>
+      <line x1="134" y1="80" x2="144" y2="80" stroke="#38bdf8" stroke-width="2" stroke-linecap="round"/>
+
+      <!-- Integrated J & H Form -->
+      <!-- Left Stem & Hook: J (Cyan to Blue) -->
+      <path d="M 64 48 L 64 92 C 64 104 54 112 42 112 C 38 112 34 110 32 108" fill="none" stroke="url(#cyanTealGrad)" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" filter="url(#glowCyan)"/>
+      
+      <!-- Right Stem: H right leg (Purple to Pink) -->
+      <path d="M 96 48 L 96 112" fill="none" stroke="url(#purplePinkGrad)" stroke-width="8" stroke-linecap="round"/>
+
+      <!-- Crossbar linking J & H (HITL Feedback Bridge) -->
+      <path d="M 64 78 L 96 78" fill="none" stroke="#ffffff" stroke-width="6" stroke-linecap="round" filter="url(#glowCyan)"/>
+
+      <!-- Center Pulse Target Point -->
+      <circle cx="80" cy="78" r="4" fill="#38bdf8"/>
+      <circle cx="80" cy="78" r="8" fill="none" stroke="#38bdf8" stroke-width="1.5" stroke-opacity="0.6"/>
+    </g>
+
+    <!-- Description & Philosophy -->
+    <g transform="translate(20, 245)">
+      <text x="0" y="0" fill="#38bdf8" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="700">【核心意象与构型】</text>
+      <text x="0" y="24" fill="#cbd5e1" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="400">
+        <tspan x="0" dy="0">• 字母 J 与 H 一体化拓扑：左侧 J 下探勾起，</tspan>
+        <tspan x="0" dy="18">  右侧支柱挺拔，中间横梁连接，构成稳固 H。</tspan>
+        <tspan x="0" dy="24">• 中间横梁正中嵌入<tspan font-weight="700" fill="#38bdf8">「准星雷达瞄准点」</tspan>，象征 23k+</tspan>
+        <tspan x="0" dy="18">  海量全网岗位的高精度召回定位。</tspan>
+        <tspan x="0" dy="24">• 双虚线环形外轨表达<tspan font-weight="700" fill="#a855f7">「HITL 双向回环」</tspan>（人与</tspan>
+        <tspan x="0" dy="18">  AI 交互演进），青紫渐变呼应系统主题。</tspan>
+      </text>
+
+      <line x1="0" y1="130" x2="300" y2="130" stroke="#1e293b" stroke-width="1"/>
+
+      <text x="0" y="152" fill="#38bdf8" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="700">【适用场景表现】</text>
+      <text x="0" y="174" fill="#94a3b8" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11">
+        <tspan x="0" dy="0">• 16px Favicon / 32px 顶栏：极佳辨识度，点线分明</tspan>
+        <tspan x="0" dy="18">• 512px 启动屏：可加载雷达扫描微动效，科技感拉满</tspan>
+      </text>
+    </g>
+  </g>
+
+  <!-- ════════ CARD 2: OPTION B ════════ -->
+  <!-- 莫比乌斯·无限追踪循环 (Infinite Möbius Orbit) -->
+  <g transform="translate(430, 120)" filter="url(#softShadow)">
+    <rect width="340" height="500" rx="16" fill="url(#cardDark)" stroke="#8b5cf6" stroke-opacity="0.35" stroke-width="1.2"/>
+    <!-- Top badge -->
+    <rect x="16" y="16" width="70" height="22" rx="6" fill="#8b5cf6" fill-opacity="0.18"/>
+    <text x="51" y="31" fill="#c084fc" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" font-weight="700" text-anchor="middle">方案 B</text>
+    <text x="96" y="32" fill="#e2e8f0" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="15" font-weight="700">无限回环 · 动态演进</text>
+
+    <!-- Canvas Box for Logo (160x160) -->
+    <g transform="translate(90, 60)">
+      <rect width="160" height="160" rx="28" fill="#0c101a" stroke="#1e293b" stroke-width="1.5"/>
+      <circle cx="80" cy="80" r="50" fill="#8b5cf6" fill-opacity="0.08"/>
+
+      <!-- Infinite / Dual Orbit Tracks (Cyber Hexagon-circle combo) -->
+      <!-- Left Orbit: Public Job World (Cyan) -->
+      <path d="M 80 80 C 65 50, 30 50, 30 80 C 30 110, 65 110, 80 80" fill="none" stroke="url(#cyanTealGrad)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" filter="url(#glowCyan)"/>
+
+      <!-- Right Orbit: Private User World (Purple) -->
+      <path d="M 80 80 C 95 110, 130 110, 130 80 C 130 50, 95 50, 80 80" fill="none" stroke="url(#purplePinkGrad)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" filter="url(#glowPurple)"/>
+
+      <!-- Central Node Intersection (HITL Gateway) -->
+      <circle cx="80" cy="80" r="5.5" fill="#ffffff" filter="url(#glowCyan)"/>
+
+      <!-- Monogram Stylized Cut: J hook on bottom-left, H vertical accent on right -->
+      <path d="M 50 62 L 50 90 C 50 98 44 102 38 102" fill="none" stroke="#38bdf8" stroke-width="2.5" stroke-linecap="round"/>
+      <line x1="110" y1="58" x2="110" y2="102" stroke="#c084fc" stroke-width="2.5" stroke-linecap="round"/>
+      <line x1="118" y1="58" x2="118" y2="102" stroke="#c084fc" stroke-width="2.5" stroke-linecap="round"/>
+      <line x1="110" y1="80" x2="118" y2="80" stroke="#c084fc" stroke-width="2"/>
+    </g>
+
+    <!-- Description & Philosophy -->
+    <g transform="translate(20, 245)">
+      <text x="0" y="0" fill="#c084fc" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="700">【核心意象与构型】</text>
+      <text x="0" y="24" fill="#cbd5e1" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="400">
+        <tspan x="0" dy="0">• 无限莫比乌斯带（∞ 环）：完美对应系统架构中</tspan>
+        <tspan x="0" dy="18">  「公共池 Public DB」与「私有池 User DB」</tspan>
+        <tspan x="0" dy="24">• 中央交叉点为<tspan font-weight="700" fill="#ffffff">「物理隔离与 HITL 触点」</tspan>，岗位</tspan>
+        <tspan x="0" dy="18">  进入私库由用户主导，数据安全合规。</tspan>
+        <tspan x="0" dy="24">• 弱化字母棱角，强化“生态循环与终身职业</tspan>
+        <tspan x="0" dy="18">  伴侣”的流动哲学，线条极致顺滑。</tspan>
+      </text>
+
+      <line x1="0" y1="130" x2="300" y2="130" stroke="#1e293b" stroke-width="1"/>
+
+      <text x="0" y="152" fill="#c084fc" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="700">【适用场景表现】</text>
+      <text x="0" y="174" fill="#94a3b8" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11">
+        <tspan x="0" dy="0">• 现代 SaaS 质感浓厚，平滑优雅</tspan>
+        <tspan x="0" dy="18">• 小尺寸下字母特征稍弱，偏向概念抽象图形</tspan>
+      </text>
+    </g>
+  </g>
+
+  <!-- ════════ CARD 3: OPTION C ════════ -->
+  <!-- 棱镜堡垒·多维矩阵 (Cyber Monogram Shield) -->
+  <g transform="translate(800, 120)" filter="url(#softShadow)">
+    <rect width="340" height="500" rx="16" fill="url(#cardDark)" stroke="#10b981" stroke-opacity="0.3" stroke-width="1.2"/>
+    <!-- Top badge -->
+    <rect x="16" y="16" width="70" height="22" rx="6" fill="#10b981" fill-opacity="0.18"/>
+    <text x="51" y="31" fill="#34d399" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" font-weight="700" text-anchor="middle">方案 C</text>
+    <text x="96" y="32" fill="#e2e8f0" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="15" font-weight="700">棱镜堡垒 · 矩阵切面</text>
+
+    <!-- Canvas Box for Logo (160x160) -->
+    <g transform="translate(90, 60)">
+      <rect width="160" height="160" rx="28" fill="#0c101a" stroke="#1e293b" stroke-width="1.5"/>
+      <circle cx="80" cy="80" r="50" fill="#10b981" fill-opacity="0.08"/>
+
+      <!-- Outer Hexagon / Shield outline -->
+      <polygon points="80,24 132,54 132,106 80,136 28,106 28,54" fill="none" stroke="#10b981" stroke-opacity="0.3" stroke-width="1.5" stroke-dasharray="6 4"/>
+
+      <!-- Isometric 3D Layered Plates forming J & H -->
+      <!-- Left Plate: J Shape in isometric angle -->
+      <path d="M 52 46 L 68 37 L 68 96 C 68 104 60 110 48 110 C 40 110 36 106 36 106 L 44 94 C 44 94 48 96 52 96 C 54 96 56 94 56 92 Z" fill="url(#emeraldGrad)" filter="url(#glowCyan)"/>
+
+      <!-- Right Column: H Pillar -->
+      <path d="M 92 46 L 108 37 L 108 114 L 92 123 Z" fill="url(#cyanTealGrad)"/>
+
+      <!-- Central Floating Bridge & Compass Arrow -->
+      <polygon points="68,68 92,55 92,68 68,81" fill="#ffffff" fill-opacity="0.9"/>
+      <circle cx="80" cy="67" r="3.5" fill="#10b981"/>
+    </g>
+
+    <!-- Description & Philosophy -->
+    <g transform="translate(20, 245)">
+      <text x="0" y="0" fill="#34d399" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="700">【核心意象与构型】</text>
+      <text x="0" y="24" fill="#cbd5e1" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="400">
+        <tspan x="0" dy="0">• 六边形科技切面 + 堡垒盾形（Shield）：强调</tspan>
+        <tspan x="0" dy="18">  本地私有化隔离部署、隐私绝对掌控。</tspan>
+        <tspan x="0" dy="24">• 等轴测 2.5D 切割块构成 J 与 H 字母雕刻，</tspan>
+        <tspan x="0" dy="18">  呈现扎实、稳健的工业级控制台质感。</tspan>
+        <tspan x="0" dy="24">• 点缀翡翠绿（安全）与青空蓝（智能），</tspan>
+        <tspan x="0" dy="18">  传达从容掌舵求职赛程的可靠信赖感。</tspan>
+      </text>
+
+      <line x1="0" y1="130" x2="300" y2="130" stroke="#1e293b" stroke-width="1"/>
+
+      <text x="0" y="152" fill="#34d399" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="700">【适用场景表现】</text>
+      <text x="0" y="174" fill="#94a3b8" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11">
+        <tspan x="0" dy="0">• 安全工具、数据工作台属性鲜明，硬朗现代</tspan>
+        <tspan x="0" dy="18">• 极小尺寸（16px）时 2.5D 细节稍显密集</tspan>
+      </text>
+    </g>
+  </g>
+
+  <!-- ════════ BOTTOM METRICS & SYSTEM PALETTE ════════ -->
+  <g transform="translate(60, 638)">
+    <text x="0" y="16" fill="#64748b" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" font-weight="600">BRAND COLOR SYSTEM:</text>
+    <rect x="140" y="4" width="20" height="14" rx="3" fill="#06b6d4"/><text x="166" y="16" fill="#94a3b8" font-size="11" font-family="monospace">#06b6d4 (Cyan)</text>
+    <rect x="270" y="4" width="20" height="14" rx="3" fill="#8b5cf6"/><text x="296" y="16" fill="#94a3b8" font-size="11" font-family="monospace">#8b5cf6 (Purple)</text>
+    <rect x="400" y="4" width="20" height="14" rx="3" fill="#10b981"/><text x="426" y="16" fill="#94a3b8" font-size="11" font-family="monospace">#10b981 (Emerald)</text>
+    <rect x="540" y="4" width="20" height="14" rx="3" fill="#0c101d" stroke="#334155" stroke-width="1"/><text x="566" y="16" fill="#94a3b8" font-size="11" font-family="monospace">#0c101d (Cyber Dark)</text>
+  </g>
+</svg>

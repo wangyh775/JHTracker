@@ -4,7 +4,6 @@ import { PinnedJobTable } from './PinnedJobTable';
 import { FangzhouTableHeader } from './FangzhouTableHeader';
 import { FilterPillsBar } from './FilterPillsBar';
 import { FloatingStatsCard } from './FloatingStatsCard';
-import { SplineHeader } from './SplineHeader';
 import { useVisitedJobs } from '../services/visitedStorage';
 import { api } from '../config';
 import { AlertCircle, CheckCircle } from 'lucide-react';
@@ -34,7 +33,7 @@ export const JobBoard: React.FC<JobBoardProps> = ({
   // Pagination states
   const [total, setTotal] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(100);
+  const [pageSize, setPageSize] = useState(30);
 
   // Spider sync state
   const [spiderRunning, setSpiderRunning] = useState(false);
@@ -220,15 +219,9 @@ export const JobBoard: React.FC<JobBoardProps> = ({
 
   return (
     <div className="space-y-2.5">
-      {/* 3D Spline Tech Header */}
-      <SplineHeader
-        totalJobs={stats?.total_jobs || total || 23231}
-        totalCompanies={stats?.total_companies || 3182}
-      />
-
       {/* Toast Notification */}
       {notification && (
-        <div className="fixed top-6 right-6 z-50 flex items-center gap-2 px-4 py-2.5 rounded-lg bg-slate-900 border border-cyan-500/50 shadow-2xl text-xs text-cyan-300 animate-bounce">
+        <div className="fixed top-6 right-6 z-50 flex items-center gap-2 px-4 py-2.5 rounded-lg bg-slate-900 border border-cyan-500/50 shadow-2xl text-xs text-cyan-300">
           {notification.type === 'success' ? (
             <CheckCircle className="w-4 h-4 text-emerald-400" />
           ) : (

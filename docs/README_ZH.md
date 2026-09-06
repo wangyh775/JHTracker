@@ -13,7 +13,7 @@
 <p align="center">
   <a href="README_ZH.md"><img src="https://img.shields.io/badge/Language-%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87-blue.svg?style=for-the-badge" alt="简体中文" /></a>
   <a href="../README.md"><img src="https://img.shields.io/badge/Language-English-indigo.svg?style=for-the-badge" alt="English" /></a>
-  <a href="https://github.com/diegosouzapw/JHTracker/releases"><img src="https://img.shields.io/badge/Version-v0.1.0_Genesis-cyan.svg?style=for-the-badge&logo=git&logoColor=white" alt="Release Version" /></a>
+  <a href="https://github.com/diegosouzapw/JHTracker/releases"><img src="https://img.shields.io/badge/Version-v0.1.1_Genesis-cyan.svg?style=for-the-badge&logo=git&logoColor=white" alt="Release Version" /></a>
   <a href="../LICENSE"><img src="https://img.shields.io/badge/License-MIT-emerald.svg?style=for-the-badge" alt="MIT License" /></a>
   <a href="https://fastapi.tiangolo.com/"><img src="https://img.shields.io/badge/Backend-FastAPI_Python3.10+-009688.svg?style=for-the-badge&logo=fastapi&logoColor=white" alt="FastAPI" /></a>
   <a href="https://react.dev/"><img src="https://img.shields.io/badge/Frontend-React_18_TypeScript-61DAFB.svg?style=for-the-badge&logo=react&logoColor=black" alt="React 18" /></a>
@@ -32,7 +32,7 @@
 
 <div align="center">
 
-| 🏢 **24,180 真实校招岗位** | 🔒 **100% 物理隔离私库** | ⚡ **&lt;50ms 倒排全文检索** | 🤖 **8 大 FastMCP 工具** |
+| 🏢 **24,180 真实校招岗位** | 🔒 **100% 物理隔离私库** | ⚡ **&lt;50ms 倒排全文检索** | 🤖 **10 大 FastMCP 工具** |
 | :---: | :---: | :---: | :---: |
 | 仓库自带完整离线校招数据库，首启即用无需抓取等待。 | 个人简历、投递流与权重锁在 `~/.JHTracker`，绝不上云。 | SQLite FTS5 倒排索引 + AG Grid 虚拟滚动，告别白块与卡顿。 | 为 Claude Desktop、Cursor 与 OpenCode 打造的标准智能体底座。 |
 
@@ -91,7 +91,7 @@ curl -s "http://127.0.0.1:8000/api/jobs/search?q=Python+FastAPI&limit=2" | jq .
 | **开箱可用岗位** | **自带 24,000+ 离线真岗位** (已清洗去重，首启即用) | ⚠️ 数据孤岛：各平台彼此割裂，需分别注册登录维护多个账号 | ❌ 初始完全空白：必须手动逐行录入岗位名称、链接与要求 | ⚠️ 维护成本高：目标网站更新排版或接口时脚本容易失效 |
 | **推荐透明机制** | **双路召回 + 人在环路 (HITL)** (正向强化与负向衰减自适应学习) | ⚠️ 平台算法黑盒：受商业权重与推荐逻辑主导，难以完全掌控 | ❌ 无推荐能力 (纯静态电子表格无法计算特征与偏好) | ❌ 简单字符匹配规则，缺乏用户行为连续学习能力 |
 | **全流程看板** | **6 大阶段高密度虚拟看板** (120px 紧凑布局、面试复盘、备忘) | ⚠️ 投递状态分散在各个平台消息中心，跨平台综合管理繁琐 | ⚠️ 数据量过大时前端卡顿，需手动频繁调整字段与列状态 | ❌ 无可视化交互界面 (仅有终端输出或平铺文件) |
-| **本地智能体协同** | **原生 FastMCP 标准协议** (8 大受控工具，无缝适配 Claude/Cursor) | ❌ 缺乏开放协议：未提供供个人本地智能体统一调度的公开接口 | ⚠️ 需自建或配置付费的第三方集成桥接工具 (Zapier/Make) | ⚠️ 自行编写的命令脚本往往缺少标准协议规范与安全防护 |
+| **本地智能体协同** | **原生 FastMCP 标准协议** (10 大受控工具，无缝适配 Claude/Cursor/OpenCode) | ❌ 缺乏开放协议：未提供供个人本地智能体统一调度的公开接口 | ⚠️ 需自建或配置付费的第三方集成桥接工具 (Zapier/Make) | ⚠️ 自行编写的命令脚本往往缺少标准协议规范与安全防护 |
 | **ATS 简历适配** | **精准雷达缺项诊断** (只读保护主简历，针对性衍生版本) | ⚠️ 通用型 AI 建议，较少提供针对具体 JD 的逐字差异化诊断 | ❌ 无此能力 | ❌ 无此能力 |
 | **离线与轻量化** | **0 数据埋点、0 行为追踪、完全支持纯离线断网运行** | ⚠️ 依赖持续联网：记录并分析用户会话停留与平台交互行为 | ⚠️ 需维持在线连接以确保多端即时同步 | ⚠️ 依赖目标网站连通性与网络代理质量 |
 
@@ -140,18 +140,20 @@ $$\text{FinalScore}(J, U) = 0.50 \cdot S_{\text{skill}}(J, U) + 0.30 \cdot S_{\t
 
 ## 🤖 智能体原生实战：FastMCP 协议与工作流
 
-JHTracker 基于标准 **Model Context Protocol (FastMCP)** 实现了跨平台的 Agent 联动支持，通过标准输入输出（`stdio`）提供 8 大受控原子工具：
+JHTracker 基于标准 **Model Context Protocol (FastMCP)** 实现了跨平台的 Agent 联动支持，通过标准输入输出（`stdio`）提供 10 大受控原子工具：
 
-### 8 大受控 FastMCP 工具清单
+### 10 大受控 FastMCP 工具清单
 
 1. `job_search(query, city, limit)`：基于 SQLite FTS5 的高速倒排全文检索工具；
 2. `job_recommend(top_k, min_score)`：结合用户简历与 HITL 权重的双路召回推荐流；
-3. `job_feedback(job_id, action)`：接收用户决策（`ACCEPT` 或 `REJECT`），驱动权重闭环演进；
-4. `job_get_detail(job_id)`：获取岗位完整 JD、任职要求与官方网申直达地址；
-5. `resume_get_profile()`：安全获取用户当前激活简历解析出的专业技能、学历与意向城市；
-6. `resume_optimize(job_id)`：比对目标岗位与当前简历的技能差距，生成定制化修改建议；
-7. `job_add_external(...)`：录入用户或 Agent 在外网挖掘到的补充岗位，自带 SHA-256 哈希去重；
-8. `job_sync_run(spider_name)`：调度后台定向招聘爬虫运行增量采集。
+3. `job_feedback(job_id, action, feedback_reason)`：接收用户决策（`ACCEPT` 或 `REJECT`），驱动权重闭环演进；
+4. `job_agent_push(job_id, recommend_reason, match_score, agent_name)`：智能体直接向用户界面推送高契合岗位（内置已投递拦截与同公司上限限制）；
+5. `job_get_detail(job_id)`：获取岗位完整 JD、任职要求与官方网申直达地址；
+6. `resume_get_profile()`：安全获取用户当前激活简历解析出的专业技能、学历与意向城市；
+7. `resume_optimize(job_id)`：比对目标岗位与当前简历的技能差距，生成定制化修改建议；
+8. `resume_update_keywords_matrix(skills, target_roles)`：增量更新简历技术栈关键词矩阵并触发特征权重同步；
+9. `job_add_external(...)`：录入用户或 Agent 在外网挖掘到的补充岗位，自带 SHA-256 / MD5 哈希去重；
+10. `job_sync_run(spider_name)`：调度后台定向招聘爬虫运行增量采集（支持 `qiuzhifangzhou`, `wondercv`, `nowcoder`）。
 
 ### 客户端配置示例
 
@@ -279,12 +281,13 @@ npm run build
 
 ## 🗺️ 版本演进路线图 (Roadmap)
 
-- [x] **v0.1.0 Genesis (当前基线版本)**:
+- [x] **v0.1.1 Genesis (当前基线版本)**:
   - 24,000+ 离线真岗位库与 SQLite FTS5 倒排全文检索；
-  - 赛博深色系界面、AG Grid v36 虚拟滚动与公司列独立固定；
+  - 赛博深色系界面、AG Grid v36 虚拟滚动与锁定冻结列；
   - 6 态高密度投递管理看板与面试真题复盘备忘；
-  - 多版本简历工作台，导入即存与主简历只读保护；
-  - FastMCP 原生服务与 8 大受控智能体工具封装；
+  - 多版本简历工作台，支持原生全语法 Markdown 渲染与技能徽章高亮；
+  - 多通道 AI 简历调优引擎（支持直连自定义 OpenAI 兼容 API、本地 CLI 智能体与内置启发式规则）；
+  - FastMCP 原生服务与 10 大受控智能体工具封装；
   - 物理双库隔离体系 (`~/.JHTracker/user_data.db`)。
 - [ ] **v0.2.0 Expansion**:
   - 全国高校就业信息网长尾招聘增量采集管道集成；

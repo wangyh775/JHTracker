@@ -26,6 +26,7 @@ from src.models import (
     ResumeUpdateRequest,
     ResumeOptimizeRequest,
     AgentPushCreate,
+    LLMConfig,
 )
 from src.db import init_all_databases, get_public_db
 from src.repositories.job_repository import JobRepository
@@ -40,7 +41,7 @@ app_logger = get_logger("jhtracker.main")
 job_repo = JobRepository(settings.public_db_path)
 user_repo = UserRepository(settings.user_db_path)
 rec_service = RecommendationService(job_repo, user_repo)
-resume_service = ResumeService(job_repo, user_repo)
+resume_service = ResumeService(user_repo=user_repo, job_repo=job_repo)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -244,6 +245,93 @@ async def sync_hitl_features_from_db():
             "stats": stats
         }
 
+@app.post("/api/resumes/{resume_id}/validate-matrix")
+async def validate_resume_matrix(resume_id: str, matrix_data: Dict[str, Any]):
+    """
+    全量数据库真实性接地检验接口 (Pre-flight FTS Grounding API)：
+    探测给定关键词矩阵在 2.4 万全量岗位库中的真实分布与匹配岗位量。
+    """
+    j_repo = getattr(app.state, "job_repo", job_repo)
+    u_repo = getattr(app.state, "user_repo", user_repo)
+    service = RecommendationService(job_repo=j_repo, user_repo=u_repo)
+    
+    clean_id = sanitize_identifier(resume_id)
+    if not clean_id:
+        raise HTTPException(status_code=400, detail="Invalid resume_id format")
+
+    grounded_res = await service.validate_and_ground_matrix(matrix_data)
+    return grounded_res
+
+class QuickSkillRequest(BaseModel):
+    skill: str
+    weight: Optional[float] = 1.5
+
+@app.post("/api/resumes/{resume_id}/skills/quick-add")
+async def quick_add_resume_core_skill(resume_id: str, req: QuickSkillRequest):
+    """
+    画像技能快速追加核心技术栈 (Core) 接口：
+    直接将技能作为 core 项注入 keywords_matrix，并完成 2.4万岗位库的 FTS 接地校验。
+    """
+    clean_id = sanitize_identifier(resume_id)
+    if not clean_id:
+        raise HTTPException(status_code=400, detail="Invalid resume_id format")
+    skill_name = req.skill.strip()
+    if not skill_name:
+        raise HTTPException(status_code=400, detail="Skill name cannot be empty")
+
+    u_repo = getattr(app.state, "user_repo", user_repo)
+    j_repo = getattr(app.state, "job_repo", job_repo)
+    resume = await u_repo.get_resume_by_id(clean_id)
+    if not resume:
+        raise HTTPException(status_code=404, detail="Resume not found")
+
+    matrix = resume.keywords_matrix
+    from src.models import KeywordCategories, KeywordItem
+    if not matrix or not matrix.categories:
+        matrix = KeywordMatrix(
+            version=1,
+            updated_at=datetime.utcnow().isoformat(),
+            updated_by="QUICK_ADD",
+            categories=KeywordCategories(core=[], domain=[], base=[], negative=[])
+        )
+
+    # 查重：若已存在则更新权重和状态，否则追加
+    existing_item = next((item for item in (matrix.categories.core or []) if item.keyword.lower() == skill_name.lower()), None)
+    if existing_item:
+        existing_item.weight = req.weight
+        existing_item.enabled = True
+    else:
+        matrix.categories.core.append(
+            KeywordItem(keyword=skill_name, weight=req.weight, source="用户工作台添加", enabled=True)
+        )
+
+    matrix.updated_at = datetime.utcnow().isoformat()
+    matrix.updated_by = "QUICK_ADD"
+
+    # 执行 2.4万岗位库 FTS 接地校验
+    rec_service = RecommendationService(job_repo=j_repo, user_repo=u_repo)
+    grounded_res = await rec_service.validate_and_ground_matrix(matrix)
+    grounded_matrix = grounded_res.get("matrix", matrix)
+
+    # 提取更新后的 core 关键词列表同步更新 parsed_skills
+    core_skills = [
+        item.keyword.strip()
+        for item in (grounded_matrix.categories.core or [])
+        if item and item.keyword and item.keyword.strip()
+    ]
+
+    await u_repo.update_resume(
+        resume_id=clean_id,
+        skills=core_skills,
+        keywords_matrix=grounded_matrix
+    )
+    updated_resume = await u_repo.get_resume_by_id(clean_id)
+    return {
+        "success": True,
+        "resume": updated_resume,
+        "grounding": grounded_res
+    }
+
 @app.get("/api/applications")
 async def get_applications(status: Optional[str] = None, include_archived: bool = True):
     repo = getattr(app.state, "user_repo", user_repo)
@@ -362,9 +450,17 @@ async def create_resume(payload: dict):
     content_md = payload.get("content_md") or payload.get("content_markdown", "")
     target_job_id = payload.get("target_job_id")
     parsed_skills = payload.get("parsed_skills") or payload.get("skills") or []
+    keywords_matrix = payload.get("keywords_matrix")
     is_default = bool(payload.get("is_default", False))
     version_type = payload.get("version_type", "ORIGINAL")
     parent_resume_id = payload.get("parent_resume_id")
+
+    matrix_obj = None
+    if keywords_matrix:
+        try:
+            matrix_obj = KeywordMatrix(**keywords_matrix) if isinstance(keywords_matrix, dict) else keywords_matrix
+        except Exception:
+            pass
 
     resume = ResumeItem(
         id=resume_id,
@@ -374,6 +470,7 @@ async def create_resume(payload: dict):
         content_md=content_md,
         target_job_id=target_job_id,
         parsed_skills=parsed_skills,
+        keywords_matrix=matrix_obj,
         is_default=is_default,
         version_type=version_type,
         parent_resume_id=parent_resume_id
@@ -592,11 +689,12 @@ async def update_resume(resume_id: str, req: ResumeUpdateRequest):
     )
     skills = (
         req.skills if req.skills is not None
-        else (req.parsed_skills if req.parsed_skills is not None else (existing.parsed_skills or []))
+        else (req.parsed_skills if req.parsed_skills is not None else None)
     )
     is_default = req.is_default if req.is_default is not None else existing.is_default
     version_type = req.version_type if req.version_type is not None else getattr(existing, "version_type", "ORIGINAL")
     parent_resume_id = req.parent_resume_id if req.parent_resume_id is not None else getattr(existing, "parent_resume_id", None)
+    keywords_matrix = req.keywords_matrix if req.keywords_matrix is not None else None
     updated = await repo.update_resume(
         resume_id=resume_id,
         title=title,
@@ -605,7 +703,8 @@ async def update_resume(resume_id: str, req: ResumeUpdateRequest):
         skills=skills,
         is_default=is_default,
         version_type=version_type,
-        parent_resume_id=parent_resume_id
+        parent_resume_id=parent_resume_id,
+        keywords_matrix=keywords_matrix
     )
     return updated
 
@@ -617,21 +716,84 @@ async def delete_resume(resume_id: str):
         raise HTTPException(status_code=404, detail="Resume not found")
     return {"success": True, "deleted_id": resume_id}
 
+# -------------------------------------------------------------
+# AI Agent 智能体探活、LLM 配置与引擎管理
+# -------------------------------------------------------------
+@app.get("/api/system/ai-agents")
+async def get_system_ai_agents():
+    """
+    自动探测本地可用的 AI 智能体 CLI 与配置的 LLM API 环境
+    供多版本简历与专岗 ATS 诊断调优模块一键复用。
+    """
+    from src.services.agent_executor import AgentExecutor
+    u_repo = getattr(app.state, "user_repo", user_repo)
+    saved_cfg = await u_repo.get_setting("custom_llm_config")
+    custom_configured = False
+    if saved_cfg:
+        try:
+            import json
+            cfg = json.loads(saved_cfg)
+            if cfg.get("base_url"):
+                custom_configured = True
+        except Exception:
+            pass
+    return AgentExecutor.detect_available_agents(custom_llm_configured=custom_configured)
+
+@app.get("/api/system/llm-config")
+async def get_system_llm_config():
+    """获取用户配置的自定义/本地 LLM 端点设置"""
+    u_repo = getattr(app.state, "user_repo", user_repo)
+    saved_cfg = await u_repo.get_setting("custom_llm_config")
+    if not saved_cfg:
+        return {
+            "base_url": "http://127.0.0.1:8045/v1",
+            "api_key": "",
+            "model": "claude-3-5-sonnet-20241022",
+            "temperature": 0.3
+        }
+    import json
+    return json.loads(saved_cfg)
+
+@app.post("/api/system/llm-config")
+async def save_system_llm_config(cfg: LLMConfig):
+    """持久化保存用户配置的 LLM 端点设置到私有数据库"""
+    u_repo = getattr(app.state, "user_repo", user_repo)
+    import json
+    await u_repo.set_setting("custom_llm_config", json.dumps(cfg.dict()))
+    return {"success": True, "config": cfg.dict()}
+
+@app.post("/api/system/llm-config/test")
+async def test_system_llm_config(cfg: LLMConfig):
+    """在线测试探测用户配置的 LLM 端点连通性"""
+    from src.services.agent_executor import AgentExecutor
+    res = await AgentExecutor.test_connection(
+        base_url=cfg.base_url,
+        api_key=cfg.api_key,
+        model=cfg.model or "claude-3-5-sonnet-20241022",
+        timeout=10.0
+    )
+    return res
+
 @app.post("/api/resumes/{resume_id}/optimize")
 async def optimize_resume_by_id(resume_id: str, payload: dict = None):
     payload = payload or {}
     service = getattr(app.state, "resume_service", resume_service)
     try:
-        job_id = payload.get("job_id")
-        mode = payload.get("mode", "CUSTOMIZED")
-        save_as_version = payload.get("save_as_version", True)
-        opt_type = "TARGETED" if mode == "CUSTOMIZED" and job_id else "GENERAL"
-        return await service.optimize_resume(
-            resume_id=resume_id,
-            job_id=job_id,
-            optimization_type=opt_type,
-            save_as_version=save_as_version
-        )
+        from src.models import ResumeOptimizeRequest, LLMConfig
+        req_kwargs = {
+            "resume_id": resume_id,
+            "job_id": payload.get("job_id"),
+            "job_description": payload.get("job_description"),
+            "mode": payload.get("mode", "GENERAL"),
+            "target_company": payload.get("target_company"),
+            "target_position": payload.get("target_position"),
+            "engine": payload.get("engine", "auto"),
+            "save_as_version": payload.get("save_as_version", False),
+        }
+        if "llm_config" in payload and isinstance(payload["llm_config"], dict):
+            req_kwargs["llm_config"] = LLMConfig(**payload["llm_config"])
+        req = ResumeOptimizeRequest(**req_kwargs)
+        return await service.optimize_resume(req)
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
 
@@ -639,13 +801,7 @@ async def optimize_resume_by_id(resume_id: str, payload: dict = None):
 async def optimize_resume(req: ResumeOptimizeRequest):
     service = getattr(app.state, "resume_service", resume_service)
     try:
-        opt_type = "TARGETED" if req.mode == "CUSTOMIZED" and req.job_id else "GENERAL"
-        return await service.optimize_resume(
-            resume_id=req.resume_id,
-            job_id=req.job_id,
-            optimization_type=opt_type,
-            save_as_version=req.save_as_version
-        )
+        return await service.optimize_resume(req)
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
 
