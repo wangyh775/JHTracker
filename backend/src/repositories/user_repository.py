@@ -571,11 +571,11 @@ class UserDataRepository:
             return 0
         if isinstance(matrix, dict):
             cats_dict = matrix.get("categories") or {}
-            if hasattr(cats_dict, "dict"):
-                cats_dict = cats_dict.dict()
+            if hasattr(cats_dict, "model_dump"):
+                cats_dict = cats_dict.model_dump()
         elif hasattr(matrix, "categories"):
             cats_obj = matrix.categories
-            cats_dict = cats_obj.dict() if hasattr(cats_obj, "dict") else vars(cats_obj)
+            cats_dict = cats_obj.model_dump() if hasattr(cats_obj, "model_dump") else vars(cats_obj)
         else:
             cats_dict = {}
 
@@ -615,10 +615,23 @@ class UserDataRepository:
 
     # ------------------ Agent Push (AI智能体主动特推) ------------------
     async def add_agent_push(self, job_id: str, recommend_reason: str, match_score: float = 0.95, agent_name: str = "JobSourcingAgent") -> str:
-        """记录智能体主动推送的精选岗位卡片"""
+        """
+        记录智能体主动推送的精选岗位卡片。
+        若同一岗位已存在未被用户处理（无反馈记录）的推送，直接返回原 push_id，避免重复卡片。
+        """
         import uuid
-        push_id = str(uuid.uuid4())
         async with get_user_db(self.db_path) as db:
+            async with db.execute("""
+                SELECT p.id FROM agent_pushes p
+                LEFT JOIN recommendation_feedback f ON p.job_id = f.job_id
+                WHERE p.job_id = ? AND f.job_id IS NULL
+                LIMIT 1
+            """, (job_id,)) as cursor:
+                existing = await cursor.fetchone()
+            if existing:
+                return existing["id"]
+
+            push_id = str(uuid.uuid4())
             await db.execute("""
                 INSERT INTO agent_pushes (id, job_id, agent_name, recommend_reason, match_score, pushed_at)
                 VALUES (?, ?, ?, ?, ?, datetime('now', 'localtime'))
@@ -648,8 +661,10 @@ class UserDataRepository:
     async def get_company_application_status(self, max_pending_limit: int = 3) -> Dict[str, Any]:
         """
         获取企业层级的投递状态统计与频控信息：
-        - applied_companies: set of str, 已经正式投递过的企业（状态不为 PENDING_APPLY 的所有申请）
-        - pending_counts: dict of {company: int}, 处于待投递 (PENDING_APPLY) 状态的岗位数
+        - applied_companies: set of str, 已经正式投递过的企业（状态不为 PENDING_APPLY 的所有申请，
+          即使后续被归档仍保持拉黑，避免重复打扰）
+        - pending_counts: dict of {company: int}, 处于待投递 (PENDING_APPLY) 且未归档的有效岗位数
+          （归档的待投递视为用户主动放弃，释放频控名额）
         - capped_pending_companies: set of str, 待投递岗位已 >= max_pending_limit 的企业（触发频控上限）
         """
         from collections import Counter
@@ -657,16 +672,17 @@ class UserDataRepository:
         pending_counts = Counter()
 
         async with get_user_db(self.db_path) as db:
-            async with db.execute("SELECT company, status FROM applications") as cursor:
+            async with db.execute("SELECT company, status, is_archived FROM applications") as cursor:
                 rows = await cursor.fetchall()
                 for r in rows:
                     comp = (r["company"] or "").strip()
                     if not comp:
                         continue
                     status = (r["status"] or "").strip()
+                    is_archived = bool(r["is_archived"])
                     if status and status != "PENDING_APPLY":
                         applied_companies.add(comp)
-                    elif status == "PENDING_APPLY":
+                    elif status == "PENDING_APPLY" and not is_archived:
                         pending_counts[comp] += 1
 
         capped_pending_companies = {comp for comp, cnt in pending_counts.items() if cnt >= max_pending_limit}

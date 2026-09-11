@@ -528,42 +528,44 @@ export const RecommendationPanel: React.FC<RecommendationPanelProps> = ({
                       </div>
 
                       {/* Actions */}
-                      <div className="pt-2.5 mt-2.5 border-t border-[#20203a] flex items-center justify-between gap-2">
+                      <div className="pt-2.5 mt-2.5 border-t border-[#20203a] flex items-center gap-1.5">
                         {targetUrl ? (
                           <a
                             href={targetUrl}
                             target="_blank"
                             rel="noreferrer"
-                            className="inline-flex items-center gap-1 text-[11px] text-indigo-300 hover:text-white font-mono hover:underline"
+                            className="flex-1 px-3 py-1.5 text-xs rounded-lg font-medium inline-flex items-center justify-center gap-1 border border-indigo-500/50 text-indigo-300 hover:bg-indigo-950/50 hover:border-indigo-400/70 transition-all"
                           >
-                            <ExternalLink className="w-3 h-3" />
+                            <ExternalLink className="w-3.5 h-3.5" />
                             直达网申
                           </a>
                         ) : (
-                          <span className="text-[11px] text-[#6b7280] font-mono">已收录</span>
+                          <span className="flex-1 px-3 py-1.5 text-xs rounded-lg font-medium inline-flex items-center justify-center gap-1 border border-[#24283b] text-[#6b7280] cursor-not-allowed">
+                            <ExternalLink className="w-3.5 h-3.5" />
+                            暂无网申入口
+                          </span>
                         )}
 
-                        <div className="flex items-center gap-1.5">
-                          <button
-                            onClick={() => setRejectModalJob({ id: job.id, company: job.company, title: job.title })}
-                            className="p-1.5 text-[#9ca3af] hover:text-rose-400 hover:bg-rose-950/40 rounded-lg border border-[#24283b] hover:border-rose-500/30 transition-all"
-                            title="不感兴趣 (支持选择原因定向抑制)"
-                          >
-                            <ThumbsDown className="w-3.5 h-3.5" />
-                          </button>
-                          <button
-                            onClick={() => handleFeedback(job.id, 'ACCEPT', job.company, undefined, push.match_score, push.recommend_reason)}
-                            disabled={isAccepted}
-                            className={`px-3 py-1.5 text-xs rounded-lg font-medium inline-flex items-center gap-1 shadow-sm transition-all ${
-                              isAccepted
-                                ? 'bg-emerald-950/70 border border-emerald-500/40 text-emerald-300 cursor-default'
-                                : 'bg-indigo-600 hover:bg-indigo-500 text-white'
-                            }`}
-                          >
-                            <ThumbsUp className="w-3.5 h-3.5" />
-                            {isAccepted ? '已加入待投递' : '采纳直推'}
-                          </button>
-                        </div>
+                        <button
+                          onClick={() => handleFeedback(job.id, 'ACCEPT', job.company, undefined, push.match_score, push.recommend_reason)}
+                          disabled={isAccepted}
+                          className={`flex-1 px-3 py-1.5 text-xs rounded-lg font-medium inline-flex items-center justify-center gap-1 border shadow-sm transition-all ${
+                            isAccepted
+                              ? 'border-emerald-500/40 bg-emerald-950/70 text-emerald-300 cursor-default'
+                              : 'border-indigo-600 bg-indigo-600 hover:bg-indigo-500 hover:border-indigo-500 text-white'
+                          }`}
+                        >
+                          <ThumbsUp className="w-3.5 h-3.5" />
+                          {isAccepted ? '已加入待投递' : '采纳直推'}
+                        </button>
+
+                        <button
+                          onClick={() => setRejectModalJob({ id: job.id, company: job.company, title: job.title })}
+                          className="p-1.5 text-[#9ca3af] hover:text-rose-400 hover:bg-rose-950/40 rounded-lg border border-[#24283b] hover:border-rose-500/30 transition-all"
+                          title="不感兴趣 (支持选择原因定向抑制)"
+                        >
+                          <ThumbsDown className="w-3.5 h-3.5" />
+                        </button>
                       </div>
                     </div>
                   );

@@ -759,8 +759,8 @@ async def save_system_llm_config(cfg: LLMConfig):
     """持久化保存用户配置的 LLM 端点设置到私有数据库"""
     u_repo = getattr(app.state, "user_repo", user_repo)
     import json
-    await u_repo.set_setting("custom_llm_config", json.dumps(cfg.dict()))
-    return {"success": True, "config": cfg.dict()}
+    await u_repo.set_setting("custom_llm_config", json.dumps(cfg.model_dump()))
+    return {"success": True, "config": cfg.model_dump()}
 
 @app.post("/api/system/llm-config/test")
 async def test_system_llm_config(cfg: LLMConfig):
@@ -844,7 +844,24 @@ async def create_agent_push(payload: AgentPushCreate):
     job = await j_repo.get_job_by_id(job_id)
     if not job:
         raise HTTPException(status_code=404, detail="Job not found in public database")
-        
+
+    # 企业级去重与频控校验：已投递企业拦截、待投递列表限额拦截 (<=3)
+    app_status = await u_repo.get_company_application_status()
+    applied_companies = app_status["applied_companies"]
+    pending_counts = app_status["pending_counts"]
+    capped_pending_companies = app_status["capped_pending_companies"]
+
+    company_name = (job.company or "").strip()
+    if company_name in applied_companies:
+        raise HTTPException(
+            status_code=409,
+            detail=f"企业【{company_name}】已有投递记录，根据防打扰规则不再推送。"
+        )
+    if company_name in capped_pending_companies or pending_counts.get(company_name, 0) >= 3:
+        raise HTTPException(
+            status_code=409,
+            detail=f"企业【{company_name}】在待投递列表中已有 {pending_counts.get(company_name, 0)} 个岗位（已达上限 3 个），暂停推送该企业新岗位。"
+        )
     push_id = await u_repo.add_agent_push(
         job_id=job_id,
         recommend_reason=recommend_reason,

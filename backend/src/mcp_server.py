@@ -231,7 +231,7 @@ async def resume_get_profile(
         "content_preview": (resume.content_md[:500] + "...") if resume.content_md and len(resume.content_md) > 500 else (resume.content_md or ""),
         "is_default": bool(resume.is_default),
         "is_read_only_original": getattr(resume, "version_type", "ORIGINAL") == "ORIGINAL",
-        "current_matrix": resume.keywords_matrix.dict() if getattr(resume, "keywords_matrix", None) and hasattr(resume.keywords_matrix, "dict") else getattr(resume, "keywords_matrix", None),
+        "current_matrix": resume.keywords_matrix.model_dump() if getattr(resume, "keywords_matrix", None) and hasattr(resume.keywords_matrix, "model_dump") else getattr(resume, "keywords_matrix", None),
         "ontology_context": {
             "instruction": "请严格基于以下全量岗位库真实存在的本体词表进行投影映射，禁止捏造生僻无效词汇",
             "valid_categories": valid_categories,

@@ -429,7 +429,7 @@ class RecommendationService:
         if isinstance(matrix, dict):
             categories = matrix.get("categories", {})
         else:
-            categories = matrix.categories.dict() if hasattr(matrix.categories, "dict") else {}
+            categories = matrix.categories.model_dump() if hasattr(matrix.categories, "model_dump") else {}
 
         verified_categories = {
             "core": [],
@@ -460,7 +460,7 @@ class RecommendationService:
                 await self.user_repo.batch_register_feature_metadata([(f_key, f_type)])
                 
                 # 规范化对象
-                item_dict = item if isinstance(item, dict) else item.dict()
+                item_dict = item if isinstance(item, dict) else (item.model_dump() if hasattr(item, "model_dump") else item)
                 if hits == 0:
                     # 自动软禁用并提示
                     item_dict["enabled"] = False
