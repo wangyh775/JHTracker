@@ -1,12 +1,8 @@
-# JHTracker 一键启动脚本 (PowerShell - 日常秒开版)
+# JHTracker 开发启动脚本 (PowerShell - 全量编译版)
 $ErrorActionPreference = "Stop"
 
-param (
-    [switch]$Build
-)
-
 Write-Host "=======================================================" -ForegroundColor Cyan
-Write-Host "       JHTracker 智能求职管理平台 - 一键启动           " -ForegroundColor Cyan
+Write-Host "    JHTracker 智能求职管理平台 - 开发者全量编译启动    " -ForegroundColor Cyan
 Write-Host "=======================================================" -ForegroundColor Cyan
 Write-Host ""
 
@@ -14,17 +10,10 @@ $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $rootDir = Split-Path -Parent $scriptDir
 Set-Location $rootDir
 
-$distIndex = Join-Path $rootDir "frontend\dist\index.html"
-
-if (-not $Build -and (Test-Path $distIndex)) {
-    Write-Host "[1/3] 检测到前端构建产物 (frontend\dist)，跳过编译 (秒级启动)..." -ForegroundColor Green
-    Write-Host "      如需全量重新编译，请运行 .\scripts\start-dev.ps1 或 .\scripts\start.ps1 -Build" -ForegroundColor DarkGray
-} else {
-    Write-Host "[1/3] 正在编译前端静态资源 (npm run build)..." -ForegroundColor Yellow
-    Push-Location "frontend"
-    npm run build
-    Pop-Location
-}
+Write-Host "[1/3] 正在全量编译前端最新静态资源 (tsc && vite build)..." -ForegroundColor Yellow
+Push-Location "frontend"
+npm run build
+Pop-Location
 
 Write-Host "[2/3] 设置环境并启动 JHTracker 一体化服务 (端口: 8000)..." -ForegroundColor Yellow
 $env:PYTHONPATH = "backend"
@@ -33,6 +22,7 @@ Write-Host ""
 Write-Host "-------------------------------------------------------" -ForegroundColor Green
 Write-Host "访问网址: http://localhost:8000" -ForegroundColor Green
 Write-Host "API 文档: http://localhost:8000/docs" -ForegroundColor Green
+Write-Host "开发提示: 若进行高频 UI 调试，可在 frontend 运行 npm run dev 享受毫秒级热重载" -ForegroundColor DarkGray
 Write-Host "按 Ctrl + C 可终止服务" -ForegroundColor Green
 Write-Host "-------------------------------------------------------" -ForegroundColor Green
 Write-Host ""

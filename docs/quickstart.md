@@ -66,13 +66,16 @@ npm install
 
 ### Windows 用户 (推荐)
 
-- **方式 A（CMD 批处理）**：在终端执行：
+- **日常使用 (秒级启动)**：直接读取既有前端产物，跳过重复打包（1~2 秒即可就绪）：
   ```cmd
   .\scripts\start.bat
+  # 或 PowerShell: .\scripts\start.ps1
   ```
-- **方式 B（PowerShell 脚本）**：
-  ```powershell
-  .\scripts\start.ps1
+- **开发与全量重编**：修改前端代码后，需全量重新编译并打包时使用：
+  ```cmd
+  .\scripts\start-dev.bat
+  # 或 PowerShell: .\scripts\start-dev.ps1
+  # 也可通过参数强制重编：.\scripts\start.bat --build
   ```
 
 ### macOS / Linux 用户

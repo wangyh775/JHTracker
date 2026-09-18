@@ -235,14 +235,16 @@ Agent ▶ “根据你当前激活的主简历技术栈（Python/FastAPI/FastMCP
 ### Windows 一键秒启（推荐）
 
 ```powershell
-# PowerShell 环境：
-.\scripts\start.ps1
-
-# CMD 环境：
+# 日常使用（跳过打包，秒级启动）：
 .\scripts\start.bat
+# 或 PowerShell: .\scripts\start.ps1
+
+# 开发者全量重新编译打包启动：
+.\scripts\start-dev.bat
+# 或 PowerShell: .\scripts\start-dev.ps1
 ```
 
-脚本会自动检测 Python 虚拟环境、一键后台启动后端服务（端口 `8000`）并在前端 Vite（端口 `5173`）就绪后自动拉起默认浏览器。
+日常脚本会智能检测前端构建产物（`frontend/dist`），已存在时跳过重复打包实现秒开；若尚未构建或执行 `start-dev.bat` 时，将自动执行完整构建后启动一体化服务（端口 `8000`）并拉起默认浏览器。
 
 ### 手动分步启动
 

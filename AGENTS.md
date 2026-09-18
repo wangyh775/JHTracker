@@ -34,8 +34,12 @@
 - **Preview**: `npm run preview`
 
 ### Full-Stack Quickstart
-- Windows cmd: `.\scripts\start.bat`
-- Windows PowerShell: `.\scripts\start.ps1`
+- Windows cmd:
+  - 日常开箱秒开: `.\scripts\start.bat` (检测到已有 dist 即跳过编译，秒级启动；支持 `--build` 强制重编)
+  - 开发者全量重编: `.\scripts\start-dev.bat` (全量执行 `tsc && vite build` 后启动)
+- Windows PowerShell:
+  - 日常开箱秒开: `.\scripts\start.ps1` (支持 `-Build` 参数)
+  - 开发者全量重编: `.\scripts\start-dev.ps1`
 
 ### Quality Gate & Verification (Lightweight)
 - **统一自测入口（必跑）**:

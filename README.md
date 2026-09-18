@@ -235,14 +235,16 @@ Would you like me to tailor a targeted resume draft for Alibaba Cloud?"
 ### Windows 1-Click Launch (Recommended)
 
 ```powershell
-# In PowerShell:
-.\scripts\start.ps1
-
-# Or in Windows CMD:
+# Daily usage (Fast instant start, skips build):
 .\scripts\start.bat
+# Or in PowerShell: .\scripts\start.ps1
+
+# Full rebuild & start (Developer mode):
+.\scripts\start-dev.bat
+# Or in PowerShell: .\scripts\start-dev.ps1
 ```
 
-The script automatically activates the Python virtual environment, starts the FastAPI backend on `http://127.0.0.1:8000`, and serves the Vite frontend on `http://localhost:5173`.
+The daily start script checks if `frontend/dist` exists to achieve sub-second launch. The dev script performs full compilation (`tsc && vite build`) before starting the integrated service on `http://localhost:8000`.
 
 ### Manual Step-by-Step Launch
 

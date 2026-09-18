@@ -5,7 +5,7 @@ chcp 65001 >nul 2>&1
 setlocal enabledelayedexpansion
 
 echo =======================================================
-echo          JHTracker AI Job Hunter - One-Click Start
+echo     JHTracker AI Job Hunter - Developer Start (Full Build)
 echo =======================================================
 echo.
 
@@ -14,19 +14,7 @@ for %%I in ("%SCRIPT_DIR%..") do set "ROOT_DIR=%%~fI"
 
 cd /d "%ROOT_DIR%"
 
-set "FORCE_BUILD=0"
-if /i "%~1"=="--build" set "FORCE_BUILD=1"
-if /i "%~1"=="-b" set "FORCE_BUILD=1"
-
-if "%FORCE_BUILD%"=="0" (
-    if exist "%ROOT_DIR%\frontend\dist\index.html" (
-        echo [1/3] 检测到前端构建产物 (frontend\dist)，跳过编译 (秒级启动)...
-        echo       如需全量重新编译，请运行 scripts\start-dev.bat 或 start.bat --build
-        goto :skip_build
-    )
-)
-
-echo [1/3] 正在编译前端静态资源 (npm run build)...
+echo [1/3] Full rebuilding frontend assets (tsc ^&^& vite build)...
 cd /d "%ROOT_DIR%\frontend"
 call npm run build
 if %ERRORLEVEL% neq 0 (
@@ -36,8 +24,6 @@ if %ERRORLEVEL% neq 0 (
 )
 cd /d "%ROOT_DIR%"
 
-:skip_build
-
 echo [2/3] Setting up environment...
 set "PYTHONPATH=%ROOT_DIR%\backend;%PYTHONPATH%"
 
@@ -45,6 +31,7 @@ echo [3/3] Starting JHTracker server on http://localhost:8000 ...
 echo -------------------------------------------------------
 echo Web UI:  http://localhost:8000
 echo API Doc: http://localhost:8000/docs
+echo Dev Tip: For instant HMR UI dev, run 'npm run dev' in frontend/
 echo Press Ctrl + C to stop the service.
 echo -------------------------------------------------------
 echo.
